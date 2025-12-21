@@ -1,0 +1,47 @@
+import { create } from 'zustand';
+import type { TokenBalance } from '@sync/shared';
+import { usersApi, paymentsApi } from '@sync/api-client';
+
+interface UserState {
+  tokenBalance: TokenBalance | null;
+  votingHistory: { voteId: string; optionId: string; createdAt: Date }[];
+  isLoading: boolean;
+  error: string | null;
+
+  // Actions
+  fetchTokenBalance: () => Promise<void>;
+  fetchVotingHistory: () => Promise<void>;
+  refreshUserData: () => Promise<void>;
+}
+
+export const useUserStore = create<UserState>((set, get) => ({
+  tokenBalance: null,
+  votingHistory: [],
+  isLoading: false,
+  error: null,
+
+  fetchTokenBalance: async () => {
+    set({ isLoading: true });
+    try {
+      const tokenBalance = await paymentsApi.getTokenBalance();
+      set({ tokenBalance, isLoading: false });
+    } catch (err: any) {
+      set({ error: err.message, isLoading: false });
+    }
+  },
+
+  fetchVotingHistory: async () => {
+    set({ isLoading: true });
+    try {
+      const votingHistory = await usersApi.getVotingHistory();
+      set({ votingHistory, isLoading: false });
+    } catch (err: any) {
+      set({ error: err.message, isLoading: false });
+    }
+  },
+
+  refreshUserData: async () => {
+    const { fetchTokenBalance, fetchVotingHistory } = get();
+    await Promise.all([fetchTokenBalance(), fetchVotingHistory()]);
+  },
+}));
