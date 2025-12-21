@@ -8,6 +8,7 @@ import * as Location from 'expo-location';
 import * as WebBrowser from 'expo-web-browser';
 import { votesApi, paymentsApi } from '@sync/api-client';
 import { Vote, VoteOption, VOTE_COST, formatCurrency, getTimeRemaining } from '@sync/shared';
+import { shareVote } from '@/src/lib/share';
 
 function OptionCard({
   option,
@@ -222,7 +223,10 @@ export default function VoteDetailScreen() {
         <Text className="flex-1 text-lg font-heebo font-semibold text-neutral-900 text-right mr-4" numberOfLines={1}>
           {vote.title}
         </Text>
-        <Pressable className="p-1">
+        <Pressable
+          className="p-1"
+          onPress={() => shareVote(id, vote.title)}
+        >
           <Ionicons name="share-outline" size={24} color="#374151" />
         </Pressable>
       </View>
