@@ -26,12 +26,6 @@ export function Hero() {
         </motion.div>
 
         <div className={styles.content}>
-          {/* Badge */}
-          <AnimatedFadeInUp className={styles.badge}>
-            <span className={styles.badgeIcon}>✦</span>
-            <span>מופעל על בלוקצ׳יין Qubik</span>
-          </AnimatedFadeInUp>
-
           {/* Main Heading */}
           <h1 className={styles.heading}>
             <AnimatedLetters text="הקול שלך." delay={0.2} />
@@ -52,7 +46,7 @@ export function Hero() {
           >
             <Text size="xl" color="secondary" align="center">
               <AnimatedWords
-                text="סינק מאפשרת לתושבים להצביע על החלטות מקומיות, לעקוב אחרי התקדמות, ולהשפיע על העתיד של הקהילה שלהם - הכל באמצעות טכנולוגיית בלוקצ׳יין שקופה ומאובטחת."
+                text="אף אחד לא שואל אותנו. אין אלטרנטיבה. תֵּרָאוּ היא הדרך היחידה ליצור קונצנזוס אזרחי מקומי שאי אפשר להתעלם ממנו - מבוזר לחלוטין, שייך לעם, ומחייב את הרשויות להקשיב."
                 delay={1.4}
               />
             </Text>
@@ -90,7 +84,7 @@ export function Hero() {
             </div>
             <div className={styles.trustDivider} />
             <div className={styles.trustItem}>
-              <span className={styles.trustNumber}>₪1</span>
+              <span className={styles.trustNumber}>₪3</span>
               <span className={styles.trustLabel}>להצבעה</span>
             </div>
             <div className={styles.trustDivider} />

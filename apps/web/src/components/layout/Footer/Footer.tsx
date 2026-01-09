@@ -44,7 +44,7 @@ export function Footer() {
           {/* Brand Column */}
           <AnimatedFadeInUp className={styles.brandColumn}>
             <Link href="/" className={styles.logo}>
-              <span className={styles.logoText}>סינק</span>
+              <span className={styles.logoText}>תֵּרָאוּ</span>
             </Link>
             <Text size="base" color="muted" className={styles.tagline}>
               הקול שלך. הקהילה שלך.
@@ -53,7 +53,7 @@ export function Footer() {
             </Text>
             <div className={styles.socialLinks}>
               <a
-                href="https://twitter.com/sync_il"
+                href="https://twitter.com/taro_il"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.socialLink}
@@ -64,7 +64,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://facebook.com/sync.il"
+                href="https://facebook.com/taro.il"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.socialLink}
@@ -75,7 +75,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://linkedin.com/company/sync-il"
+                href="https://linkedin.com/company/taro-il"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.socialLink}
@@ -118,7 +118,7 @@ export function Footer() {
           transition={{ delay: 0.4 }}
         >
           <Text size="sm" color="muted">
-            {currentYear} סינק. כל הזכויות שמורות.
+            {currentYear} תֵּרָאוּ. כל הזכויות שמורות.
           </Text>
           <Text size="sm" color="muted">
             נבנה באהבה בישראל

@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useAuth } from '@clerk/nextjs';
+import { useAuth } from '@/providers/AuthProvider';
 import { motion } from 'framer-motion';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import {
+  getIdentityLevelLabel,
+  getIdentityLevelDescription,
+} from '@sync/shared';
 import styles from './page.module.css';
 
 interface DashboardStats {
@@ -59,15 +62,14 @@ const mockRecentVotes: RecentVote[] = [
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isLoaded } = useUser();
-  const { isSignedIn } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentVotes, setRecentVotes] = useState<RecentVote[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      router.push('/sign-in');
+    if (!isLoading && !isAuthenticated) {
+      router.push('/sign-in?redirect=/dashboard');
       return;
     }
 
@@ -77,15 +79,15 @@ export default function DashboardPage() {
       await new Promise((resolve) => setTimeout(resolve, 500));
       setStats(mockStats);
       setRecentVotes(mockRecentVotes);
-      setLoading(false);
+      setDataLoading(false);
     };
 
-    if (isSignedIn) {
+    if (isAuthenticated) {
       fetchData();
     }
-  }, [isLoaded, isSignedIn, router]);
+  }, [isLoading, isAuthenticated, router]);
 
-  if (!isLoaded || loading) {
+  if (isLoading || dataLoading) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.spinner} />
@@ -93,6 +95,11 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  // Get identity level info
+  const identityLevel = user?.identityScore?.level || 'basic';
+  const identityTotal = user?.identityScore?.total || 0;
+  const verificationPhase = user?.verificationStatus?.phase || 'not_started';
 
   return (
     <>
@@ -110,12 +117,79 @@ export default function DashboardPage() {
             <p>ברוכים הבאים לוח הבקרה שלכם</p>
           </motion.div>
 
+          {/* Verification Status Banner */}
+          {verificationPhase !== 'completed' && (
+            <motion.div
+              className={styles.verificationBanner}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.05 }}
+            >
+              <div className={styles.bannerContent}>
+                <span className={styles.bannerIcon}>📍</span>
+                <div className={styles.bannerText}>
+                  <strong>אימות מיקום</strong>
+                  <p>
+                    {verificationPhase === 'not_started'
+                      ? 'התחילו את תהליך אימות התושבות כדי להצביע'
+                      : verificationPhase === 'in_progress'
+                        ? `בתהליך - ${user?.verificationStatus?.checkInsCompleted || 0}/${user?.verificationStatus?.checkInsTotal || 0} צ׳ק-אינים`
+                        : 'האימות נכשל - נסו שוב'}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => router.push('/verification')}
+              >
+                {verificationPhase === 'not_started' ? 'התחל אימות' : 'צפה בסטטוס'}
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Identity Score Card */}
+          <motion.div
+            className={styles.identityCard}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <div className={styles.identityHeader}>
+              <h2>ציון זהות</h2>
+              <span className={`${styles.identityBadge} ${styles[identityLevel]}`}>
+                {getIdentityLevelLabel(identityLevel)}
+              </span>
+            </div>
+            <div className={styles.identityProgress}>
+              <div className={styles.progressBar}>
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${identityTotal}%` }}
+                />
+              </div>
+              <span className={styles.progressText}>{identityTotal}/100</span>
+            </div>
+            <p className={styles.identityDescription}>
+              {getIdentityLevelDescription(identityLevel)}
+            </p>
+            {identityTotal < 100 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/settings/social-connections')}
+              >
+                הוסף חשבונות לשיפור הציון
+              </Button>
+            )}
+          </motion.div>
+
           {/* Stats Grid */}
           <motion.div
             className={styles.statsGrid}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
           >
             <div className={styles.statCard}>
               <div className={styles.statIcon}>🗳️</div>
@@ -129,8 +203,8 @@ export default function DashboardPage() {
             </div>
             <div className={styles.statCard}>
               <div className={styles.statIcon}>🪙</div>
-              <div className={styles.statValue}>{stats?.tokensEarned || 0}</div>
-              <div className={styles.statLabel}>טוקנים</div>
+              <div className={styles.statValue}>{user?.syncTokenBalance || stats?.tokensEarned || 0}</div>
+              <div className={styles.statLabel}>טוקנים SYNC</div>
             </div>
             <div className={styles.statCard}>
               <div className={styles.statIcon}>✨</div>
@@ -152,7 +226,7 @@ export default function DashboardPage() {
                 צפייה בהצבעות פעילות
               </Button>
               <Button variant="secondary" onClick={() => router.push('/votes/create')}>
-                יצירת הצבעה חדשה
+                יצירת הצבעה חדשה (₪200)
               </Button>
             </div>
           </motion.div>
@@ -207,12 +281,12 @@ export default function DashboardPage() {
             transition={{ duration: 0.5, delay: 0.5 }}
           >
             <div className={styles.tokenInfo}>
-              <h2>יתרת טוקנים</h2>
-              <div className={styles.tokenBalance}>{stats?.tokensEarned || 0}</div>
-              <p>כל הצבעה מזכה ב-1 טוקן. ניתן להמיר טוקנים להנחות והטבות.</p>
+              <h2>יתרת טוקנים SYNC</h2>
+              <div className={styles.tokenBalance}>{user?.syncTokenBalance || 0}</div>
+              <p>כל הצבעה מזכה בטוקנים לפי ההשקעה. ₪3 = 3 SYNC. טוקנים משמשים לפעולות בפלטפורמה.</p>
             </div>
             <div className={styles.tokenActions}>
-              <Button variant="secondary" size="small">
+              <Button variant="secondary" size="sm">
                 היסטוריית טוקנים
               </Button>
             </div>
