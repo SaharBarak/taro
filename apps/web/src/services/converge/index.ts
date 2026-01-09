@@ -8,34 +8,35 @@
  * - Analytics data
  */
 
+import type {
+  SocialProof,
+  IdentityScore,
+  VerificationStatus,
+} from '@sync/shared';
+
 interface ConvergeConfig {
   apiKey: string;
   projectId: string;
   baseUrl: string;
 }
 
-// User types
+// User types - Updated for new auth
 interface UserProfile {
   id: string;
-  clerkId: string;
+  googleId: string;
+  did: string;
   qubikWalletAddress: string;
   firstName: string;
   lastName: string;
   email: string;
   phone?: string;
   municipality: string;
-  verificationStatus: 'pending' | 'verified' | 'rejected';
-  socialConnections: SocialConnection[];
+  verificationStatus: VerificationStatus;
+  socialProofs: SocialProof[];
+  identityScore: IdentityScore;
   syncTokenBalance: number;
   createdAt: Date;
   updatedAt: Date;
-}
-
-interface SocialConnection {
-  platform: 'facebook' | 'twitter' | 'instagram' | 'linkedin';
-  platformId: string;
-  connected: boolean;
-  verifiedAt?: Date;
 }
 
 // Vote types
@@ -78,7 +79,7 @@ interface VoteResults {
 interface Participation {
   id: string;
   voteId: string;
-  oderId: string;
+  userId: string;
   optionId: string;
   paymentTxId: string;
   qubikTxHash: string;
@@ -118,7 +119,9 @@ class ConvergeService {
     );
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+      const error = await response
+        .json()
+        .catch(() => ({ message: 'Unknown error' }));
       throw new Error(error.message);
     }
 
@@ -129,13 +132,46 @@ class ConvergeService {
   // USER OPERATIONS
   // ============================================
 
-  async createUser(userData: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>): Promise<UserProfile> {
+  async createUser(
+    userData: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<UserProfile> {
     return this.request<UserProfile>('/collections/users/documents', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   }
 
+  /**
+   * Get user by Google ID (primary auth method)
+   */
+  async getUserByGoogleId(googleId: string): Promise<UserProfile | null> {
+    try {
+      const result = await this.request<{ documents: UserProfile[] }>(
+        `/collections/users/documents?filter=googleId:${googleId}`
+      );
+      return result.documents[0] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get user by DID
+   */
+  async getUserByDid(did: string): Promise<UserProfile | null> {
+    try {
+      const result = await this.request<{ documents: UserProfile[] }>(
+        `/collections/users/documents?filter=did:${encodeURIComponent(did)}`
+      );
+      return result.documents[0] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * @deprecated Use getUserByGoogleId instead
+   */
   async getUserByClerkId(clerkId: string): Promise<UserProfile | null> {
     try {
       const result = await this.request<{ documents: UserProfile[] }>(
@@ -147,7 +183,10 @@ class ConvergeService {
     }
   }
 
-  async updateUser(id: string, updates: Partial<UserProfile>): Promise<UserProfile> {
+  async updateUser(
+    id: string,
+    updates: Partial<UserProfile>
+  ): Promise<UserProfile> {
     return this.request<UserProfile>(`/collections/users/documents/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({
@@ -157,21 +196,34 @@ class ConvergeService {
     });
   }
 
-  async updateSocialConnections(
-    oderId: string,
-    connections: SocialConnection[]
+  async updateSocialProofs(
+    googleId: string,
+    socialProofs: SocialProof[],
+    identityScore: IdentityScore
   ): Promise<UserProfile> {
-    const user = await this.getUserByClerkId(oderId);
+    const user = await this.getUserByGoogleId(googleId);
     if (!user) throw new Error('User not found');
 
-    return this.updateUser(user.id, { socialConnections: connections });
+    return this.updateUser(user.id, { socialProofs, identityScore });
+  }
+
+  async updateVerificationStatus(
+    googleId: string,
+    verificationStatus: VerificationStatus
+  ): Promise<UserProfile> {
+    const user = await this.getUserByGoogleId(googleId);
+    if (!user) throw new Error('User not found');
+
+    return this.updateUser(user.id, { verificationStatus });
   }
 
   // ============================================
   // VOTE OPERATIONS
   // ============================================
 
-  async createVote(voteData: Omit<Vote, 'id' | 'createdAt' | 'updatedAt' | 'participantCount'>): Promise<Vote> {
+  async createVote(
+    voteData: Omit<Vote, 'id' | 'createdAt' | 'updatedAt' | 'participantCount'>
+  ): Promise<Vote> {
     return this.request<Vote>('/collections/votes/documents', {
       method: 'POST',
       body: JSON.stringify({
@@ -246,23 +298,28 @@ class ConvergeService {
   // PARTICIPATION OPERATIONS
   // ============================================
 
-  async createParticipation(data: Omit<Participation, 'id' | 'createdAt'>): Promise<Participation> {
-    return this.request<Participation>('/collections/participations/documents', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+  async createParticipation(
+    data: Omit<Participation, 'id' | 'createdAt'>
+  ): Promise<Participation> {
+    return this.request<Participation>(
+      '/collections/participations/documents',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    );
   }
 
-  async getUserParticipations(oderId: string): Promise<Participation[]> {
+  async getUserParticipations(userId: string): Promise<Participation[]> {
     const result = await this.request<{ documents: Participation[] }>(
-      `/collections/participations/documents?filter=oderId:${oderId}&orderBy=createdAt:desc`
+      `/collections/participations/documents?filter=userId:${userId}&orderBy=createdAt:desc`
     );
     return result.documents;
   }
 
-  async hasUserParticipated(voteId: string, oderId: string): Promise<boolean> {
+  async hasUserParticipated(voteId: string, userId: string): Promise<boolean> {
     const result = await this.request<{ documents: Participation[] }>(
-      `/collections/participations/documents?filter=voteId:${voteId},oderId:${oderId}`
+      `/collections/participations/documents?filter=voteId:${voteId},userId:${userId}`
     );
     return result.documents.length > 0;
   }
@@ -276,4 +333,10 @@ class ConvergeService {
 }
 
 export const convergeService = new ConvergeService();
-export type { UserProfile, SocialConnection, Vote, VoteOption, VoteResults, Participation };
+export type {
+  UserProfile,
+  Vote,
+  VoteOption,
+  VoteResults,
+  Participation,
+};

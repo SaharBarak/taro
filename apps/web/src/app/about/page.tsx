@@ -10,7 +10,7 @@ import { CTA } from '@/components/sections/CTA';
 export const metadata: Metadata = {
   title: 'אודות',
   description:
-    'למדו על החזון שלנו, הטכנולוגיה מאחורי סינק, והצוות שעומד מאחורי הפלטפורמה.',
+    'למדו על החזון שלנו, הטכנולוגיה מאחורי תֵּרָאוּ, והצוות שעומד מאחורי הפלטפורמה.',
 };
 
 export default function AboutPage() {

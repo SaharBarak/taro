@@ -7,7 +7,7 @@ import { AppFeatures } from './components/AppFeatures';
 export const metadata: Metadata = {
   title: 'הורדת האפליקציה',
   description:
-    'הורידו את אפליקציית סינק ל-iOS ו-Android והתחילו להשפיע על הקהילה שלכם.',
+    'הורידו את אפליקציית תֵּרָאוּ ל-iOS ו-Android והתחילו להשפיע על הקהילה שלכם.',
 };
 
 export default function DownloadPage() {

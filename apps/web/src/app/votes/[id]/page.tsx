@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import styles from './page.module.css';
+import { useAuthStore } from '@/stores/authStore';
 
 interface VoteOption {
   id: string;
@@ -75,23 +75,40 @@ function getTimeRemaining(endDate: string): string {
 export default function VoteDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
   const [vote, setVote] = useState<Vote | null>(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
 
-  useEffect(() => {
-    // TODO: Fetch from API
-    const fetchVote = async () => {
-      setLoading(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+  const fetchVote = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/votes/${params.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setVote(data);
+        // Check if user already voted
+        if (data.userVote) {
+          setHasVoted(true);
+          setSelectedOption(data.userVote.optionId);
+        }
+      } else {
+        // Fallback to mock data for demo
+        setVote(mockVote);
+      }
+    } catch {
+      // Use mock data as fallback
       setVote(mockVote);
+    } finally {
       setLoading(false);
-    };
-
-    fetchVote();
+    }
   }, [params.id]);
+
+  useEffect(() => {
+    fetchVote();
+  }, [fetchVote]);
 
   if (loading) {
     return (
@@ -116,12 +133,61 @@ export default function VoteDetailPage() {
   const isActive = vote.status === 'active';
 
   const handleVote = async () => {
-    if (!selectedOption) return;
+    if (!selectedOption || !vote) return;
 
-    // TODO: Implement actual voting with payment
-    alert('בקרוב: הצבעה עם תשלום ואימות מיקום');
-    setHasVoted(true);
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      router.push('/sign-in?redirect=' + encodeURIComponent(`/votes/${params.id}`));
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Create Green Invoice payment
+      const response = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'vote_participation',
+          voteId: params.id,
+          optionId: selectedOption,
+          voteTitle: vote.title,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create payment');
+      }
+
+      const data = await response.json();
+
+      // Redirect to Green Invoice payment page
+      if (data.payment?.paymentUrl) {
+        window.location.href = data.payment.paymentUrl;
+      } else {
+        throw new Error('No payment URL received');
+      }
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      alert(err.message || 'שגיאה בתשלום');
+      setSubmitting(false);
+    }
   };
+
+  // Handle payment success redirect
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('payment') === 'success') {
+      setHasVoted(true);
+      // Clean up URL
+      router.replace(`/votes/${params.id}`);
+      // Refresh vote data
+      fetchVote();
+    }
+  }, [params.id, router, fetchVote]);
 
   return (
     <>
@@ -253,14 +319,14 @@ export default function VoteDetailPage() {
               {isActive && !hasVoted && (
                 <div className={styles.voteAction}>
                   <p className={styles.voteInfo}>
-                    עלות הצבעה: <strong>₪1</strong> • נרשם בבלוקצ׳יין
+                    עלות הצבעה: <strong>₪3</strong> • תשלום מאובטח דרך Green Invoice
                   </p>
                   <Button
                     onClick={handleVote}
-                    disabled={!selectedOption}
+                    disabled={!selectedOption || submitting}
                     size="large"
                   >
-                    הצביעו עכשיו
+                    {submitting ? 'מעבד תשלום...' : 'הצביעו עכשיו'}
                   </Button>
                 </div>
               )}
