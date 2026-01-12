@@ -42,7 +42,7 @@ export function Team() {
 
           <AnimatedFadeInUp delay={0.1}>
             <Heading level={2} align="center">
-              <AnimatedWords text="האנשים מאחורי סינק" delay={0.2} />
+              <AnimatedWords text="האנשים מאחורי תֵּרָאוּ" delay={0.2} />
             </Heading>
           </AnimatedFadeInUp>
 

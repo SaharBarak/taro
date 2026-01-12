@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/providers/AuthProvider';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import styles from './page.module.css';
@@ -32,11 +32,18 @@ const MUNICIPALITIES = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/sign-up');
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   const filteredMunicipalities = MUNICIPALITIES.filter((m) =>
     m.includes(searchQuery)
@@ -47,8 +54,17 @@ export default function OnboardingPage() {
 
     setLoading(true);
     try {
-      // TODO: Save to backend
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Save municipality to backend
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ municipality: selectedMunicipality }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save profile');
+      }
+
       router.push('/dashboard');
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -56,6 +72,16 @@ export default function OnboardingPage() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner} />
+        <p>טוען...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -84,7 +110,7 @@ export default function OnboardingPage() {
               transition={{ duration: 0.3 }}
             >
               <div className={styles.stepIcon}>👋</div>
-              <h1>ברוכים הבאים לסינק!</h1>
+              <h1>ברוכים הבאים לתֵּרָאוּ!</h1>
               <p>
                 שלום {user?.firstName || 'שם'},<br />
                 אנחנו שמחים שהצטרפתם. בואו נגדיר את הפרופיל שלכם כדי שתוכלו להתחיל להצביע.

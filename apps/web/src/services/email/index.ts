@@ -29,8 +29,8 @@ class EmailService {
   constructor() {
     this.config = {
       apiKey: process.env.RESEND_API_KEY || '',
-      fromEmail: 'noreply@sync.co.il',
-      fromName: 'סינק',
+      fromEmail: 'noreply@taro.co.il',
+      fromName: 'תֵּרָאוּ',
     };
   }
 
@@ -119,7 +119,7 @@ class EmailService {
     to: string;
     firstName: string;
     amount: number;
-    type: 'vote' | 'create_vote';
+    type: 'vote' | 'create_vote' | 'vote_participation' | 'vote_creation';
     receiptUrl: string;
     tokensEarned: number;
   }): Promise<void> {
@@ -175,7 +175,7 @@ class EmailService {
 
   private getWelcomeTemplate(firstName: string): EmailTemplate {
     return {
-      subject: 'ברוכים הבאים לסינק! 🎉',
+      subject: 'ברוכים הבאים לתֵּרָאוּ! 🎉',
       html: `
         <!DOCTYPE html>
         <html dir="rtl" lang="he">
@@ -186,13 +186,13 @@ class EmailService {
         <body style="font-family: 'Heebo', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">סינק</h1>
+              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תֵּרָאוּ</h1>
             </div>
 
             <h2 style="color: #171717; font-size: 24px; margin-bottom: 16px;">שלום ${firstName}! 👋</h2>
 
             <p style="color: #525252; font-size: 16px; line-height: 1.6;">
-              ברוכים הבאים למשפחת סינק! אנחנו שמחים שהצטרפת אלינו במסע לשינוי
+              ברוכים הבאים למשפחת תֵּרָאוּ! אנחנו שמחים שהצטרפת אלינו במסע לשינוי
               הדרך שבה אזרחים משתתפים בקבלת החלטות מקומיות.
             </p>
 
@@ -203,7 +203,7 @@ class EmailService {
             <ul style="color: #525252; font-size: 16px; line-height: 1.8;">
               <li>להצביע על נושאים מקומיים ברשות שלך</li>
               <li>ליזום הצבעות חדשות</li>
-              <li>לצבור טוקני Sync</li>
+              <li>לצבור טוקני Taro</li>
               <li>לעקוב אחרי החלטות והשפעות</li>
             </ul>
 
@@ -222,7 +222,7 @@ class EmailService {
         </body>
         </html>
       `,
-      text: `שלום ${firstName}! ברוכים הבאים לסינק. עכשיו אתה יכול להצביע על נושאים מקומיים ברשות שלך.`,
+      text: `שלום ${firstName}! ברוכים הבאים לתֵּרָאוּ. עכשיו אתה יכול להצביע על נושאים מקומיים ברשות שלך.`,
     };
   }
 
@@ -251,7 +251,7 @@ class EmailService {
         <body style="font-family: 'Heebo', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">סינק</h1>
+              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תֵּרָאוּ</h1>
             </div>
 
             <h2 style="color: #171717; font-size: 24px; margin-bottom: 16px;">שלום ${params.firstName}!</h2>
@@ -312,7 +312,7 @@ class EmailService {
         <body style="font-family: 'Heebo', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">סינק</h1>
+              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תֵּרָאוּ</h1>
             </div>
 
             <h2 style="color: #171717; font-size: 24px; margin-bottom: 16px;">שלום ${params.firstName}!</h2>
@@ -362,15 +362,15 @@ class EmailService {
   private getPaymentReceiptTemplate(params: {
     firstName: string;
     amount: number;
-    type: 'vote' | 'create_vote';
+    type: 'vote' | 'create_vote' | 'vote_participation' | 'vote_creation';
     receiptUrl: string;
     tokensEarned: number;
   }): EmailTemplate {
-    const paymentDescription =
-      params.type === 'vote' ? 'השתתפות בהצבעה' : 'יצירת הצבעה';
+    const isVote = params.type === 'vote' || params.type === 'vote_participation';
+    const paymentDescription = isVote ? 'השתתפות בהצבעה' : 'יצירת הצבעה';
 
     return {
-      subject: `קבלה עבור ${paymentDescription} - סינק`,
+      subject: `קבלה עבור ${paymentDescription} - תֵּרָאוּ`,
       html: `
         <!DOCTYPE html>
         <html dir="rtl" lang="he">
@@ -381,7 +381,7 @@ class EmailService {
         <body style="font-family: 'Heebo', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">סינק</h1>
+              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תֵּרָאוּ</h1>
             </div>
 
             <h2 style="color: #171717; font-size: 24px; margin-bottom: 16px;">תודה ${params.firstName}!</h2>
@@ -401,7 +401,7 @@ class EmailService {
               </div>
               <div style="display: flex; justify-content: space-between;">
                 <span style="color: #737373;">טוקנים שנצברו:</span>
-                <span style="color: #10B981; font-weight: 600;">${params.tokensEarned} SYNC</span>
+                <span style="color: #10B981; font-weight: 600;">${params.tokensEarned} TARO</span>
               </div>
             </div>
 
@@ -420,7 +420,7 @@ class EmailService {
         </body>
         </html>
       `,
-      text: `תודה ${params.firstName}! התשלום שלך עבור ${paymentDescription} בסך ₪${params.amount} התקבל בהצלחה. צברת ${params.tokensEarned} טוקני SYNC.`,
+      text: `תודה ${params.firstName}! התשלום שלך עבור ${paymentDescription} בסך ₪${params.amount} התקבל בהצלחה. צברת ${params.tokensEarned} טוקני TARO.`,
     };
   }
 
