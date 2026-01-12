@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/services/auth/session';
-import { convergeService } from '@/services/converge';
+import {
+  getUserById,
+  getActiveVerificationRun,
+  getNextPendingCheckIn,
+  createVerificationAttempt,
+  updateVerificationScheduleItem,
+  updateVerificationRun,
+  updateUser,
+} from '@/lib/supabase/db';
 import { verifyCheckIn } from '@/services/verification/municipality';
-import type { VerificationStatus } from '@sync/shared';
 
 interface CheckInRequest {
   latitude: number;
   longitude: number;
   accuracy?: number;
-  checkInId?: string;
+  scheduleId?: string;
 }
 
 /**
@@ -24,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CheckInRequest = await request.json();
-    const { latitude, longitude, accuracy, checkInId } = body;
+    const { latitude, longitude, accuracy, scheduleId } = body;
 
     // Validate required fields
     if (typeof latitude !== 'number' || typeof longitude !== 'number') {
@@ -34,24 +41,63 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await convergeService.getUserByGoogleId(session.googleId);
+    const user = await getUserById(session.userId);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if verification is in progress
-    if (user.verificationStatus?.phase !== 'in_progress') {
+    // Get active verification run
+    const run = await getActiveVerificationRun(user.id);
+    if (!run) {
       return NextResponse.json(
         { error: 'No verification in progress. Please start verification first.' },
         { status: 400 }
       );
     }
 
-    // Check if user has a municipality set
-    if (!user.municipality) {
+    // Get the next pending check-in or use the provided scheduleId
+    let scheduleItem;
+    if (scheduleId) {
+      // Validate the scheduleId belongs to this run
+      const allItems = await getNextPendingCheckIn(run.id);
+      scheduleItem = allItems?.id === scheduleId ? allItems : null;
+    } else {
+      scheduleItem = await getNextPendingCheckIn(run.id);
+    }
+
+    if (!scheduleItem) {
       return NextResponse.json(
-        { error: 'No municipality selected' },
+        { error: 'No pending check-in found' },
+        { status: 400 }
+      );
+    }
+
+    // Check if current time is within the check-in window
+    const now = new Date();
+    const windowStart = new Date(scheduleItem.window_start);
+    const windowEnd = new Date(scheduleItem.window_end);
+
+    if (now < windowStart || now > windowEnd) {
+      // Record the missed attempt
+      await createVerificationAttempt({
+        schedule_id: scheduleItem.id,
+        user_id: user.id,
+        latitude,
+        longitude,
+        accuracy: accuracy || 0,
+        passed: false,
+        fail_reason: now < windowStart ? 'too_early' : 'too_late',
+      });
+
+      return NextResponse.json(
+        {
+          success: false,
+          verified: false,
+          error: now < windowStart
+            ? 'Check-in window has not started yet'
+            : 'Check-in window has expired',
+        },
         { status: 400 }
       );
     }
@@ -61,10 +107,26 @@ export async function POST(request: NextRequest) {
       latitude,
       longitude,
       accuracy,
-      user.municipality
+      run.municipality_id
     );
 
+    // Record the attempt
+    const attempt = await createVerificationAttempt({
+      schedule_id: scheduleItem.id,
+      user_id: user.id,
+      latitude,
+      longitude,
+      accuracy: accuracy || 0,
+      passed: verificationResult.verified,
+      fail_reason: verificationResult.verified ? null : verificationResult.error || null,
+    });
+
     if (!verificationResult.verified) {
+      // Update run stats for failed attempt
+      await updateVerificationRun(run.id, {
+        failed_check_ins: run.failed_check_ins + 1,
+      });
+
       return NextResponse.json(
         {
           success: false,
@@ -80,60 +142,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update verification status
-    const currentStatus = user.verificationStatus;
-    const newCompletedCount = (currentStatus.checkInsCompleted || 0) + 1;
+    // Mark schedule item as completed
+    await updateVerificationScheduleItem(scheduleItem.id, {
+      completed: true,
+    });
 
-    const updatedStatus: VerificationStatus = {
-      ...currentStatus,
-      checkInsCompleted: newCompletedCount,
+    // Update run stats
+    const newCompletedCount = run.completed_check_ins + 1;
+    const updateData: {
+      completed_check_ins: number;
+      status?: 'active' | 'verified' | 'failed' | 'cancelled';
+      completed_at?: string;
+    } = {
+      completed_check_ins: newCompletedCount,
     };
 
-    // Check if all check-ins are complete
-    if (
-      currentStatus.checkInsTotal &&
-      newCompletedCount >= currentStatus.checkInsTotal
-    ) {
-      updatedStatus.phase = 'completed';
-      updatedStatus.completedAt = new Date();
+    // Check if verification is complete (80% success rate after all check-ins)
+    if (newCompletedCount + run.failed_check_ins >= run.total_check_ins) {
+      const successRate = newCompletedCount / run.total_check_ins;
+      if (successRate >= 0.8) {
+        updateData.status = 'verified';
+        updateData.completed_at = new Date().toISOString();
+
+        // Update user verification status
+        await updateUser(user.id, {
+          verification_status: 'verified',
+        });
+      }
     }
 
-    // Update user's verification status
-    await convergeService.updateUser(session.googleId, {
-      verificationStatus: updatedStatus,
-    });
-
-    // Log the check-in
-    // TODO: Store detailed check-in record with timestamp and location
-    console.log('Check-in recorded:', {
-      userId: user.id,
-      checkInId,
-      latitude,
-      longitude,
-      accuracy,
-      verified: true,
-      municipality: user.municipality,
-      timestamp: new Date().toISOString(),
-    });
+    await updateVerificationRun(run.id, updateData);
 
     return NextResponse.json({
       success: true,
       verified: true,
       checkIn: {
-        id: checkInId || `check-in-${Date.now()}`,
-        completedAt: new Date().toISOString(),
+        id: attempt.id,
+        completedAt: attempt.timestamp,
         location: { latitude, longitude, accuracy },
         municipalityVerified: true,
         distanceFromCenter: verificationResult.distanceFromCenter,
       },
-      verificationStatus: updatedStatus,
+      verificationStatus: {
+        phase: updateData.status === 'verified' ? 'completed' : 'in_progress',
+        completedCheckIns: newCompletedCount,
+        totalCheckIns: run.total_check_ins,
+      },
       progress: {
         completedCheckIns: newCompletedCount,
-        totalCheckIns: currentStatus.checkInsTotal || 0,
-        completionRate:
-          currentStatus.checkInsTotal
-            ? newCompletedCount / currentStatus.checkInsTotal
-            : 0,
+        totalCheckIns: run.total_check_ins,
+        completionRate: newCompletedCount / run.total_check_ins,
       },
     });
   } catch (error) {

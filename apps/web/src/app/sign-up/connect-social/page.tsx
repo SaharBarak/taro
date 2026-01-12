@@ -12,7 +12,7 @@ import styles from './page.module.css';
 
 export default function ConnectSocialPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, updateUser } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [connecting, setConnecting] = useState<string | null>(null);
   const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
 

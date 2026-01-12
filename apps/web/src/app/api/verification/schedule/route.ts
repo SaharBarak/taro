@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateSession } from '@/services/auth/session';
-import { converge } from '@/services/converge';
-import type { VerificationSchedule } from '@sync/shared';
+import { getSessionFromRequest } from '@/services/auth/session';
+import {
+  getUserById,
+  getActiveVerificationRun,
+  getVerificationSchedule,
+} from '@/lib/supabase/db';
 
 /**
  * GET /api/verification/schedule
- * Get full verification schedule (admin/debug endpoint)
- * Requires admin role or returns only user's own schedule
+ * Get the user's verification schedule
  */
 export async function GET(request: NextRequest) {
   try {
-    // Validate session
-    const session = await validateSession(request);
+    const session = await getSessionFromRequest(request);
     if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -19,138 +20,63 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    // If requesting another user's schedule, check for admin role
-    if (userId && userId !== session.userId) {
-      // Check if user is admin
-      const user = await converge.getUser(session.userId);
-      if (!user || user.role !== 'admin') {
-        return NextResponse.json(
-          { error: 'Forbidden - Admin access required' },
-          { status: 403 }
-        );
-      }
+    const user = await getUserById(session.userId);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
     }
 
-    // Get the target user's schedule
-    const targetUserId = userId || session.userId;
-
-    // Get verification schedule from database
-    const schedule = await converge.getVerificationSchedule(targetUserId);
-
-    if (!schedule) {
+    // Get active verification run
+    const run = await getActiveVerificationRun(user.id);
+    if (!run) {
       return NextResponse.json(
         {
-          error: 'No verification schedule found',
+          error: 'No verification in progress',
           message: 'User has not started verification process'
         },
         { status: 404 }
       );
     }
 
-    // Return full schedule details
+    // Get schedule items
+    const scheduleItems = await getVerificationSchedule(run.id);
+
+    // Calculate stats
+    const completedCount = scheduleItems.filter(s => s.completed).length;
+    const pendingCount = scheduleItems.filter(s => !s.completed).length;
+
+    // Only return next upcoming window to prevent gaming
+    const now = new Date();
+    const nextWindow = scheduleItems.find(
+      s => !s.completed && new Date(s.window_end) > now
+    );
+
     return NextResponse.json({
       schedule: {
-        id: schedule.id,
-        userId: schedule.userId,
-        municipality: schedule.municipality,
-        startDate: schedule.startDate,
-        endDate: schedule.endDate,
-        status: schedule.status,
-        checkIns: schedule.checkIns.map((checkIn: any) => ({
-          id: checkIn.id,
-          scheduledDate: checkIn.scheduledDate,
-          scheduledTimeStart: checkIn.scheduledTimeStart,
-          scheduledTimeEnd: checkIn.scheduledTimeEnd,
-          status: checkIn.status,
-          completedAt: checkIn.completedAt,
-          location: checkIn.location,
-          municipalityVerified: checkIn.municipalityVerified,
-        })),
-        completedCheckIns: schedule.checkIns.filter((c: any) => c.status === 'completed').length,
-        totalCheckIns: schedule.checkIns.length,
-        missedCheckIns: schedule.checkIns.filter((c: any) => c.status === 'missed').length,
-        upcomingCheckIns: schedule.checkIns.filter((c: any) => c.status === 'pending').length,
+        id: run.id,
+        userId: run.user_id,
+        municipality: run.municipality_id,
+        periodStart: run.started_at,
+        periodEnd: new Date(new Date(run.started_at).getTime() + 21 * 24 * 60 * 60 * 1000).toISOString(),
+        status: run.status,
+        completedCheckIns: completedCount,
+        totalCheckIns: run.total_check_ins,
+        pendingCheckIns: pendingCount,
+        failedCheckIns: run.failed_check_ins,
+        // Only show the next upcoming window
+        nextCheckIn: nextWindow ? {
+          windowStart: nextWindow.window_start,
+          windowEnd: nextWindow.window_end,
+        } : null,
       },
       metadata: {
         generatedAt: new Date().toISOString(),
-        requestedBy: session.userId,
-        isOwnSchedule: targetUserId === session.userId,
       },
     });
   } catch (error) {
     console.error('Error fetching verification schedule:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * POST /api/verification/schedule
- * Regenerate verification schedule (admin only)
- * Used for testing or when user needs a fresh schedule
- */
-export async function POST(request: NextRequest) {
-  try {
-    // Validate session
-    const session = await validateSession(request);
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user is admin
-    const user = await converge.getUser(session.userId);
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const { userId, municipality, numberOfCheckIns } = body;
-
-    if (!userId || !municipality) {
-      return NextResponse.json(
-        { error: 'userId and municipality are required' },
-        { status: 400 }
-      );
-    }
-
-    // Import schedule generator
-    const { generateVerificationSchedule } = await import('@/services/verification/schedule');
-
-    // Generate new schedule
-    const schedule = generateVerificationSchedule(
-      userId,
-      municipality,
-      numberOfCheckIns || undefined
-    );
-
-    // Save to database (would replace existing schedule)
-    await converge.saveVerificationSchedule(userId, schedule);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Verification schedule regenerated',
-      schedule: {
-        id: schedule.id,
-        userId: schedule.userId,
-        municipality: schedule.municipality,
-        startDate: schedule.startDate,
-        endDate: schedule.endDate,
-        totalCheckIns: schedule.checkIns.length,
-      },
-    });
-  } catch (error) {
-    console.error('Error regenerating verification schedule:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -133,7 +133,9 @@ export default function VerificationPage() {
                 <div className={styles.statusItem}>
                   <span className={styles.statusLabel}>ימים שנותרו</span>
                   <span className={styles.statusValue}>
-                    {verificationStatus?.daysRemaining || 21}
+                    {verificationStatus?.startedAt
+                      ? Math.max(0, 21 - Math.floor((Date.now() - new Date(verificationStatus.startedAt).getTime()) / (1000 * 60 * 60 * 24)))
+                      : 21}
                   </span>
                 </div>
                 <div className={styles.statusItem}>

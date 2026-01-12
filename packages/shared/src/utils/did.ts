@@ -104,7 +104,7 @@ async function deriveKeyFromToken(
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt,
+      salt: salt as BufferSource,
       iterations: 100000,
       hash: 'SHA-256',
     },
@@ -127,7 +127,7 @@ async function encryptPrivateKey(
   const data = encoder.encode(JSON.stringify(privateKey));
 
   const encryptedData = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv: iv as BufferSource },
     encryptionKey,
     data
   );
@@ -146,7 +146,7 @@ async function decryptPrivateKey(
   const encryptedData = base64UrlToArrayBuffer(encryptedPrivateKey);
 
   const decryptedData = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv: iv as BufferSource },
     encryptionKey,
     encryptedData
   );

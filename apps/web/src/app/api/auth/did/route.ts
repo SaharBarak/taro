@@ -1,8 +1,8 @@
 /**
  * DID API Routes
  *
- * POST /api/auth/did/generate - Generate new DID for user
- * POST /api/auth/did/recover - Recover DID using OAuth token
+ * GET /api/auth/did - Get existing DID for authenticated user
+ * POST /api/auth/did - Generate new DID or recover existing
  */
 
 import { NextResponse } from 'next/server';
@@ -12,36 +12,54 @@ import {
   recoverPrivateKey,
   verifyDID,
 } from '@sync/shared';
+import { getUserById, updateUser } from '@/lib/supabase/db';
 
-// Mock database functions - replace with actual Converge implementation
-async function getDIDRecord(userId: string): Promise<{
-  did: string;
-  publicKey: string;
-  encryptedPrivateKeyBackup: string;
-  salt: string;
-  iv: string;
-} | null> {
-  // TODO: Replace with convergeService.getDIDRecord(userId)
-  return null;
-}
+/**
+ * GET /api/auth/did
+ * Get existing DID for authenticated user
+ */
+export async function GET(request: Request) {
+  try {
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Unauthorized', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
 
-async function saveDIDRecord(record: {
-  did: string;
-  userId: string;
-  publicKey: string;
-  encryptedPrivateKeyBackup: string;
-  salt: string;
-  iv: string;
-}): Promise<void> {
-  // TODO: Replace with convergeService.saveDIDRecord(record)
-}
+    // Get user from Supabase
+    const user = await getUserById(session.userId);
 
-async function updateUserDID(
-  userId: string,
-  did: string,
-  publicKey: string
-): Promise<void> {
-  // TODO: Replace with convergeService.updateUserDID(userId, did, publicKey)
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found', code: 'USER_NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+
+    if (!user.did) {
+      return NextResponse.json(
+        { error: 'No DID generated for this user', code: 'DID_NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      did: user.did,
+      publicKey: user.did_public_key ? JSON.parse(user.did_public_key) : null,
+    });
+  } catch (error) {
+    console.error('DID retrieval error:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to retrieve DID',
+        code: 'DID_ERROR',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
 }
 
 /**
@@ -68,39 +86,46 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get user from Supabase
+    const user = await getUserById(session.userId);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found', code: 'USER_NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+
     if (action === 'generate') {
+      // Check if user already has a DID
+      if (user.did) {
+        return NextResponse.json(
+          { error: 'User already has a DID', code: 'DID_EXISTS', did: user.did },
+          { status: 409 }
+        );
+      }
+
       // Generate new DID
       const didData = await generateEncryptedDID(oauthToken);
 
-      // Save DID record for recovery
-      await saveDIDRecord({
+      // Update user with DID in Supabase
+      await updateUser(session.userId, {
         did: didData.did,
-        userId: session.userId,
-        publicKey: JSON.stringify(didData.publicKey),
-        encryptedPrivateKeyBackup: didData.encryptedPrivateKey,
-        salt: didData.salt,
-        iv: didData.iv,
+        did_public_key: JSON.stringify(didData.publicKey),
+        did_encrypted_private_key: JSON.stringify({
+          encryptedPrivateKey: didData.encryptedPrivateKey,
+          salt: didData.salt,
+          iv: didData.iv,
+        }),
       });
-
-      // Update user with DID
-      await updateUserDID(
-        session.userId,
-        didData.did,
-        JSON.stringify(didData.publicKey)
-      );
 
       return NextResponse.json({
         success: true,
         did: didData.did,
         publicKey: didData.publicKey,
-        // Note: We don't return the encrypted private key - it stays on server
-        // Client should store the unencrypted key locally
       });
     } else if (action === 'recover') {
       // Recover DID using OAuth token
-      const didRecord = await getDIDRecord(session.userId);
-
-      if (!didRecord) {
+      if (!user.did || !user.did_encrypted_private_key) {
         return NextResponse.json(
           { error: 'No DID found for recovery', code: 'DID_NOT_FOUND' },
           { status: 404 }
@@ -108,28 +133,32 @@ export async function POST(request: Request) {
       }
 
       try {
+        // Parse the encrypted key data
+        const keyData = JSON.parse(user.did_encrypted_private_key);
+
         // Attempt to decrypt private key with OAuth token
         const privateKey = await recoverPrivateKey(
           oauthToken,
-          didRecord.encryptedPrivateKeyBackup,
-          didRecord.salt,
-          didRecord.iv
+          keyData.encryptedPrivateKey,
+          keyData.salt,
+          keyData.iv
         );
 
         // Verify the recovered key matches the stored public key
-        const publicKey = JSON.parse(didRecord.publicKey);
-        const isValid = await verifyDID(didRecord.did, publicKey);
-
-        if (!isValid) {
-          return NextResponse.json(
-            { error: 'DID verification failed', code: 'DID_INVALID' },
-            { status: 400 }
-          );
+        const publicKey = user.did_public_key ? JSON.parse(user.did_public_key) : null;
+        if (publicKey) {
+          const isValid = await verifyDID(user.did, publicKey);
+          if (!isValid) {
+            return NextResponse.json(
+              { error: 'DID verification failed', code: 'DID_INVALID' },
+              { status: 400 }
+            );
+          }
         }
 
         return NextResponse.json({
           success: true,
-          did: didRecord.did,
+          did: user.did,
           publicKey,
           privateKey, // Return for client to store locally
           message: 'DID recovered successfully',

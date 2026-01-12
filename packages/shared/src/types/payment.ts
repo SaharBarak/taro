@@ -1,18 +1,18 @@
 /**
- * Payment Types - Stripe Integration
+ * Payment Types - Green Invoice Integration
  */
 
 export type PaymentStatus = 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded';
 export type PaymentType = 'vote' | 'create_vote';
 
-// === Stripe Payment Types ===
+// === Green Invoice Payment Types ===
 
 export interface Payment {
   id: string;
 
-  // Stripe
-  stripePaymentIntentId: string;
-  stripeCustomerId?: string;
+  // Green Invoice
+  greenInvoiceId: string;
+  idempotencyKey: string;
 
   // Details
   userId: string;
@@ -49,21 +49,18 @@ export interface CreatePaymentIntentInput {
 }
 
 export interface CreatePaymentIntentResult {
-  paymentIntentId: string;
-  clientSecret: string;
+  paymentId: string;
+  paymentUrl: string;
   amount: number;
   currency: 'ILS';
 }
-
-// === Legacy Types (kept for compatibility) ===
 
 export interface PaymentIntent {
   id: string;
   amount: number;
   currency: 'ILS';
   status: PaymentStatus;
-  paymentUrl?: string; // Optional - not used in Stripe flow
-  clientSecret?: string; // NEW - Stripe client secret
+  paymentUrl: string;
   expiresAt?: Date;
 }
 

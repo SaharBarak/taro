@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { getSessionFromRequest } from '@/services/auth/session';
-import { convergeService } from '@/services/converge';
+import {
+  getUserById,
+  createPayment,
+  getPaymentByIdempotencyKey,
+} from '@/lib/supabase/db';
 import {
   greenInvoiceService,
   getPaymentAmounts,
@@ -10,12 +14,15 @@ import {
 interface CreatePaymentRequest {
   type: 'vote_participation' | 'vote_creation';
   voteId?: string;
+  optionId?: string;
   voteTitle?: string;
+  idempotencyKey?: string;
 }
 
 /**
  * POST /api/payments/create
  * Create a Green Invoice payment form for vote participation or creation
+ * Supports idempotency via idempotency_key
  */
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CreatePaymentRequest = await request.json();
-    const { type, voteId, voteTitle } = body;
+    const { type, voteId, optionId, voteTitle, idempotencyKey } = body;
 
     // Validate payment type
     if (!type || !['vote_participation', 'vote_creation'].includes(type)) {
@@ -44,14 +51,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await convergeService.getUserByGoogleId(session.googleId);
+    const user = await getUserById(session.userId);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Check identity score for voting
-    if (type === 'vote_participation' && (user.identityScore?.total || 0) < 40) {
+    if (type === 'vote_participation' && user.identity_score < 40) {
       return NextResponse.json(
         { error: 'Insufficient identity score to vote. Minimum 40 required.' },
         { status: 403 }
@@ -59,59 +66,93 @@ export async function POST(request: NextRequest) {
     }
 
     // Check verification status for voting
-    if (
-      type === 'vote_participation' &&
-      user.verificationStatus?.phase !== 'completed'
-    ) {
+    if (type === 'vote_participation' && user.verification_status !== 'verified') {
       return NextResponse.json(
         { error: 'GPS verification required before voting' },
         { status: 403 }
       );
     }
 
-    // Generate unique order ID
-    const orderId = uuidv4();
+    // Generate or use provided idempotency key
+    const paymentIdempotencyKey = idempotencyKey || `${user.id}-${type}-${voteId || 'create'}-${Date.now()}`;
 
-    // Create Green Invoice payment form
-    let paymentIntent;
-
-    if (type === 'vote_participation') {
-      paymentIntent = await greenInvoiceService.createVotePayment({
-        orderId,
-        voteId: voteId!,
-        voteTitle,
-        userId: user.id,
-        email: user.email,
-        name: user.name || user.email,
-        municipality: user.municipality,
-      });
-    } else {
-      paymentIntent = await greenInvoiceService.createVoteCreationPayment({
-        orderId,
-        voteTitle: voteTitle || 'הצבעה חדשה',
-        userId: user.id,
-        email: user.email,
-        name: user.name || user.email,
-        municipality: user.municipality,
+    // Check for existing payment with same idempotency key
+    const existingPayment = await getPaymentByIdempotencyKey(paymentIdempotencyKey);
+    if (existingPayment) {
+      // Return existing payment (idempotent response)
+      return NextResponse.json({
+        success: true,
+        idempotent: true,
+        payment: {
+          id: existingPayment.id,
+          status: existingPayment.status,
+          amount: existingPayment.amount,
+          currency: existingPayment.currency,
+        },
       });
     }
 
     const amounts = getPaymentAmounts();
+    const amount = type === 'vote_participation'
+      ? amounts.voteParticipation
+      : amounts.voteCreation;
+
+    // Create payment record in Supabase first (with pending status)
+    const payment = await createPayment({
+      user_id: user.id,
+      type: type as 'vote_participation' | 'vote_creation',
+      amount: amount * 100, // Store in agorot (cents)
+      currency: 'ILS',
+      status: 'pending',
+      idempotency_key: paymentIdempotencyKey,
+      vote_id: voteId || null,
+      option_id: optionId || null,
+      metadata: {
+        voteTitle,
+        userEmail: user.email,
+        userName: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+      },
+    });
+
+    // Create Green Invoice payment form
+    const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email;
+
+    let paymentIntent;
+    if (type === 'vote_participation') {
+      paymentIntent = await greenInvoiceService.createVotePayment({
+        orderId: payment.id, // Use our payment ID as the order ID
+        voteId: voteId!,
+        voteTitle,
+        userId: user.id,
+        email: user.email,
+        name: userName,
+        municipality: user.municipality_id || undefined,
+      });
+    } else {
+      paymentIntent = await greenInvoiceService.createVoteCreationPayment({
+        orderId: payment.id,
+        voteTitle: voteTitle || 'הצבעה חדשה',
+        userId: user.id,
+        email: user.email,
+        name: userName,
+        municipality: user.municipality_id || undefined,
+      });
+    }
 
     return NextResponse.json({
       success: true,
       payment: {
-        id: paymentIntent.id,
-        orderId,
+        id: payment.id,
+        orderId: payment.id,
         paymentUrl: paymentIntent.paymentUrl,
-        amount: paymentIntent.amount,
-        currency: paymentIntent.currency,
+        amount,
+        currency: 'ILS',
         expiresAt: paymentIntent.expiresAt.toISOString(),
       },
       pricing: {
-        amount: type === 'vote_participation' ? amounts.voteParticipation : amounts.voteCreation,
+        amount,
         currency: amounts.currency,
-        syncTokens: type === 'vote_participation' ? amounts.voteParticipation : amounts.voteCreation,
+        syncTokens: amount,
         description:
           type === 'vote_participation'
             ? 'השתתפות בהצבעה'

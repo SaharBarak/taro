@@ -73,12 +73,11 @@ export async function GET(request: NextRequest) {
     const facebookProof: SocialProof = {
       platform: 'facebook',
       platformUserId: facebookUser.id,
-      username: facebookUser.name,
+      displayName: facebookUser.name,
       email: facebookUser.email,
       profileUrl: `https://facebook.com/${facebookUser.id}`,
-      verified: true,
-      verifiedAt: new Date().toISOString(),
-      score: 30,
+      verifiedAt: new Date(),
+      stampWeight: 30,
     };
 
     // Update social proofs (keep existing, add/update Facebook)

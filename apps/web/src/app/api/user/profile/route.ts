@@ -112,12 +112,12 @@ export async function POST(request: NextRequest) {
       },
       socialProofs: [
         {
-          platform: 'google',
+          platform: 'google' as const,
           platformUserId: session.googleId,
+          displayName: session.email,
           email: session.email,
-          verified: true,
-          verifiedAt: new Date().toISOString(),
-          score: 40,
+          verifiedAt: new Date(),
+          stampWeight: 40,
         },
       ],
       identityScore: {
@@ -127,8 +127,7 @@ export async function POST(request: NextRequest) {
           facebook: 0,
           instagram: 0,
         },
-        level: 'basic',
-        lastCalculated: new Date().toISOString(),
+        level: 'basic' as const,
       },
       syncTokenBalance: 0,
     });
