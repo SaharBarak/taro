@@ -22,7 +22,7 @@ export function AboutHero() {
         <div className={styles.content}>
           <AnimatedFadeInUp>
             <Text size="lg" color="accent" weight="semibold" align="center">
-              אודות סינק
+              אודות תֵּרָאוּ
             </Text>
           </AnimatedFadeInUp>
 
@@ -36,7 +36,7 @@ export function AboutHero() {
 
           <AnimatedFadeInUp delay={0.8}>
             <Text size="xl" color="secondary" align="center" className={styles.description}>
-              סינק נוסדה מתוך אמונה עמוקה שכל אזרח צריך להיות שותף אמיתי
+              תֵּרָאוּ נוסדה מתוך אמונה עמוקה שכל אזרח צריך להיות שותף אמיתי
               בקבלת ההחלטות המשפיעות על חייו. אנחנו בונים את הכלים שיאפשרו
               לכם להשפיע על העתיד של הקהילה שלכם.
             </Text>

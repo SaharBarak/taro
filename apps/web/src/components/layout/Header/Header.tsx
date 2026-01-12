@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { useAuth } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/Button';
 import clsx from 'clsx';
 import styles from './Header.module.css';
@@ -18,6 +18,7 @@ const navLinks = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated, user, signOut, isLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +29,11 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // User avatar or initials
+  const userInitials = user
+    ? (user.firstName?.[0] || user.email?.[0] || '?').toUpperCase()
+    : '?';
+
   return (
     <motion.header
       className={clsx(styles.header, isScrolled && styles.scrolled)}
@@ -37,7 +43,7 @@ export function Header() {
     >
       <div className={styles.container}>
         <Link href="/" className={styles.logo}>
-          <span className={styles.logoText}>סינק</span>
+          <span className={styles.logoText}>תֵּרָאוּ</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -51,33 +57,59 @@ export function Header() {
 
         {/* Auth Buttons */}
         <div className={styles.actions}>
-          <SignedOut>
-            <Link href="/sign-in">
-              <Button variant="ghost" size="sm">
-                התחברות
-              </Button>
-            </Link>
-            <Link href="/sign-up">
-              <Button variant="primary" size="sm">
-                הרשמה
-              </Button>
-            </Link>
-          </SignedOut>
-
-          <SignedIn>
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                לוח בקרה
-              </Button>
-            </Link>
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: styles.avatarBox,
-                },
-              }}
-            />
-          </SignedIn>
+          {!isLoading && (
+            <>
+              {!isAuthenticated ? (
+                <>
+                  <Link href="/sign-in">
+                    <Button variant="ghost" size="sm">
+                      התחברות
+                    </Button>
+                  </Link>
+                  <Link href="/sign-up">
+                    <Button variant="primary" size="sm">
+                      הרשמה
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/dashboard">
+                    <Button variant="ghost" size="sm">
+                      לוח בקרה
+                    </Button>
+                  </Link>
+                  <div className={styles.userMenu}>
+                    <button className={styles.avatarButton}>
+                      <span className={styles.avatar}>{userInitials}</span>
+                    </button>
+                    <div className={styles.userDropdown}>
+                      <div className={styles.userInfo}>
+                        <span className={styles.userName}>
+                          {user?.firstName || 'משתמש'}
+                        </span>
+                        <span className={styles.userEmail}>{user?.email}</span>
+                      </div>
+                      <hr className={styles.divider} />
+                      <Link href="/profile" className={styles.dropdownItem}>
+                        פרופיל
+                      </Link>
+                      <Link href="/settings" className={styles.dropdownItem}>
+                        הגדרות
+                      </Link>
+                      <hr className={styles.divider} />
+                      <button
+                        className={styles.dropdownItem}
+                        onClick={() => signOut()}
+                      >
+                        התנתקות
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
+          )}
 
           {/* Mobile Menu Button */}
           <button
@@ -121,18 +153,38 @@ export function Header() {
               ))}
 
               <div className={styles.mobileAuthButtons}>
-                <SignedOut>
-                  <Link href="/sign-in" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="outline" isFullWidth>
-                      התחברות
+                {!isAuthenticated ? (
+                  <>
+                    <Link href="/sign-in" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="outline" isFullWidth>
+                        התחברות
+                      </Button>
+                    </Link>
+                    <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="primary" isFullWidth>
+                        הרשמה
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="outline" isFullWidth>
+                        לוח בקרה
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      isFullWidth
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        signOut();
+                      }}
+                    >
+                      התנתקות
                     </Button>
-                  </Link>
-                  <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="primary" isFullWidth>
-                      הרשמה
-                    </Button>
-                  </Link>
-                </SignedOut>
+                  </>
+                )}
               </div>
             </nav>
           </motion.div>

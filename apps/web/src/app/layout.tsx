@@ -1,14 +1,12 @@
 import type { Metadata, Viewport } from 'next';
-import Script from 'next/script';
-import { ClerkProvider } from '@clerk/nextjs';
-import { heIL } from '@clerk/localizations';
+import { AuthProvider } from '@/providers/AuthProvider';
 import { LenisProvider } from '@/providers/LenisProvider';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'סינק | הצבעות קהילתיות מקומיות',
-    template: '%s | סינק',
+    default: 'תֵּרָאוּ | הצבעות קהילתיות מקומיות',
+    template: '%s | תֵּרָאוּ',
   },
   description:
     'פלטפורמה לקבלת החלטות קהילתיות ברשויות המקומיות בישראל. הצביעו על נושאים מקומיים, עקבו אחרי החלטות, והשפיעו על הקהילה שלכם.',
@@ -19,11 +17,11 @@ export const metadata: Metadata = {
     'דמוקרטיה',
     'ישראל',
     'בלוקצ׳יין',
-    'סינק',
+    'תראו',
   ],
-  authors: [{ name: 'Sync' }],
-  creator: 'Sync',
-  publisher: 'Sync',
+  authors: [{ name: 'Taro' }],
+  creator: 'Taro',
+  publisher: 'Taro',
   robots: {
     index: true,
     follow: true,
@@ -31,9 +29,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'he_IL',
-    url: 'https://sync.co.il',
-    siteName: 'סינק',
-    title: 'סינק | הצבעות קהילתיות מקומיות',
+    url: 'https://taro.co.il',
+    siteName: 'תֵּרָאוּ',
+    title: 'תֵּרָאוּ | הצבעות קהילתיות מקומיות',
     description:
       'פלטפורמה לקבלת החלטות קהילתיות ברשויות המקומיות בישראל.',
     images: [
@@ -41,13 +39,13 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'סינק - הצבעות קהילתיות',
+        alt: 'תֵּרָאוּ - הצבעות קהילתיות',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'סינק | הצבעות קהילתיות מקומיות',
+    title: 'תֵּרָאוּ | הצבעות קהילתיות מקומיות',
     description:
       'פלטפורמה לקבלת החלטות קהילתיות ברשויות המקומיות בישראל.',
     images: ['/og-image.png'],
@@ -73,15 +71,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider localization={heIL as any}>
-      <html lang="he" dir="rtl">
-        <body>
-          <Script id="developer-console-message" strategy="afterInteractive">
-            {`console.log("%cתֵּרָאוּ • built with love by saharbarak.dev", "font-weight:600; font-size:12px;");`}
-          </Script>
+    <html lang="he" dir="rtl">
+      <body>
+        <AuthProvider>
           <LenisProvider>{children}</LenisProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </AuthProvider>
+      </body>
+    </html>
   );
 }

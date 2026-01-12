@@ -17,7 +17,7 @@ export function DownloadHero() {
           </AnimatedFadeInUp>
 
           <h1 className={styles.heading}>
-            <AnimatedLetters text="סינק בכיס שלכם" delay={0.2} />
+            <AnimatedLetters text="תֵּרָאוּ בכיס שלכם" delay={0.2} />
           </h1>
 
           <AnimatedFadeInUp delay={0.5}>
@@ -35,7 +35,7 @@ export function DownloadHero() {
             transition={{ delay: 0.7 }}
           >
             <a
-              href="https://apps.apple.com/app/sync"
+              href="https://apps.apple.com/app/taro"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.storeButton}
@@ -50,7 +50,7 @@ export function DownloadHero() {
             </a>
 
             <a
-              href="https://play.google.com/store/apps/details?id=il.co.sync"
+              href="https://play.google.com/store/apps/details?id=il.co.taro"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.storeButton}
@@ -98,7 +98,7 @@ export function DownloadHero() {
           <div className={styles.phone}>
             <div className={styles.phoneScreen}>
               <div className={styles.screenContent}>
-                <div className={styles.appHeader}>סינק</div>
+                <div className={styles.appHeader}>תֵּרָאוּ</div>
                 <div className={styles.appCard} />
                 <div className={styles.appCard} />
                 <div className={styles.appNav} />

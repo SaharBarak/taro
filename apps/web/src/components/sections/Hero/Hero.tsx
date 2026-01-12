@@ -33,12 +33,6 @@ export function Hero() {
         </motion.div>
 
         <div className={styles.content}>
-          {/* Badge */}
-          <AnimatedFadeInUp className={styles.badge}>
-            <span className={styles.badgeIcon}>✦</span>
-            <span>מופעל על בלוקצ׳יין Qubik</span>
-          </AnimatedFadeInUp>
-
           {/* Main Heading */}
           <h1 className={styles.heading}>
             <AnimatedLetters text="הקול המקומי," delay={0.2} />
