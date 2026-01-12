@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Typography';
+import type { Locale } from '@/lib/i18n';
 import styles from './NewsletterForm.module.css';
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -13,17 +14,33 @@ interface NewsletterFormProps {
   source?: 'homepage_cta' | 'footer' | 'landing_page' | 'blog' | 'campaign' | 'other';
   sourcePage?: string;
   variant?: 'default' | 'compact' | 'inline';
+  locale?: Locale;
 }
 
 export function NewsletterForm({
   source = 'homepage_cta',
   sourcePage,
   variant = 'default',
+  locale = 'he',
 }: NewsletterFormProps) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<FormStatus>('idle');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  const t = {
+    placeholder: 'your@email.com',
+    submit: locale === 'en' ? 'Sign Up for Updates' : 'הירשמו לעדכונים',
+    submitting: locale === 'en' ? 'Sending...' : 'שולח...',
+    emailRequired: locale === 'en' ? 'Please enter an email address' : 'נא להזין כתובת אימייל',
+    emailInvalid: locale === 'en' ? 'Invalid email address' : 'כתובת אימייל לא תקינה',
+    errorGeneric: locale === 'en' ? 'An error occurred. Please try again later.' : 'אירעה שגיאה. אנא נסו שוב מאוחר יותר',
+    successMessage: locale === 'en' ? 'Thanks! You\'ve successfully subscribed.' : 'תודה! נרשמת בהצלחה לניוזלטר',
+    privacy: locale === 'en'
+      ? 'By signing up you agree to receive updates from Taro. You can unsubscribe anytime.'
+      : 'בהרשמה אתם מסכימים לקבל עדכונים מתארו. תוכלו לבטל בכל עת.',
+    ariaLabel: locale === 'en' ? 'Email address' : 'כתובת אימייל',
+  };
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -36,12 +53,12 @@ export function NewsletterForm({
     const trimmedEmail = email.trim();
 
     if (!trimmedEmail) {
-      setError('נא להזין כתובת אימייל');
+      setError(t.emailRequired);
       return;
     }
 
     if (!validateEmail(trimmedEmail)) {
-      setError('כתובת אימייל לא תקינה');
+      setError(t.emailInvalid);
       return;
     }
 
@@ -65,7 +82,7 @@ export function NewsletterForm({
 
       if (data.success) {
         setStatus('success');
-        setMessage(data.message);
+        setMessage(data.message || t.successMessage);
         setEmail('');
       } else {
         setStatus('error');
@@ -73,7 +90,7 @@ export function NewsletterForm({
       }
     } catch {
       setStatus('error');
-      setMessage('אירעה שגיאה. אנא נסו שוב מאוחר יותר');
+      setMessage(t.errorGeneric);
     }
   };
 
@@ -115,7 +132,7 @@ export function NewsletterForm({
             <div className={styles.inputGroup}>
               <Input
                 type="email"
-                placeholder="your@email.com"
+                placeholder={t.placeholder}
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -127,7 +144,7 @@ export function NewsletterForm({
                 isFullWidth
                 disabled={status === 'loading'}
                 dir="ltr"
-                aria-label="כתובת אימייל"
+                aria-label={t.ariaLabel}
               />
               <Button
                 type="submit"
@@ -135,7 +152,7 @@ export function NewsletterForm({
                 isLoading={status === 'loading'}
                 className={styles.submitButton}
               >
-                {status === 'loading' ? 'שולח...' : 'הירשמו לעדכונים'}
+                {status === 'loading' ? t.submitting : t.submit}
               </Button>
             </div>
 
@@ -155,7 +172,7 @@ export function NewsletterForm({
 
             {!isCompact && (
               <Text size="sm" color="muted" className={styles.privacyNote}>
-                בהרשמה אתם מסכימים לקבל עדכונים מסינק. תוכלו לבטל בכל עת.
+                {t.privacy}
               </Text>
             )}
           </motion.form>

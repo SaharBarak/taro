@@ -1,62 +1,5 @@
-import type { Metadata, Viewport } from 'next';
-import { AuthProvider } from '@/providers/AuthProvider';
-import { LenisProvider } from '@/providers/LenisProvider';
+import type { Viewport, Metadata } from 'next';
 import '@/styles/globals.css';
-
-export const metadata: Metadata = {
-  title: {
-    default: 'תֵּרָאוּ | הצבעות קהילתיות מקומיות',
-    template: '%s | תֵּרָאוּ',
-  },
-  description:
-    'פלטפורמה לקבלת החלטות קהילתיות ברשויות המקומיות בישראל. הצביעו על נושאים מקומיים, עקבו אחרי החלטות, והשפיעו על הקהילה שלכם.',
-  keywords: [
-    'הצבעות',
-    'קהילה',
-    'רשויות מקומיות',
-    'דמוקרטיה',
-    'ישראל',
-    'בלוקצ׳יין',
-    'תראו',
-  ],
-  authors: [{ name: 'Taro' }],
-  creator: 'Taro',
-  publisher: 'Taro',
-  robots: {
-    index: true,
-    follow: true,
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'he_IL',
-    url: 'https://taro.co.il',
-    siteName: 'תֵּרָאוּ',
-    title: 'תֵּרָאוּ | הצבעות קהילתיות מקומיות',
-    description:
-      'פלטפורמה לקבלת החלטות קהילתיות ברשויות המקומיות בישראל.',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'תֵּרָאוּ - הצבעות קהילתיות',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'תֵּרָאוּ | הצבעות קהילתיות מקומיות',
-    description:
-      'פלטפורמה לקבלת החלטות קהילתיות ברשויות המקומיות בישראל.',
-    images: ['/og-image.png'],
-  },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png',
-  },
-  manifest: '/site.webmanifest',
-};
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -65,18 +8,17 @@ export const viewport: Viewport = {
   themeColor: '#2563EB',
 };
 
+export const metadata: Metadata = {
+  title: 'Taro | תַּרְאוּ',
+  description: 'Community voting platform',
+};
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="he" dir="rtl">
-      <body>
-        <AuthProvider>
-          <LenisProvider>{children}</LenisProvider>
-        </AuthProvider>
-      </body>
-    </html>
-  );
+  // The [locale]/layout.tsx provides the actual html/body structure
+  // This layout just passes children through for the i18n routing to work
+  return children;
 }

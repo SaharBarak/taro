@@ -1,67 +1,73 @@
 'use client';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Heading, Text } from '@/components/ui/Typography';
+import type { Locale } from '@/lib/i18n';
 import styles from './HowItWorks.module.css';
 
-const steps = [
+interface HowItWorksProps {
+  locale?: Locale;
+}
+
+const getSteps = (locale: Locale) => [
   {
     number: '01',
-    title: 'נרשמים בקלות',
-    description:
-      'אימייל או טלפון, ואז אימות קצר - וזהו, אתם בפנים.',
-    details: [
-      'הרשמה פשוטה תוך דקה',
-      'אימות קצר לאבטחת החשבון',
-      'מוכנים להשתתף',
-    ],
+    title: locale === 'en' ? 'Easy Registration' : 'נרשמים בקלות',
+    description: locale === 'en'
+      ? 'Email or phone, quick verification — that\'s it, you\'re part of the influential community.'
+      : 'אימייל או טלפון, אימות קצר — וזהו, אתם חלק מהקהילה המשפיעה.',
   },
   {
     number: '02',
-    title: 'רואים מה פתוח באזור שלכם',
-    description:
-      'הצבעות פעילות לפי הרשות המקומית שלכם - תראו על מה מצביעים ומה ההשלכות.',
-    details: [
-      'הצבעות רלוונטיות לאזור שלכם',
-      'מידע ברור על כל נושא',
-      'דיונים עם תושבים אחרים',
-    ],
+    title: locale === 'en' ? 'See What\'s Happening (Or Propose a Topic)' : 'רואים מה קורה (או מציעים נושא)',
+    description: locale === 'en'
+      ? 'Discover active votes in Kiryat Tivon, or propose a new topic you want to bring to the agenda.'
+      : 'מגלים הצבעות פעילות בקריית טבעון, או מציעים נושא חדש שחשוב לכם להעלות לסדר היום.',
   },
   {
     number: '03',
-    title: 'מצביעים ומשתתפים',
-    description:
-      'בוחרים את העמדה שלכם, מאמתים שאתם באזור, ומשלמים ₪3 דמי השתתפות.',
-    details: [
-      'אימות מיקום פשוט',
-      'תשלום מאובטח',
-      'ההצבעה נרשמת מיד',
-    ],
+    title: locale === 'en' ? 'Vote and Participate' : 'מצביעים ומשתתפים',
+    description: locale === 'en'
+      ? 'Choose a position, verify presence (GPS), and participate with ₪3 fee that backs your position professionally.'
+      : 'בוחרים עמדה, מאמתים נוכחות (GPS) ומשתתפים ב-₪3 דמי השתתפות שנותנים גב מקצועי לעמדה שלכם.',
   },
   {
     number: '04',
-    title: 'עוקבים אחרי התוצאות והעדכונים',
-    description:
-      'תמונה ברורה לאורך זמן - תראו את התוצאות, תקבלו עדכונים, ותעקבו אחרי מה שקורה.',
-    details: [
-      'תוצאות שקופות ומאומתות',
-      'התראות על עדכונים חשובים',
-      'מעקב אחרי יישום ההחלטות',
-    ],
+    title: locale === 'en' ? 'Follow the Results' : 'עוקבים אחרי התוצאות',
+    description: locale === 'en'
+      ? 'Watch data in real time. Results are presented to the council as a clear, transparent, data-backed community position.'
+      : 'צופים בנתונים בזמן אמת. התוצאות מוגשות למועצה כעמדה קהילתית ברורה, שקופה ומגובה בנתונים.',
   },
 ];
 
-export function HowItWorks() {
+export function HowItWorks({ locale = 'he' }: HowItWorksProps) {
+  const steps = getSteps(locale);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const t = {
+    label: locale === 'en' ? 'How It Works' : 'איך זה עובד',
+    title: locale === 'en' ? 'Four Simple Steps' : 'ארבעה צעדים פשוטים',
+    subtitle: locale === 'en'
+      ? 'From registration to real impact on your community'
+      : 'מההרשמה ועד להשפעה אמיתית על הקהילה שלכם',
+  };
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start end', 'end start'],
   });
 
-  // Horizontal scroll: move track from right to left as user scrolls (RTL layout)
-  // Start with cards visible on right, scroll reveals more to the left
-  const x = useTransform(scrollYProgress, [0, 1], ['0%', '-60%']);
+  // Horizontal scroll: cards slide in from off-screen as user scrolls (desktop only)
+  // On mobile, use native touch scroll instead
+  const x = useTransform(scrollYProgress, [0, 0.5], ['100%', '0%']);
 
   // Progress bar width based on scroll
   const progressWidth = useTransform(scrollYProgress, [0.15, 0.85], ['0%', '100%']);
@@ -71,13 +77,13 @@ export function HowItWorks() {
       {/* Header - Fixed at top */}
       <div className={styles.header}>
         <Text size="lg" color="accent" weight="semibold" align="center">
-          איך זה עובד
+          {t.label}
         </Text>
         <Heading level={2} align="center">
-          ארבעה צעדים פשוטים
+          {t.title}
         </Heading>
         <Text size="xl" color="secondary" align="center" className={styles.description}>
-          מההרשמה ועד להשפעה אמיתית על הקהילה שלכם
+          {t.subtitle}
         </Text>
       </div>
 
@@ -88,7 +94,10 @@ export function HowItWorks() {
 
       {/* Horizontal Marquee Track */}
       <div className={styles.trackWrapper}>
-        <motion.div className={styles.track} style={{ x }}>
+        <motion.div
+          className={styles.track}
+          style={isMobile ? undefined : { x }}
+        >
           {steps.map((step) => (
             <div key={step.number} className={styles.card}>
               <div className={styles.cardHeader}>
@@ -100,14 +109,6 @@ export function HowItWorks() {
               <Text size="base" color="secondary" className={styles.stepDescription}>
                 {step.description}
               </Text>
-              <ul className={styles.stepDetails}>
-                {step.details.map((detail, detailIndex) => (
-                  <li key={detailIndex}>
-                    <span className={styles.checkIcon}>✓</span>
-                    {detail}
-                  </li>
-                ))}
-              </ul>
             </div>
           ))}
         </motion.div>
