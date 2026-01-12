@@ -20,7 +20,7 @@
 }
 
 html {
-  direction: rtl;
+  /* Direction is set by layout.tsx based on locale */
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -71,10 +71,16 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-primary);
+  font-family: var(--font-secular-one), var(--font-primary);
   font-weight: var(--font-weight-bold);
   line-height: var(--leading-tight);
   color: var(--color-text-primary);
+}
+
+/* Logo specific font */
+.logo-text {
+  font-family: var(--font-secular-one), var(--font-primary);
+  font-weight: 400;
 }
 
 h1 {

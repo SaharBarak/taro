@@ -1,39 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { convergeService } from '@/services/converge';
-import { emailService } from '@/services/email';
-import type { SignupSource } from '@/services/converge';
 
-function generateVerificationToken(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let token = '';
-  for (let i = 0; i < 32; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return token;
-}
+const BEEHIIV_API_KEY = process.env.BEEHIIV_API_KEY;
+const BEEHIIV_PUBLICATION_ID = process.env.BEEHIIV_PUBLICATION_ID;
 
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
 
-const VALID_SOURCES: SignupSource[] = [
-  'homepage_cta',
-  'footer',
-  'landing_page',
-  'blog',
-  'campaign',
-  'other',
-];
-
 /**
  * POST /api/newsletter
- * Subscribe to newsletter with double opt-in
+ * Subscribe to newsletter via Beehiiv
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, source = 'other', sourcePage } = body;
+    const { email, source = 'website', sourcePage } = body;
 
     if (!email || typeof email !== 'string') {
       return NextResponse.json(
@@ -57,80 +39,65 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validSource: SignupSource = VALID_SOURCES.includes(source) ? source : 'other';
+    if (!BEEHIIV_API_KEY || !BEEHIIV_PUBLICATION_ID) {
+      console.error('Beehiiv credentials not configured. API_KEY:', !!BEEHIIV_API_KEY, 'PUB_ID:', !!BEEHIIV_PUBLICATION_ID);
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'שגיאת תצורה. אנא נסו שוב מאוחר יותר'
+        },
+        { status: 500 }
+      );
+    }
 
-    const existingSignup = await convergeService.getNewsletterSignupByEmail(normalizedEmail);
+    console.log('Attempting Beehiiv subscription for:', normalizedEmail);
 
-    if (existingSignup) {
-      if (existingSignup.status === 'verified') {
+    // Subscribe to Beehiiv
+    const response = await fetch(
+      `https://api.beehiiv.com/v2/publications/${BEEHIIV_PUBLICATION_ID}/subscriptions`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${BEEHIIV_API_KEY}`,
+        },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          reactivate_existing: true,
+          send_welcome_email: true,
+          utm_source: source,
+          utm_medium: 'website',
+          utm_campaign: sourcePage || 'homepage',
+          referring_site: sourcePage || 'https://taro.co.il',
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Beehiiv API error:', data);
+
+      // Check if already subscribed
+      if (response.status === 409 || data?.message?.includes('already')) {
         return NextResponse.json({
           success: true,
           message: 'כתובת האימייל כבר רשומה לניוזלטר שלנו',
-          requiresVerification: false,
         });
       }
 
-      if (existingSignup.status === 'pending') {
-        const newToken = generateVerificationToken();
-
-        await convergeService.verifyNewsletterSignup(existingSignup.id);
-        const updatedSignup = await convergeService.getNewsletterSignupByEmail(normalizedEmail);
-
-        if (updatedSignup) {
-          await emailService.sendNewsletterVerificationEmail({
-            to: normalizedEmail,
-            verificationToken: newToken,
-          });
-        }
-
-        return NextResponse.json({
-          success: true,
-          message: 'שלחנו לך אימייל אימות חדש',
-          requiresVerification: true,
-        });
-      }
-
-      if (existingSignup.status === 'unsubscribed') {
-        const newToken = generateVerificationToken();
-
-        const newSignup = await convergeService.createNewsletterSignup({
-          email: normalizedEmail,
-          source: validSource,
-          sourcePage,
-          verificationToken: newToken,
-        });
-
-        await emailService.sendNewsletterVerificationEmail({
-          to: normalizedEmail,
-          verificationToken: newToken,
-        });
-
-        return NextResponse.json({
-          success: true,
-          message: 'שלחנו לך אימייל לאימות ההרשמה',
-          requiresVerification: true,
-        });
-      }
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'אירעה שגיאה. אנא נסו שוב מאוחר יותר'
+        },
+        { status: 500 }
+      );
     }
-
-    const verificationToken = generateVerificationToken();
-
-    await convergeService.createNewsletterSignup({
-      email: normalizedEmail,
-      source: validSource,
-      sourcePage,
-      verificationToken,
-    });
-
-    await emailService.sendNewsletterVerificationEmail({
-      to: normalizedEmail,
-      verificationToken,
-    });
 
     return NextResponse.json({
       success: true,
-      message: 'תודה! שלחנו לך אימייל לאימות ההרשמה',
-      requiresVerification: true,
+      message: 'תודה! נרשמת בהצלחה לניוזלטר',
     }, { status: 201 });
 
   } catch (error) {
@@ -147,23 +114,40 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/newsletter
- * Get all newsletter signups (admin only - would need auth in production)
+ * Get subscriber count from Beehiiv
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') as 'pending' | 'verified' | 'unsubscribed' | null;
+    if (!BEEHIIV_API_KEY || !BEEHIIV_PUBLICATION_ID) {
+      return NextResponse.json(
+        { error: 'Beehiiv not configured' },
+        { status: 500 }
+      );
+    }
 
-    const signups = await convergeService.getAllNewsletterSignups(status || undefined);
+    const response = await fetch(
+      `https://api.beehiiv.com/v2/publications/${BEEHIIV_PUBLICATION_ID}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${BEEHIIV_API_KEY}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch publication data');
+    }
 
     return NextResponse.json({
-      signups,
-      total: signups.length,
+      total: data.data?.total_subscriptions || 0,
+      active: data.data?.active_subscriptions || 0,
     });
   } catch (error) {
-    console.error('Error fetching newsletter signups:', error);
+    console.error('Error fetching newsletter stats:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch signups' },
+      { error: 'Failed to fetch stats' },
       { status: 500 }
     );
   }

@@ -1,11 +1,15 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Typography';
+import type { Locale } from '@/lib/i18n';
 import styles from './Features.module.css';
 
-const features = [
+interface FeaturesProps {
+  locale?: Locale;
+}
+
+const getFeatures = (locale: Locale) => [
   {
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -13,8 +17,10 @@ const features = [
         <path d="M8 12h8M12 8v8" />
       </svg>
     ),
-    title: 'נושאים מקומיים אמיתיים',
-    description: 'מה שמעסיק את הרחוב, לא רק מה שעל סדר היום.',
+    title: locale === 'en' ? 'Real Local Issues' : 'נושאים מקומיים מהשטח',
+    description: locale === 'en'
+      ? 'What concerns the street and neighborhood. You decide what goes to vote and propose topics for consensus.'
+      : 'מה שמעסיק את הרחוב והשכונה. אתם קובעים מה יעלה להצבעה ומציעים נושאים לקונצנזוס.',
   },
   {
     icon: (
@@ -23,8 +29,10 @@ const features = [
         <path d="M9 12l2 2 4-4" />
       </svg>
     ),
-    title: 'תושבים מאומתים',
-    description: 'רק מי שנמצא בתוך הרשות משתתף בנושאים שלה.',
+    title: locale === 'en' ? 'Verified Residents Only' : 'תושבים מאומתים בלבד',
+    description: locale === 'en'
+      ? 'Only those who live within the municipality participate and influence. GPS verification ensures the voice is local and authentic.'
+      : 'רק מי שגר בתוך הרשות משתתף ומשפיע. אימות GPS מוודא שהקול הוא מקומי ואותנטי.',
   },
   {
     icon: (
@@ -34,8 +42,10 @@ const features = [
         <path d="M2 12h4M18 12h4" />
       </svg>
     ),
-    title: 'תוצאות שקופות',
-    description: 'רואים את התמונה בזמן אמת, בלי "חדרים סגורים".',
+    title: locale === 'en' ? 'Transparent Results for Everyone' : 'תוצאות שקופות לכולם',
+    description: locale === 'en'
+      ? 'See the full picture in real time. No "closed rooms" - data is visible to residents and council alike.'
+      : 'רואים את התמונה המלאה בזמן אמת. בלי "חדרים סגורים", הנתונים גלויים לתושבים ולמועצה כאחד.',
   },
   {
     icon: (
@@ -44,8 +54,10 @@ const features = [
         <path d="M8 9h8M8 13h4" />
       </svg>
     ),
-    title: 'דיון קהילתי קצר וברור',
-    description: 'פחות רעש, יותר בהירות.',
+    title: locale === 'en' ? 'Focused Community Dialogue' : 'שיח קהילתי ענייני',
+    description: locale === 'en'
+      ? 'Reducing noise and verbal hostility in favor of an organized tool that creates clarity and consensus.'
+      : 'מורידים את מפלס הרעש והאלימות המילולית לטובת כלי מסודר שיוצר בהירות והסכמות.',
   },
   {
     icon: (
@@ -53,95 +65,26 @@ const features = [
         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
       </svg>
     ),
-    title: 'קרן קהילה לפעולה',
-    description: 'דמי השתתפות שנשמרים לטובת צעדים כשצריך.',
+    title: locale === 'en' ? 'Full Financial Transparency' : 'שקיפות כספית מלאה',
+    description: locale === 'en'
+      ? 'The participation fee (₪3) is clearly divided: ₪2 goes to a community trust fund for experts and public interest advancement, ₪1 goes to platform maintenance and development.'
+      : 'דמי ההשתתפות (₪3) מתחלקים בצורה ברורה: ₪2 נשמרים בקרן נאמנות קהילתית לטובת מומחים וקידום האינטרס הציבורי, ו-₪1 משמש לתחזוקה ופיתוח הפלטפורמה.',
   },
 ];
 
-// Duplicate for seamless loop
-const duplicatedFeatures = [...features, ...features];
-
-export function Features() {
-  const marqueeRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [scrollPosition, setScrollPosition] = useState(0);
-
-  // Check if mobile
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Handle keyboard navigation
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent, index: number) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        setIsPaused((prev) => !prev);
-      }
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        const nextIndex = index > 0 ? index - 1 : duplicatedFeatures.length - 1;
-        const cards = marqueeRef.current?.querySelectorAll('[data-card]');
-        (cards?.[nextIndex] as HTMLElement)?.focus();
-      }
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        const nextIndex = index < duplicatedFeatures.length - 1 ? index + 1 : 0;
-        const cards = marqueeRef.current?.querySelectorAll('[data-card]');
-        (cards?.[nextIndex] as HTMLElement)?.focus();
-      }
-    },
-    []
-  );
-
-  // Touch handlers for mobile swipe
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.touches[0].clientX);
-    setIsPaused(true);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStart === null || !trackRef.current) return;
-    const diff = touchStart - e.touches[0].clientX;
-    const newPos = scrollPosition + diff;
-    trackRef.current.style.transform = `translateX(${-newPos}px)`;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStart === null || !trackRef.current) return;
-    const diff = touchStart - e.changedTouches[0].clientX;
-    setScrollPosition((prev) => prev + diff);
-    setTouchStart(null);
-    // Resume auto-scroll after a delay on mobile
-    setTimeout(() => setIsPaused(false), 3000);
-  };
+export function Features({ locale = 'he' }: FeaturesProps) {
+  const features = getFeatures(locale);
+  const sectionTitle = locale === 'en' ? 'Why Does This Exist?' : 'למה זה קיים?';
 
   return (
-    <section className={styles.features} aria-label="יתרונות הפלטפורמה">
-      <div
-        ref={marqueeRef}
-        className={styles.marquee}
-        onMouseEnter={() => !isMobile && setIsPaused(true)}
-        onMouseLeave={() => !isMobile && setIsPaused(false)}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div
-          ref={trackRef}
-          className={styles.track}
-          style={{
-            animationPlayState: isPaused ? 'paused' : 'running',
-          }}
-          aria-live="off"
-        >
-          {duplicatedFeatures.map((feature, index) => (
+    <section className={styles.features} aria-label={sectionTitle}>
+      {/* Section Header */}
+      <div className={styles.header}>
+        <h2 className={styles.sectionTitle}>{sectionTitle}</h2>
+      </div>
+      <div className={styles.marquee}>
+        <div className={styles.track}>
+          {features.map((feature, index) => (
             <Card
               key={`${feature.title}-${index}`}
               variant="elevated"
@@ -150,14 +93,9 @@ export function Features() {
             >
               <CardContent>
                 <div
-                  data-card
-                  tabIndex={0}
                   role="article"
                   aria-label={feature.title}
                   className={styles.cardInner}
-                  onFocus={() => setIsPaused(true)}
-                  onBlur={() => setIsPaused(false)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
                 >
                   <div className={styles.iconWrapper}>{feature.icon}</div>
                   <h3 className={styles.cardTitle}>{feature.title}</h3>
@@ -169,10 +107,6 @@ export function Features() {
             </Card>
           ))}
         </div>
-      </div>
-      {/* Visually hidden instructions for screen readers */}
-      <div className={styles.srOnly}>
-        השתמשו במקשי החיצים כדי לנווט בין הכרטיסים. לחצו Enter או רווח כדי להשהות את הגלילה.
       </div>
     </section>
   );

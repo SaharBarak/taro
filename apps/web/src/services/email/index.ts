@@ -30,7 +30,7 @@ class EmailService {
     this.config = {
       apiKey: process.env.RESEND_API_KEY || '',
       fromEmail: 'noreply@taro.co.il',
-      fromName: 'תֵּרָאוּ',
+      fromName: 'תַּרְאוּ',
     };
   }
 
@@ -175,7 +175,7 @@ class EmailService {
 
   private getWelcomeTemplate(firstName: string): EmailTemplate {
     return {
-      subject: 'ברוכים הבאים לתֵּרָאוּ! 🎉',
+      subject: 'ברוכים הבאים לתַּרְאוּ! 🎉',
       html: `
         <!DOCTYPE html>
         <html dir="rtl" lang="he">
@@ -186,13 +186,13 @@ class EmailService {
         <body style="font-family: 'Heebo', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תֵּרָאוּ</h1>
+              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תַּרְאוּ</h1>
             </div>
 
             <h2 style="color: #171717; font-size: 24px; margin-bottom: 16px;">שלום ${firstName}! 👋</h2>
 
             <p style="color: #525252; font-size: 16px; line-height: 1.6;">
-              ברוכים הבאים למשפחת תֵּרָאוּ! אנחנו שמחים שהצטרפת אלינו במסע לשינוי
+              ברוכים הבאים למשפחת תַּרְאוּ! אנחנו שמחים שהצטרפת אלינו במסע לשינוי
               הדרך שבה אזרחים משתתפים בקבלת החלטות מקומיות.
             </p>
 
@@ -222,7 +222,7 @@ class EmailService {
         </body>
         </html>
       `,
-      text: `שלום ${firstName}! ברוכים הבאים לתֵּרָאוּ. עכשיו אתה יכול להצביע על נושאים מקומיים ברשות שלך.`,
+      text: `שלום ${firstName}! ברוכים הבאים לתַּרְאוּ. עכשיו אתה יכול להצביע על נושאים מקומיים ברשות שלך.`,
     };
   }
 
@@ -251,7 +251,7 @@ class EmailService {
         <body style="font-family: 'Heebo', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תֵּרָאוּ</h1>
+              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תַּרְאוּ</h1>
             </div>
 
             <h2 style="color: #171717; font-size: 24px; margin-bottom: 16px;">שלום ${params.firstName}!</h2>
@@ -312,7 +312,7 @@ class EmailService {
         <body style="font-family: 'Heebo', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תֵּרָאוּ</h1>
+              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תַּרְאוּ</h1>
             </div>
 
             <h2 style="color: #171717; font-size: 24px; margin-bottom: 16px;">שלום ${params.firstName}!</h2>
@@ -370,7 +370,7 @@ class EmailService {
     const paymentDescription = isVote ? 'השתתפות בהצבעה' : 'יצירת הצבעה';
 
     return {
-      subject: `קבלה עבור ${paymentDescription} - תֵּרָאוּ`,
+      subject: `קבלה עבור ${paymentDescription} - תַּרְאוּ`,
       html: `
         <!DOCTYPE html>
         <html dir="rtl" lang="he">
@@ -381,7 +381,7 @@ class EmailService {
         <body style="font-family: 'Heebo', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תֵּרָאוּ</h1>
+              <h1 style="color: #2563EB; font-size: 32px; margin: 0;">תַּרְאוּ</h1>
             </div>
 
             <h2 style="color: #171717; font-size: 24px; margin-bottom: 16px;">תודה ${params.firstName}!</h2>
