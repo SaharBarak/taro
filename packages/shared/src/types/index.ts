@@ -1,3 +1,13 @@
 export * from './user';
-export * from './vote';
 export * from './payment';
+
+// Vote types - exclude GpsCoordinates which is defined in user.ts
+export type {
+  VoteStatus,
+  VoteOption,
+  VoteResults,
+  Vote,
+  VoteCreateInput,
+  Participation,
+  ParticipationInput,
+} from './vote';

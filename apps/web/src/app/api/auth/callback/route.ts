@@ -15,61 +15,13 @@ import {
   createRefreshToken,
   setSessionCookies,
 } from '@/services/auth/session';
+import { generateEncryptedDID } from '@sync/shared';
 import {
-  generateEncryptedDID,
-  createSocialProof,
-  createInitialIdentityScore,
-  calculateIdentityScore,
-} from '@sync/shared';
-import type { UserProfile, VerificationStatus, SocialProof } from '@sync/shared';
-
-// Mock database functions - replace with actual Converge implementation
-async function getUserByGoogleId(googleId: string): Promise<UserProfile | null> {
-  // TODO: Replace with convergeService.getUserByGoogleId(googleId)
-  return null;
-}
-
-async function createUser(userData: Partial<UserProfile>): Promise<UserProfile> {
-  // TODO: Replace with convergeService.createUser(userData)
-  const user: UserProfile = {
-    id: `user_${Date.now()}`,
-    did: userData.did!,
-    publicKey: userData.publicKey!,
-    googleId: userData.googleId!,
-    email: userData.email!,
-    emailVerified: true,
-    firstName: userData.firstName || '',
-    lastName: userData.lastName || '',
-    municipality: '',
-    socialProofs: userData.socialProofs || [],
-    identityScore: userData.identityScore || createInitialIdentityScore(),
-    verificationStatus: userData.verificationStatus || { phase: 'not_started' },
-    qubikWalletAddress: '',
-    syncTokenBalance: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  return user;
-}
-
-async function updateUser(
-  userId: string,
-  updates: Partial<UserProfile>
-): Promise<UserProfile | null> {
-  // TODO: Replace with convergeService.updateUser(userId, updates)
-  return null;
-}
-
-async function saveDIDRecord(record: {
-  did: string;
-  userId: string;
-  publicKey: string;
-  encryptedPrivateKeyBackup: string;
-  salt: string;
-  iv: string;
-}): Promise<void> {
-  // TODO: Replace with convergeService.saveDIDRecord(record)
-}
+  getUserByGoogleId,
+  createUser,
+  updateUser,
+  upsertSocialProof,
+} from '@/lib/supabase/db';
 
 export async function POST(request: Request) {
   try {
@@ -99,7 +51,7 @@ export async function POST(request: Request) {
     // Get user info from Google
     const googleUser = await getGoogleUserInfo(tokens.accessToken);
 
-    // Check if user exists
+    // Check if user exists in Supabase
     let user = await getUserByGoogleId(googleUser.id);
     let isNewUser = false;
 
@@ -109,51 +61,33 @@ export async function POST(request: Request) {
 
       const didData = await generateEncryptedDID(tokens.accessToken);
 
-      // Create Google social proof
-      const googleProof = createSocialProof(
-        'google',
-        googleUser.id,
-        googleUser.name,
-        {
-          profileImage: googleUser.picture,
-          email: googleUser.email,
-        }
-      );
-
-      // Calculate initial identity score
-      const identityScore = calculateIdentityScore([googleProof]);
-
-      // Initial verification status
-      const verificationStatus: VerificationStatus = {
-        phase: 'not_started',
-      };
-
-      // Create user
+      // Create user in Supabase
       user = await createUser({
-        did: didData.did,
-        publicKey: JSON.stringify(didData.publicKey),
-        googleId: googleUser.id,
         email: googleUser.email,
-        firstName: googleUser.given_name,
-        lastName: googleUser.family_name,
-        socialProofs: [googleProof],
-        identityScore,
-        verificationStatus,
+        first_name: googleUser.given_name || null,
+        last_name: googleUser.family_name || null,
+        google_id: googleUser.id,
+        avatar_url: googleUser.picture || null,
+        did: didData.did,
+        did_public_key: JSON.stringify(didData.publicKey),
+        did_encrypted_private_key: didData.encryptedPrivateKey,
+        identity_score: 40, // Google = 40 points
+        verification_status: 'none',
       });
 
-      // Save DID record for key recovery
-      await saveDIDRecord({
-        did: didData.did,
-        userId: user.id,
-        publicKey: JSON.stringify(didData.publicKey),
-        encryptedPrivateKeyBackup: didData.encryptedPrivateKey,
-        salt: didData.salt,
-        iv: didData.iv,
+      // Create Google social proof in Supabase
+      await upsertSocialProof({
+        user_id: user.id,
+        provider: 'google',
+        provider_id: googleUser.id,
+        provider_email: googleUser.email,
+        provider_name: googleUser.name,
+        provider_avatar: googleUser.picture || null,
       });
     } else {
       // Existing user - update last login
       await updateUser(user.id, {
-        updatedAt: new Date(),
+        updated_at: new Date().toISOString(),
       });
     }
 
@@ -161,7 +95,7 @@ export async function POST(request: Request) {
     const sessionToken = await createSessionToken({
       userId: user.id,
       googleId: googleUser.id,
-      did: user.did,
+      did: user.did || '',
       email: user.email,
     });
 
@@ -170,10 +104,23 @@ export async function POST(request: Request) {
     // Set session cookies
     await setSessionCookies(sessionToken, refreshToken);
 
+    // Map Supabase user to API response format
+    const userResponse = {
+      id: user.id,
+      did: user.did,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      identityScore: user.identity_score,
+      verificationStatus: user.verification_status,
+      avatarUrl: user.avatar_url,
+      municipality: user.municipality_id,
+    };
+
     // Return response
     return NextResponse.json({
       success: true,
-      user,
+      user: userResponse,
       accessToken: sessionToken,
       refreshToken,
       isNewUser,

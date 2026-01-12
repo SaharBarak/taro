@@ -241,7 +241,7 @@ export default function SocialConnectionsPage() {
                 <div>
                   <h3>Facebook</h3>
                   {facebookProof ? (
-                    <p>{facebookProof.username || facebookProof.email}</p>
+                    <p>{facebookProof.displayName || facebookProof.email}</p>
                   ) : (
                     <p>חברו את Facebook להוספת 30 נקודות</p>
                   )}
@@ -276,7 +276,7 @@ export default function SocialConnectionsPage() {
                 <div>
                   <h3>Instagram</h3>
                   {instagramProof ? (
-                    <p>@{instagramProof.username}</p>
+                    <p>@{instagramProof.displayName}</p>
                   ) : (
                     <p>חברו את Instagram להוספת 30 נקודות</p>
                   )}

@@ -169,20 +169,6 @@ class ConvergeService {
     }
   }
 
-  /**
-   * @deprecated Use getUserByGoogleId instead
-   */
-  async getUserByClerkId(clerkId: string): Promise<UserProfile | null> {
-    try {
-      const result = await this.request<{ documents: UserProfile[] }>(
-        `/collections/users/documents?filter=clerkId:${clerkId}`
-      );
-      return result.documents[0] || null;
-    } catch {
-      return null;
-    }
-  }
-
   async updateUser(
     id: string,
     updates: Partial<UserProfile>

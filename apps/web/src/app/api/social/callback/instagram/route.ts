@@ -76,11 +76,10 @@ export async function GET(request: NextRequest) {
     const instagramProof: SocialProof = {
       platform: 'instagram',
       platformUserId: instagramUser.id,
-      username: instagramUser.username,
+      displayName: instagramUser.username,
       profileUrl: `https://instagram.com/${instagramUser.username}`,
-      verified: true,
-      verifiedAt: new Date().toISOString(),
-      score: 30,
+      verifiedAt: new Date(),
+      stampWeight: 30,
     };
 
     // Update social proofs (keep existing, add/update Instagram)

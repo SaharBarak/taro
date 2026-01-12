@@ -119,7 +119,7 @@ class EmailService {
     to: string;
     firstName: string;
     amount: number;
-    type: 'vote' | 'create_vote';
+    type: 'vote' | 'create_vote' | 'vote_participation' | 'vote_creation';
     receiptUrl: string;
     tokensEarned: number;
   }): Promise<void> {
@@ -327,12 +327,12 @@ class EmailService {
   private getPaymentReceiptTemplate(params: {
     firstName: string;
     amount: number;
-    type: 'vote' | 'create_vote';
+    type: 'vote' | 'create_vote' | 'vote_participation' | 'vote_creation';
     receiptUrl: string;
     tokensEarned: number;
   }): EmailTemplate {
-    const paymentDescription =
-      params.type === 'vote' ? 'השתתפות בהצבעה' : 'יצירת הצבעה';
+    const isVote = params.type === 'vote' || params.type === 'vote_participation';
+    const paymentDescription = isVote ? 'השתתפות בהצבעה' : 'יצירת הצבעה';
 
     return {
       subject: `קבלה עבור ${paymentDescription} - תֵּרָאוּ`,
