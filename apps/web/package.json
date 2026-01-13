@@ -19,6 +19,7 @@
     "@sync/api-client": "workspace:*",
     "@sync/design-tokens": "workspace:*",
     "@sync/shared": "workspace:*",
+    "@vercel/analytics": "^1.6.1",
     "clsx": "^2.1.1",
     "expo-server-sdk": "^3.9.0",
     "framer-motion": "^11.11.0",
