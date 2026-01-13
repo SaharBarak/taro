@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Script from 'next/script';
+import { Analytics } from '@vercel/analytics/next';
 import { Secular_One, Heebo } from 'next/font/google';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { LenisProvider } from '@/providers/LenisProvider';
@@ -306,6 +307,7 @@ export default async function LocaleLayout({
           <LenisProvider>{children}</LenisProvider>
           <WhatsAppButton locale={locale} />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
