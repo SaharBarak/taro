@@ -45,6 +45,15 @@
         {
           "locationAlwaysAndWhenInUsePermission": "אנחנו צריכים את המיקום שלך כדי לאמת שאתה נמצא ברשות המקומית הרלוונטית להצבעה."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#2563EB",
+          "defaultChannel": "verification",
+          "sounds": []
+        }
       ]
     ],
     "experiments": {

@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getUpcomingReminders,
   updateVerificationScheduleItem,
+  getActiveUserPushTokens,
+  updatePushTokenLastUsed,
 } from '@/lib/supabase/db';
+import { sendCheckInReminder } from '@/services/notifications/expo';
 
 // Cron secret for authentication
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -29,7 +32,10 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     const results = {
-      remindersSet: 0,
+      remindersProcessed: 0,
+      notificationsSent: 0,
+      notificationsFailed: 0,
+      usersWithoutTokens: 0,
       errors: [] as string[],
     };
 
@@ -38,17 +44,55 @@ export async function POST(request: NextRequest) {
 
     for (const { schedule, run, user } of upcomingReminders) {
       try {
+        results.remindersProcessed++;
+
+        // Get user's push tokens
+        const pushTokens = await getActiveUserPushTokens(user.id);
+
+        if (pushTokens.length === 0) {
+          // No push tokens registered - mark as sent anyway to avoid repeated attempts
+          await updateVerificationScheduleItem(schedule.id, {
+            reminder_sent: true,
+          });
+          results.usersWithoutTokens++;
+          console.log(`User ${user.id} has no push tokens, skipping notification`);
+          continue;
+        }
+
+        // Calculate check-in number
+        const checkInNumber = run.completed_check_ins + run.failed_check_ins + 1;
+
+        // Send notification to all user's devices
+        const usedTokens: string[] = [];
+        for (const token of pushTokens) {
+          const result = await sendCheckInReminder(token, {
+            scheduledTime: schedule.window_start,
+            municipality: run.municipality_id,
+            checkInNumber,
+            totalCheckIns: run.total_check_ins,
+          });
+
+          if (result.success) {
+            results.notificationsSent++;
+            usedTokens.push(token);
+            console.log(`Notification sent to user ${user.id}, schedule ${schedule.id}`);
+          } else {
+            results.notificationsFailed++;
+            results.errors.push(
+              `Failed to send to user ${user.id}: ${result.error}`
+            );
+          }
+        }
+
+        // Update last_used timestamp for tokens that received notifications
+        if (usedTokens.length > 0) {
+          await updatePushTokenLastUsed(usedTokens);
+        }
+
         // Mark reminder as sent
         await updateVerificationScheduleItem(schedule.id, {
           reminder_sent: true,
         });
-
-        // TODO: Send push notification via Expo
-        // This requires the user to have a push token stored
-        // For now, we just mark the reminder as sent
-
-        console.log(`Reminder sent for user ${user.id}, schedule ${schedule.id}`);
-        results.remindersSet++;
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         results.errors.push(`Error processing schedule ${schedule.id}: ${message}`);

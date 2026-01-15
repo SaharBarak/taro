@@ -15,6 +15,7 @@ import type {
   Vote,
   VoteOption,
   UserVote,
+  PushToken,
   InsertTables,
   UpdateTables,
 } from './types';
@@ -592,4 +593,81 @@ export async function getUserVote(
 
   if (error || !data) return null;
   return data;
+}
+
+// ============================================
+// PUSH TOKEN OPERATIONS
+// ============================================
+
+export async function upsertPushToken(
+  tokenData: InsertTables<'push_tokens'>
+): Promise<PushToken> {
+  const { data, error } = await supabaseAdmin
+    .from('push_tokens')
+    .upsert(tokenData, { onConflict: 'user_id,token' })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to upsert push token: ${error.message}`);
+  return data;
+}
+
+export async function getPushTokensByUserId(userId: string): Promise<PushToken[]> {
+  const { data, error } = await supabaseAdmin
+    .from('push_tokens')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_active', true);
+
+  if (error) {
+    console.error('Failed to get push tokens:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getActiveUserPushTokens(userId: string): Promise<string[]> {
+  const tokens = await getPushTokensByUserId(userId);
+  return tokens.map((t) => t.token);
+}
+
+export async function deletePushToken(
+  userId: string,
+  token: string
+): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from('push_tokens')
+    .delete()
+    .eq('user_id', userId)
+    .eq('token', token);
+
+  if (error) throw new Error(`Failed to delete push token: ${error.message}`);
+}
+
+export async function deactivatePushToken(
+  userId: string,
+  token: string
+): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from('push_tokens')
+    .update({ is_active: false })
+    .eq('user_id', userId)
+    .eq('token', token);
+
+  if (error) throw new Error(`Failed to deactivate push token: ${error.message}`);
+}
+
+export async function updatePushTokenLastUsed(
+  tokens: string[]
+): Promise<void> {
+  if (tokens.length === 0) return;
+
+  const { error } = await supabaseAdmin
+    .from('push_tokens')
+    .update({ last_used: new Date().toISOString() })
+    .in('token', tokens);
+
+  if (error) {
+    console.error('Failed to update push token last_used:', error);
+  }
 }
