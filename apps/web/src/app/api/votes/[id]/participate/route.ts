@@ -99,7 +99,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
       voteRecord = await qubikService.recordVote({
         voteId,
-        oderId: session.userId,
+        userId: session.userId,
         optionId,
         locationHash,
         paymentHash: paymentTxId,

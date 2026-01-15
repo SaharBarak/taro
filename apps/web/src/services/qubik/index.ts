@@ -17,7 +17,7 @@ interface QubikConfig {
 interface VoteRecord {
   id: string;
   voteId: string;
-  oderId: string;
+  userId: string;
   optionId: string;
   timestamp: Date;
   locationHash: string;
@@ -58,7 +58,7 @@ class QubikService {
    */
   async recordVote(params: {
     voteId: string;
-    oderId: string;
+    userId: string;
     optionId: string;
     locationHash: string;
     paymentHash: string;
@@ -71,7 +71,7 @@ class QubikService {
       },
       body: JSON.stringify({
         voteId: params.voteId,
-        oderId: params.oderId,
+        userId: params.userId,
         optionId: params.optionId,
         locationHash: params.locationHash,
         paymentHash: params.paymentHash,
@@ -88,7 +88,7 @@ class QubikService {
     return {
       id: data.id,
       voteId: params.voteId,
-      oderId: params.oderId,
+      userId: params.userId,
       optionId: params.optionId,
       timestamp: new Date(data.timestamp),
       locationHash: params.locationHash,
@@ -180,7 +180,7 @@ class QubikService {
   /**
    * Create a new wallet for a user
    */
-  async createWallet(oderId: string): Promise<string> {
+  async createWallet(userId: string): Promise<string> {
     const response = await fetch(`${this.config.baseUrl}/wallets`, {
       method: 'POST',
       headers: {
@@ -188,7 +188,7 @@ class QubikService {
         Authorization: `Bearer ${this.config.apiKey}`,
       },
       body: JSON.stringify({
-        oderId,
+        userId,
       }),
     });
 
@@ -227,7 +227,7 @@ class QubikService {
     return data.records.map((record: any) => ({
       id: record.id,
       voteId: record.voteId,
-      oderId: record.oderId,
+      userId: record.userId,
       optionId: record.optionId,
       timestamp: new Date(record.timestamp),
       locationHash: record.locationHash,

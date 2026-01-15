@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { convergeService } from '@/services/converge';
+
+const BEEHIIV_API_KEY = process.env.BEEHIIV_API_KEY;
+const BEEHIIV_PUBLICATION_ID = process.env.BEEHIIV_PUBLICATION_ID;
 
 // Rate limiting: store timestamps per IP (in production use Redis)
 const rateLimitMap = new Map<string, number[]>();
@@ -34,7 +36,7 @@ function validateEmail(email: string): boolean {
 
 /**
  * POST /api/newsletter/subscribe
- * Subscribe an email to the newsletter
+ * Subscribe an email to the newsletter via Beehiiv
  */
 export async function POST(request: NextRequest) {
   try {
@@ -71,23 +73,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Store subscription in Converge
-    try {
-      await convergeService.createNewsletterSubscription({
-        email: trimmedEmail,
-        subscribedAt: new Date(),
-        source: 'website_homepage',
-        status: 'active',
-      });
-    } catch (error) {
-      // Check if already subscribed (duplicate key error)
-      if (error instanceof Error && error.message.includes('duplicate')) {
+    // Check Beehiiv configuration
+    if (!BEEHIIV_API_KEY || !BEEHIIV_PUBLICATION_ID) {
+      console.error('Beehiiv credentials not configured');
+      return NextResponse.json(
+        { message: 'שגיאת תצורה. אנא נסו שוב מאוחר יותר.' },
+        { status: 500 }
+      );
+    }
+
+    // Subscribe via Beehiiv
+    const response = await fetch(
+      `https://api.beehiiv.com/v2/publications/${BEEHIIV_PUBLICATION_ID}/subscriptions`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${BEEHIIV_API_KEY}`,
+        },
+        body: JSON.stringify({
+          email: trimmedEmail,
+          reactivate_existing: true,
+          send_welcome_email: true,
+          utm_source: 'website_homepage',
+          utm_medium: 'website',
+          utm_campaign: 'newsletter_section',
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Check if already subscribed
+      if (response.status === 409 || data?.message?.includes('already')) {
         return NextResponse.json(
           { message: 'כתובת האימייל כבר רשומה לעדכונים' },
           { status: 409 }
         );
       }
-      throw error;
+      console.error('Beehiiv API error:', data);
+      throw new Error('Failed to subscribe to newsletter');
     }
 
     return NextResponse.json(

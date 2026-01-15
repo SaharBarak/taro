@@ -134,7 +134,7 @@ export function NewsletterForm({
                 type="email"
                 placeholder={t.placeholder}
                 value={email}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setEmail(e.target.value);
                   if (error) setError('');
                   if (status === 'error') setStatus('idle');

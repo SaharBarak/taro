@@ -15,7 +15,7 @@ const sizeMap: Record<string, string> = {
   large: 'lg',
 };
 
-interface ButtonProps {
+interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
@@ -23,10 +23,7 @@ interface ButtonProps {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   children: React.ReactNode;
-  className?: string;
-  disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   /** Disable micro-animations (overrides system preference) */
   disableAnimation?: boolean;
 }
@@ -95,7 +92,7 @@ export function Button({
               className={styles.icon}
               whileHover={shouldAnimate ? iconNudge : undefined}
             >
-              {leftIcon}
+              <span>{leftIcon}</span>
             </motion.span>
           ) : null}
           <span className={styles.text}>{children}</span>
@@ -104,7 +101,7 @@ export function Button({
               className={styles.icon}
               whileHover={shouldAnimate ? iconNudge : undefined}
             >
-              {rightIcon}
+              <span>{rightIcon}</span>
             </motion.span>
           ) : null}
         </>

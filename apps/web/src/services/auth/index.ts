@@ -4,8 +4,9 @@
  * Re-exports all authentication-related services
  */
 
-// Session management
-export * from './session';
+// Session types only (session functions use cookies() which is server-only)
+// Import session functions directly from '@/services/auth/session' in server components
+export type { SessionPayload, Session } from './session';
 
 // Google OAuth (primary auth)
 export {

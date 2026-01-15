@@ -14,7 +14,18 @@ interface FooterProps {
   locale?: Locale;
 }
 
-const getFooterLinks = (locale: Locale) => ({
+interface FooterLink {
+  href: string;
+  label: string;
+  external?: boolean;
+}
+
+interface FooterSection {
+  title: string;
+  links: FooterLink[];
+}
+
+const getFooterLinks = (locale: Locale): Record<string, FooterSection> => ({
   product: {
     title: locale === 'en' ? 'Product' : 'המוצר',
     links: [

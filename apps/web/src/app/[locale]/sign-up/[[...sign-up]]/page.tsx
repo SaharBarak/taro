@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/Button';
-import styles from '../[[...sign-in]]/page.module.css';
+import styles from '../../sign-in/[[...sign-in]]/page.module.css';
 
 // Reuse sign-in styles since they're similar
 

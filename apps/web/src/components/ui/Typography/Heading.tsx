@@ -8,13 +8,12 @@ type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 type HeadingWeight = 'medium' | 'semibold' | 'bold' | 'extrabold' | 'black';
 type HeadingColor = 'primary' | 'secondary' | 'muted' | 'inverse' | 'accent';
 
-interface HeadingProps {
+interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
   level: HeadingLevel;
   as?: `h${HeadingLevel}`;
   weight?: HeadingWeight;
   color?: HeadingColor;
   align?: 'start' | 'center' | 'end';
-  className?: string;
   children: React.ReactNode;
 }
 
@@ -35,6 +34,7 @@ export function Heading({
   align,
   className,
   children,
+  ...rest
 }: HeadingProps) {
   const Tag = as || headingTags[level];
 
@@ -47,9 +47,9 @@ export function Heading({
     className
   );
 
-  const Component = Tag as any;
+  const Component = Tag as React.ElementType;
   return (
-    <Component className={combinedClassName}>
+    <Component className={combinedClassName} {...rest}>
       {children}
     </Component>
   );
