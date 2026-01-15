@@ -3,7 +3,7 @@
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
 **Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v18 - Converge to Supabase migration)
-**Document Version:** 41.0
+**Document Version:** 42.0
 
 ---
 
@@ -136,8 +136,9 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | P3-10 | **No rate limiting on verification/check-in endpoint** | `apps/web/src/app/api/verification/check-in/route.ts` | N/A | Could be abused during verification | Add rate limiting (10 requests/minute per user) | [ ] |
 | P3-11 | **Cron job console.log statements** | `apps/web/src/app/api/cron/verification-notifications/route.ts` | 58, 78 | Noise in logs | Replace with structured logging | [ ] |
 | P3-12 | **PAYMENT_AMOUNTS vs VOTE_COST unit inconsistency** | `packages/shared/src/types/payment.ts` vs `constants/index.ts` | N/A | PAYMENT_AMOUNTS uses agorot, VOTE_COST uses ILS | Move to constants/ and normalize to single unit | [ ] |
+| P3-13 | **DEAD CODE - newsletter verify route and email template** | `apps/web/src/app/api/newsletter/verify/route.ts`, `apps/web/src/services/email/index.ts` (lines 140-153, 427-488) | N/A | Newsletter now uses Beehiiv for verification | Delete route file and email template functions | [ ] |
 
-**P3 Total: 11 items**
+**P3 Total: 12 items**
 
 ---
 
@@ -152,10 +153,10 @@ API routes currently import from `convergeService` and need to be updated to use
 | `apps/web/src/app/api/votes/route.ts` | `convergeService.getVotesByMunicipality()`, `getActiveVotes()`, `createVote()` | MIGRATED - Uses Supabase `getActiveVotes`, `getVotesByMunicipality`, `createVote`, `createVoteOptions` |
 | `apps/web/src/app/api/votes/[id]/route.ts` | `convergeService.getVote()` | MIGRATED - Uses Supabase `getVoteWithOptions` |
 | `apps/web/src/app/api/votes/[id]/participate/route.ts` | `convergeService.getVote()`, `hasUserParticipated()`, `getUserByGoogleId()`, `createParticipation()`, `incrementVoteCount()`, `updateUser()` | MIGRATED - Uses Supabase `getVoteWithOptions`, `hasUserParticipated`, `getUserByGoogleId`, `recordUserVote`, `incrementVoteOption` |
-| `apps/web/src/app/api/user/profile/route.ts` | `convergeService.getUserByGoogleId()`, `createUser()`, `updateUser()` | Use Supabase `users` table |
+| `apps/web/src/app/api/user/profile/route.ts` | `convergeService.getUserByGoogleId()`, `createUser()`, `updateUser()` | MIGRATED - Uses Supabase getUserByGoogleId, createUser, updateUser, getSocialProofsByUserId, createSocialProof. Fully migrated to Supabase. |
 | `apps/web/src/app/api/verification/status/route.ts` | `convergeService.getVerificationSchedule()` (TODO) | Use Supabase `verification_runs`, `verification_schedule` tables |
 | `apps/web/src/app/api/newsletter/subscribe/route.ts` | `convergeService.createNewsletterSignup()`, `getNewsletterSignupByEmail()` | Use Supabase or keep as external service |
-| `apps/web/src/app/api/newsletter/verify/route.ts` | `convergeService.getNewsletterSignupByToken()`, `verifyNewsletterSignup()` | Use Supabase or keep as external service |
+| `apps/web/src/app/api/newsletter/verify/route.ts` | `convergeService.getNewsletterSignupByToken()`, `verifyNewsletterSignup()` | DEAD CODE - Newsletter now uses Beehiiv which handles verification internally. Can be deleted. |
 | `apps/web/src/app/api/social/callback/facebook/route.ts` | `convergeService.updateSocialProofs()` | MIGRATED - Uses Supabase `getUserByGoogleId`, `getSocialProofsByUserId`, `upsertSocialProof`, `updateUser` |
 | `apps/web/src/app/api/social/callback/instagram/route.ts` | `convergeService.updateSocialProofs()` | MIGRATED - Same Supabase migration as Facebook callback |
 
@@ -262,8 +263,8 @@ The following mobile type errors were fixed during the type alignment session:
 | **P1 High** | 0 | Required for pilot - ALL RESOLVED |
 | **P2 Medium** | 1 | Has workarounds - 1 requires infrastructure change (11 resolved total) |
 | **P2-WEB** | 0 | All 7 web type errors resolved |
-| **P3 Low** | 11 | Post-pilot cleanup (P3-1 resolved this session) |
-| **P4 Cleanup** | 4 | Converge to Supabase migration (5 routes migrated this session) |
+| **P3 Low** | 12 | Post-pilot cleanup (added dead code item) |
+| **P4 Cleanup** | 3 | Converge to Supabase migration (1 route migrated this session) |
 | **Resolved** | 59 | Already fixed (6 new this session) |
 | **Total Active** | 17 | Reduced from 23 (1 P3 + 5 P4 items resolved) |
 
@@ -524,7 +525,25 @@ The API client calls WRONG paths - backend exists but at different URLs:
 ---
 
 *Last Updated: January 15, 2025*
-*Document Version: 41.0*
+*Document Version: 42.0*
+
+**Version 42.0 Changes (January 15, 2025 - User Profile Migration Session):**
+- **P4 PROGRESS: /api/user/profile migrated from Converge to Supabase:**
+  - File: `apps/web/src/app/api/user/profile/route.ts`
+  - GET handler now uses `getUserByGoogleId()` and `getSocialProofsByUserId()` from Supabase
+  - POST handler now uses `createUser()` and `createSocialProof()` from Supabase
+  - PATCH handler now uses `updateUser()` from Supabase
+  - Added helper function `transformToProfile()` to convert DB format to API format
+  - Calculates identity score dynamically from social proofs
+- **Newsletter verify route identified as DEAD CODE:**
+  - File: `apps/web/src/app/api/newsletter/verify/route.ts`
+  - Newsletter subscribe now uses Beehiiv directly with `send_welcome_email: true`
+  - The `sendNewsletterVerificationEmail()` function in email service is never called
+  - Added to P3-13 for post-pilot cleanup
+- **Stats Updated:**
+  - P4 Cleanup: 4 -> 3 (1 route migrated)
+  - P3 Low: 11 -> 12 (added dead code item)
+  - All 43 tests pass
 
 **Version 41.0 Changes (January 15, 2025 - Converge to Supabase Migration Session):**
 - **P3-1 RESOLVED: Dead code grow.ts deleted**
