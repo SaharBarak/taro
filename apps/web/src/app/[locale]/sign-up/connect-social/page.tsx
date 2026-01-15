@@ -15,6 +15,7 @@ export default function ConnectSocialPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [connecting, setConnecting] = useState<string | null>(null);
   const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -24,26 +25,26 @@ export default function ConnectSocialPage() {
 
   const handleConnectFacebook = async () => {
     setConnecting('facebook');
+    setConnectionError(null);
     try {
-      // Redirect to Facebook OAuth
-      const redirectUrl = `${window.location.origin}/api/social/callback/facebook`;
-      const facebookAuthUrl = `/api/social/facebook/connect?redirect_uri=${encodeURIComponent(redirectUrl)}`;
-      window.location.href = facebookAuthUrl;
+      // Redirect to Facebook OAuth (correct API endpoint path)
+      window.location.href = '/api/social/connect/facebook';
     } catch (error) {
       console.error('Facebook connect error:', error);
+      setConnectionError('שגיאה בהתחברות לפייסבוק');
       setConnecting(null);
     }
   };
 
   const handleConnectInstagram = async () => {
     setConnecting('instagram');
+    setConnectionError(null);
     try {
-      // Redirect to Instagram OAuth
-      const redirectUrl = `${window.location.origin}/api/social/callback/instagram`;
-      const instagramAuthUrl = `/api/social/instagram/connect?redirect_uri=${encodeURIComponent(redirectUrl)}`;
-      window.location.href = instagramAuthUrl;
+      // Redirect to Instagram OAuth (correct API endpoint path)
+      window.location.href = '/api/social/connect/instagram';
     } catch (error) {
       console.error('Instagram connect error:', error);
+      setConnectionError('שגיאה בהתחברות לאינסטגרם');
       setConnecting(null);
     }
   };
@@ -56,16 +57,36 @@ export default function ConnectSocialPage() {
     router.push('/dashboard');
   };
 
-  // Check for successful connection from URL params
+  // Check for successful/failed connection from URL params
+  // Note: OAuth callbacks redirect to /settings/social-connections, but user may return here
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const connected = params.get('connected');
+    const connected = params.get('connected') || params.get('success');
+    const error = params.get('error');
+
     if (connected) {
-      setConnectedPlatforms((prev) => [...prev, connected]);
+      setConnectedPlatforms((prev) =>
+        prev.includes(connected) ? prev : [...prev, connected]
+      );
       // Clean up URL
       router.replace('/sign-up/connect-social');
     }
+
+    if (error) {
+      setConnectionError(decodeURIComponent(error));
+      router.replace('/sign-up/connect-social');
+    }
   }, [router]);
+
+  // Load existing social proofs from user profile
+  useEffect(() => {
+    if (user?.socialProofs && Array.isArray(user.socialProofs)) {
+      const connected = user.socialProofs.map(
+        (proof: { platform: string }) => proof.platform.toLowerCase()
+      );
+      setConnectedPlatforms(connected);
+    }
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -120,6 +141,26 @@ export default function ConnectSocialPage() {
             </div>
             <span className={styles.levelText}>רמה: {currentLevel}</span>
           </motion.div>
+
+          {/* Error Message */}
+          {connectionError && (
+            <motion.div
+              className={styles.errorMessage}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <span className={styles.errorIcon}>⚠️</span>
+              <p>{connectionError}</p>
+              <button
+                className={styles.dismissError}
+                onClick={() => setConnectionError(null)}
+                aria-label="סגור"
+              >
+                ✕
+              </button>
+            </motion.div>
+          )}
 
           {/* Social Platforms */}
           <div className={styles.platforms}>

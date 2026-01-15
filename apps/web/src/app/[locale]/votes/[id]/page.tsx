@@ -30,34 +30,6 @@ interface Vote {
   };
 }
 
-// Mock data - will be replaced with API call
-const mockVote: Vote = {
-  id: '1',
-  title: 'הקמת גן שעשועים חדש ברובע הצפוני',
-  description: `הצעה להקמת גן שעשועים חדש ומודרני ברובע הצפוני של העיר. הגן יכלול:
-
-• מתקני משחק לגילאי 3-12
-• אזור ישיבה מוצל להורים
-• מזרקת מים לקיץ
-• משטחי בטיחות מגומי
-• נגישות מלאה לבעלי מוגבלויות
-
-התקציב המשוער: 2.5 מיליון ש"ח מתקציב הפיתוח העירוני.`,
-  municipality: 'תל אביב-יפו',
-  status: 'active',
-  options: [
-    { id: '1', text: 'בעד - יש צורך בגן שעשועים נוסף', votes: 847 },
-    { id: '2', text: 'נגד - יש מספיק גנים באזור', votes: 234 },
-    { id: '3', text: 'בעד עם שינויים - רוצה לראות תכנון מפורט', votes: 156 },
-  ],
-  startDate: '2024-12-15T00:00:00Z',
-  endDate: '2024-12-29T23:59:59Z',
-  participantCount: 1237,
-  creator: {
-    name: 'מועצת הרובע הצפוני',
-  },
-};
-
 function getTimeRemaining(endDate: string): string {
   const end = new Date(endDate);
   const now = new Date();
@@ -78,12 +50,14 @@ export default function VoteDetailPage() {
   const { user, isAuthenticated } = useAuthStore();
   const [vote, setVote] = useState<Vote | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
 
   const fetchVote = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch(`/api/votes/${params.id}`);
       if (response.ok) {
@@ -94,13 +68,16 @@ export default function VoteDetailPage() {
           setHasVoted(true);
           setSelectedOption(data.userVote.optionId);
         }
+      } else if (response.status === 404) {
+        setError('ההצבעה לא נמצאה');
+        setVote(null);
       } else {
-        // Fallback to mock data for demo
-        setVote(mockVote);
+        setError('שגיאה בטעינת ההצבעה');
+        setVote(null);
       }
     } catch {
-      // Use mock data as fallback
-      setVote(mockVote);
+      setError('שגיאה בטעינת ההצבעה. בדקו את חיבור האינטרנט.');
+      setVote(null);
     } finally {
       setLoading(false);
     }
@@ -119,12 +96,19 @@ export default function VoteDetailPage() {
     );
   }
 
-  if (!vote) {
+  if (!vote || error) {
     return (
-      <div className={styles.errorContainer}>
-        <h1>ההצבעה לא נמצאה</h1>
-        <Button onClick={() => router.push('/votes')}>חזרה להצבעות</Button>
-      </div>
+      <>
+        <Header />
+        <main className={styles.main}>
+          <div className={styles.errorContainer}>
+            <h1>{error || 'ההצבעה לא נמצאה'}</h1>
+            <p>לא ניתן לטעון את פרטי ההצבעה</p>
+            <Button onClick={() => router.push('/votes')}>חזרה להצבעות</Button>
+          </div>
+        </main>
+        <Footer />
+      </>
     );
   }
 

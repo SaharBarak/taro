@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v17 - 8 P2 items resolved)
-**Document Version:** 39.0
+**Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v18 - 3 more P2 items resolved)
+**Document Version:** 40.0
 
 ---
 
@@ -81,20 +81,22 @@ These issues affect user experience but have workarounds or affect secondary flo
 
 | # | Issue | File | Line | Impact | Fix Required | Status |
 |---|-------|------|------|--------|--------------|--------|
-| P2-1 | **GpsCoordinates schema missing timestamp** | `packages/shared/src/contracts/verification.ts` | 18-22 | Validation may fail | Add `timestamp` field to Zod schema | [~] LOW |
+| ~~P2-1~~ | ~~GpsCoordinates schema missing timestamp~~ | - | - | - | - | [x] FIXED |
 | ~~P2-2~~ | ~~IdentityScore missing lastCalculated field~~ | - | - | - | - | [x] FIXED |
 | ~~P2-3~~ | ~~Duplicate getTokenBalance() method~~ | - | - | - | - | [x] FIXED |
 | ~~P2-4~~ | ~~Mock data in mobile history screen~~ | - | - | - | - | [x] FIXED |
 | ~~P2-5~~ | ~~Mock data in web dashboard~~ | - | - | - | - | [x] FIXED |
 | ~~P2-9~~ | ~~Verification complete shows hardcoded stats~~ | - | - | - | - | [x] FIXED |
-| P2-10 | **Social connect page has alert placeholder** | `apps/web/src/app/[locale]/sign-up/connect-social/page.tsx` | 98 | Shows "Coming soon - use mobile app" | Implement web OAuth flow or remove | [~] PARTIAL |
-| P2-11 | **Vote detail page uses mock fallback** | `apps/web/src/app/[locale]/votes/[id]/page.tsx` | 33-59, 98-103 | Falls back to mock data silently | Show error instead of mock | [~] PARTIAL |
+| ~~P2-10~~ | ~~Social connect page has alert placeholder~~ | - | - | - | - | [x] FIXED |
+| ~~P2-11~~ | ~~Vote detail page uses mock fallback~~ | - | - | - | - | [x] FIXED |
 | ~~P2-12~~ | ~~Vote participate has mock transaction hash fallback~~ | - | - | - | - | [x] FIXED |
 | ~~P2-13~~ | ~~User profile POST has mock wallet address fallback~~ | - | - | - | - | [x] FIXED |
-| P2-14 | **In-memory rate limiting not production-ready** | `apps/web/src/app/api/newsletter/subscribe/route.ts` | 5-6 | Rate limits reset on server restart, don't work across instances | Replace with Redis/Upstash for production | [~] PARTIAL |
+| P2-14 | **In-memory rate limiting not production-ready** | `apps/web/src/app/api/newsletter/subscribe/route.ts` | 5-6 | Rate limits reset on server restart, don't work across instances | Requires Redis/Upstash infrastructure setup (out of scope for code changes) | [~] INFRA |
 | ~~P2-15~~ | ~~Duplicate GpsCoordinates type definition~~ | - | - | - | - | [x] FIXED |
 
-**P2 Total: 4 items** (8 resolved this session)
+**P2 Total: 1 item** (11 resolved total, 3 new this session)
+
+**Note on P2-14:** Production rate limiting requires Redis/Upstash infrastructure which is out of scope for code changes. Recommended: Use Upstash Redis or Vercel KV for production deployment.
 
 ---
 
@@ -221,8 +223,11 @@ These issues have been verified as fixed:
 | R50 | P2-12: Vote participate has mock transaction hash fallback | FIXED - Changed to fail with 503 error instead of silently using mock `mock-tx-${Date.now()}` in `apps/web/src/app/api/votes/[id]/participate/route.ts`. Critical blockchain operations must not use fake data. | [x] Jan 15 |
 | R51 | P2-13: User profile POST has mock wallet address fallback | FIXED - Changed to fail with 503 error instead of using `mock-wallet-${userId}` in `apps/web/src/app/api/user/profile/route.ts`. Users must have real blockchain wallets. | [x] Jan 15 |
 | R52 | P2-15: Duplicate GpsCoordinates type definition | FIXED - Consolidated to single definition in `packages/shared/src/types/user.ts`. The `vote.ts` file now imports and re-exports from `user.ts`. Updated `packages/shared/src/types/index.ts` already excluded GpsCoordinates from vote.ts. | [x] Jan 15 |
+| R53 | P2-1: GpsCoordinates schema missing timestamp | FIXED - Added `timestamp: z.string().datetime().optional()` to GpsCoordinatesSchema in `packages/shared/src/contracts/verification.ts`. Also updated `apps/web/src/app/api/verification/check-in/route.ts` to include timestamp in location response. | [x] Jan 15 |
+| R54 | P2-10: Social connect page has alert placeholder | FIXED - Fixed API endpoint paths (was `/api/social/facebook/connect`, now correctly `/api/social/connect/facebook`). Added error state handling and error message UI. Added loading of existing social proofs from user profile. Added proper detection of success/error URL params. Added CSS for error message display in `page.module.css`. File: `apps/web/src/app/[locale]/sign-up/connect-social/page.tsx` | [x] Jan 15 |
+| R55 | P2-11: Vote detail page mock data fallback | FIXED - Removed mock vote data constant entirely. Added error state management. Now shows proper error message instead of silently falling back to mock data. Shows Hebrew error messages: "ההצבעה לא נמצאה" or "שגיאה בטעינת ההצבעה". File: `apps/web/src/app/[locale]/votes/[id]/page.tsx` | [x] Jan 15 |
 
-**Total Resolved: 50 items** (8 new this session)
+**Total Resolved: 53 items** (3 new this session)
 
 ### Mobile Type Errors Fixed This Session
 
@@ -255,12 +260,12 @@ The following mobile type errors were fixed during the type alignment session:
 |----------|-------|-------------|
 | **P0 Critical** | 1 | Breaks core flows - fix before testing |
 | **P1 High** | 0 | Required for pilot - ALL RESOLVED |
-| **P2 Medium** | 4 | Has workarounds - can defer (8 resolved this session) |
+| **P2 Medium** | 1 | Has workarounds - 1 requires infrastructure change (11 resolved total) |
 | **P2-WEB** | 0 | All 7 web type errors resolved |
 | **P3 Low** | 12 | Post-pilot cleanup |
 | **P4 Cleanup** | 9 | Converge to Supabase migration (files to update) |
-| **Resolved** | 50 | Already fixed (8 new this session) |
-| **Total Active** | 26 | Reduced from 34 (8 P2 items resolved) |
+| **Resolved** | 53 | Already fixed (3 new this session) |
+| **Total Active** | 23 | Reduced from 26 (3 P2 items resolved) |
 
 **Stack Simplification (January 2025):**
 - Database: Supabase (PostgreSQL with RLS) - ONLY database
@@ -519,7 +524,35 @@ The API client calls WRONG paths - backend exists but at different URLs:
 ---
 
 *Last Updated: January 15, 2025*
-*Document Version: 39.0*
+*Document Version: 40.0*
+
+**Version 40.0 Changes (January 15, 2025 - Additional P2 Resolutions):**
+- **3 P2 Items Resolved:**
+  - **P2-1 RESOLVED (R53): GpsCoordinates schema now has timestamp field**
+    - File: `packages/shared/src/contracts/verification.ts`
+    - Added `timestamp: z.string().datetime().optional()` to GpsCoordinatesSchema
+    - Also updated `apps/web/src/app/api/verification/check-in/route.ts` to include timestamp in location response
+  - **P2-10 RESOLVED (R54): Social connect page improved**
+    - File: `apps/web/src/app/[locale]/sign-up/connect-social/page.tsx`
+    - Fixed API endpoint paths (was `/api/social/facebook/connect`, now correctly `/api/social/connect/facebook`)
+    - Added error state handling and error message UI
+    - Added loading of existing social proofs from user profile
+    - Added proper detection of success/error URL params
+    - Added CSS for error message display in `page.module.css`
+  - **P2-11 RESOLVED (R55): Vote detail page no longer uses mock data fallback**
+    - File: `apps/web/src/app/[locale]/votes/[id]/page.tsx`
+    - Removed mock vote data constant entirely
+    - Added error state management
+    - Now shows proper error message instead of silently falling back to mock data
+    - Shows Hebrew error messages: "ההצבעה לא נמצאה" or "שגיאה בטעינת ההצבעה"
+- **P2-14 Note Added:** In-memory rate limiting marked as infrastructure change needed
+  - Requires Redis/Upstash infrastructure which is out of scope for code changes
+  - Recommended: Use Upstash Redis or Vercel KV for production
+  - Status changed to [~] INFRA
+- **Stats Updated:**
+  - P2 Medium: 4 -> 1 (3 items resolved, 1 remaining requires infrastructure)
+  - Total Resolved: 50 -> 53 (3 new this session: R53-R55)
+  - Total Active: 26 -> 23
 
 **Version 39.0 Changes (January 15, 2025 - P2 Items Resolution Session):**
 - **8 P2 Items Resolved:**

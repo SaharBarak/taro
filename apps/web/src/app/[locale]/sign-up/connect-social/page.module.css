@@ -104,6 +104,45 @@
   color: var(--color-neutral-600);
 }
 
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--space-3);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.errorIcon {
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+}
+
+.errorMessage p {
+  flex: 1;
+  font-family: var(--font-assistant);
+  font-size: var(--text-sm);
+  color: #DC2626;
+  line-height: 1.5;
+}
+
+.dismissError {
+  background: none;
+  border: none;
+  color: #DC2626;
+  cursor: pointer;
+  font-size: var(--text-lg);
+  padding: var(--space-1);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.dismissError:hover {
+  background: #FEE2E2;
+}
+
 .platforms {
   display: flex;
   flex-direction: column;

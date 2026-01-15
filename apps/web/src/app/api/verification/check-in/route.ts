@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       checkIn: {
         id: attempt.id,
         completedAt: attempt.timestamp,
-        location: { latitude, longitude, accuracy },
+        location: { latitude, longitude, accuracy, timestamp: attempt.timestamp },
         municipalityVerified: true,
         distanceFromCenter: verificationResult.distanceFromCenter,
       },
