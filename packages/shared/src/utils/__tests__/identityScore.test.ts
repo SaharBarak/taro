@@ -23,9 +23,9 @@ import type { SocialProof } from '../../types/user';
 // Helper to create mock social proofs
 const createMockProof = (platform: 'google' | 'facebook' | 'instagram'): SocialProof => ({
   platform,
-  platformUserId: `${platform}-123`,
+  providerId: `${platform}-123`,
   displayName: `Test ${platform} User`,
-  verifiedAt: new Date(),
+  connectedAt: new Date(),
   stampWeight: IDENTITY_SCORE_WEIGHTS[platform],
 });
 
@@ -207,12 +207,12 @@ describe('createSocialProof', () => {
     });
 
     expect(proof.platform).toBe('google');
-    expect(proof.platformUserId).toBe('user-123');
+    expect(proof.providerId).toBe('user-123');
     expect(proof.displayName).toBe('Test User');
     expect(proof.email).toBe('test@example.com');
     expect(proof.profileUrl).toBe('https://google.com/user');
     expect(proof.stampWeight).toBe(40);
-    expect(proof.verifiedAt).toBeInstanceOf(Date);
+    expect(proof.connectedAt).toBeInstanceOf(Date);
   });
 
   it('should use correct stamp weight for each platform', () => {

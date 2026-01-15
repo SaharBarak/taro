@@ -18,7 +18,7 @@ pnpm dev:mobile                 # Run mobile (Expo)
 
 Run these after implementing to get immediate feedback:
 
-- Tests: `pnpm test` (not configured yet - set up Vitest)
+- Tests: `pnpm test` (149 tests passing - 106 shared, 43 web)
 - Typecheck: `pnpm typecheck`
 - Lint: `pnpm lint`
 - Build: `pnpm build`

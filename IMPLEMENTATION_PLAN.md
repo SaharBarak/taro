@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v22 - ESLint 9 mobile fix)
-**Document Version:** 45.0
+**Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v24 - testing infrastructure setup: Vitest configured, 149 tests passing)
+**Document Version:** 47.0
 
 ---
 
@@ -11,7 +11,7 @@
 
 This document tracks the implementation status for the Taru civic consensus platform. Items are organized by priority with the Late January 2025 Kiryat Tivon pilot as the primary deadline.
 
-**Codebase Statistics (verified Jan 15, 2025 - v43):**
+**Codebase Statistics (verified Jan 15, 2025 - v44):**
 - Shared Package: 5 type files, 5 contract files, 2 constant files (55+ Hebrew error messages), 4 utility files (47+ exported types/interfaces, 35+ utility functions, ~170+ total exports)
 - API Client: 3 modules (votes.ts 8 methods, users.ts 10 methods, payments.ts 5 methods) - 21 methods total, 21 have working backends (100%), 0 missing backend implementations
 - Web API: 31 route files (29 complete, 2 partial) - Added /api/payments/[id]/verify and /api/user/verify-location
@@ -20,6 +20,7 @@ This document tracks the implementation status for the Taru civic consensus plat
 - Web Pages: 14 pages (10 complete, 4 partial) - dashboard now connected to API
 - Database: 11 tables (users, social_proofs, verification_runs, verification_schedule, verification_attempts, payments, entitlements, votes, vote_options, user_votes, push_tokens), 32+ indexes, 7 triggers, 12+ functions, RLS policies on all tables
 - Specs: 2 complete (push-notifications 98% implemented, bags-integration 0% - Priority 2)
+- Tests: 149 passing (106 shared utilities, 43 web integration tests) - Vitest configured for @sync/shared and @sync/web
 
 **Legend:**
 - [x] Completed
@@ -123,6 +124,10 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 **Total Resolved: 71 items** - See git history for details
 
 **Recent Resolutions:**
+- Lint warnings cleaned up in mobile and web apps - unused catch parameters and eslint-disable directives removed
+- Specs directory (push-notifications.md, bags-integration.md) committed to git
+- Session refresh API endpoint (/api/auth/session/refresh) committed
+- EAS configuration (eas.json) committed
 - ESLint 9 configuration fixed for mobile app - lint now passes successfully for both web and mobile apps
 
 ---
@@ -241,6 +246,6 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 ---
 
 *Last Updated: January 15, 2025*
-*Document Version: 45.0*
+*Document Version: 47.0*
 
 See git history for detailed change logs.

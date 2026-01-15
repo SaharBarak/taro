@@ -11,6 +11,9 @@
     "build:web": "turbo build --filter=@sync/web",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:shared": "turbo test --filter=@sync/shared",
+    "test:web": "turbo test --filter=@sync/web",
     "clean": "turbo clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
