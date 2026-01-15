@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/services/auth/session';
-import { convergeService } from '@/services/converge';
 import { qubikService } from '@/services/qubik';
 import { emailService } from '@/services/email';
+import {
+  getVoteWithOptions,
+  hasUserParticipated,
+  getUserByGoogleId,
+  recordUserVote,
+  incrementVoteOption,
+  updateUser,
+} from '@/lib/supabase/db';
+import { supabaseAdmin } from '@/lib/supabase/server';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -32,8 +40,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Get the vote
-    const vote = await convergeService.getVote(voteId);
+    // Get the vote with options
+    const vote = await getVoteWithOptions(voteId);
 
     if (!vote) {
       return NextResponse.json({ error: 'Vote not found' }, { status: 404 });
@@ -45,17 +53,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check if vote has ended
-    if (new Date(vote.endDate) < new Date()) {
+    if (new Date(vote.end_date) < new Date()) {
       return NextResponse.json({ error: 'Vote has ended' }, { status: 400 });
     }
 
     // Check if user has already participated
-    const hasParticipated = await convergeService.hasUserParticipated(
-      voteId,
-      session.userId
+    const alreadyParticipated = await hasUserParticipated(
+      session.userId,
+      voteId
     );
 
-    if (hasParticipated) {
+    if (alreadyParticipated) {
       return NextResponse.json(
         { error: 'You have already participated in this vote' },
         { status: 400 }
@@ -69,7 +77,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Get user profile
-    const user = await convergeService.getUserByGoogleId(session.googleId);
+    const user = await getUserByGoogleId(session.googleId);
     if (!user) {
       return NextResponse.json(
         { error: 'User profile not found' },
@@ -78,7 +86,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check user can vote (identity score >= 40)
-    if (user.identityScore.total < 40) {
+    if ((user.identity_score || 0) < 40) {
       return NextResponse.json(
         { error: 'Insufficient identity score to vote. Minimum 40 required.' },
         { status: 403 }
@@ -115,7 +123,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Mint Sync tokens (3 tokens for 3 shekel vote)
     try {
       await qubikService.mintTokens({
-        walletAddress: user.qubikWalletAddress,
+        walletAddress: user.qubik_wallet_address || '',
         amount: 3,
         reason: 'vote',
       });
@@ -123,8 +131,43 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       console.warn('Could not mint tokens:', e);
     }
 
-    // Create participation record
-    const participation = await convergeService.createParticipation({
+    // Create user vote record in Supabase
+    const userVote = await recordUserVote({
+      user_id: session.userId,
+      vote_id: voteId,
+      option_id: optionId,
+      payment_id: paymentTxId,
+    });
+
+    // Increment vote option count (atomic)
+    await incrementVoteOption(optionId);
+
+    // Increment vote participant count
+    await supabaseAdmin
+      .from('votes')
+      .update({
+        participant_count: (vote.participant_count || 0) + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', voteId);
+
+    // Send payment receipt email
+    try {
+      await emailService.sendPaymentReceiptEmail({
+        to: user.email,
+        firstName: user.first_name || 'User',
+        amount: 3,
+        type: 'vote',
+        receiptUrl: `${process.env.NEXT_PUBLIC_APP_URL}/receipts/${paymentTxId}`,
+        tokensEarned: 3,
+      });
+    } catch (e) {
+      console.warn('Could not send receipt email:', e);
+    }
+
+    // Return participation in Converge-compatible format
+    const participation = {
+      id: userVote.id,
       voteId,
       userId: session.userId,
       optionId,
@@ -135,29 +178,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         longitude: gpsCoordinates.longitude,
         timestamp: new Date(gpsCoordinates.timestamp),
       },
-    });
-
-    // Increment vote count
-    await convergeService.incrementVoteCount(voteId, optionId);
-
-    // Update user token balance
-    await convergeService.updateUser(user.id, {
-      syncTokenBalance: user.syncTokenBalance + 3,
-    });
-
-    // Send payment receipt email
-    try {
-      await emailService.sendPaymentReceiptEmail({
-        to: user.email,
-        firstName: user.firstName,
-        amount: 3,
-        type: 'vote',
-        receiptUrl: `${process.env.NEXT_PUBLIC_APP_URL}/receipts/${paymentTxId}`,
-        tokensEarned: 3,
-      });
-    } catch (e) {
-      console.warn('Could not send receipt email:', e);
-    }
+      createdAt: userVote.created_at,
+    };
 
     return NextResponse.json({
       success: true,

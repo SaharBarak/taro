@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/services/auth/session';
-import { convergeService } from '@/services/converge';
+import {
+  getActiveVotes,
+  getVotesByMunicipality,
+  createVote,
+  createVoteOptions,
+} from '@/lib/supabase/db';
 
 /**
  * GET /api/votes
@@ -10,26 +15,40 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const municipality = searchParams.get('municipality');
-    const status = searchParams.get('status') as
-      | 'pending'
-      | 'active'
-      | 'completed'
-      | 'cancelled'
-      | null;
+    const statusParam = searchParams.get('status');
+    // Map 'cancelled' to 'ended' for backwards compatibility (DB only has pending/active/ended)
+    const status = statusParam === 'cancelled'
+      ? 'ended'
+      : (statusParam as 'pending' | 'active' | 'ended' | null);
 
     let votes;
 
     if (municipality && status) {
-      votes = await convergeService.getVotesByMunicipality(municipality, status);
+      votes = await getVotesByMunicipality(municipality, status);
     } else if (municipality) {
-      votes = await convergeService.getVotesByMunicipality(municipality);
+      votes = await getVotesByMunicipality(municipality);
     } else if (status === 'active') {
-      votes = await convergeService.getActiveVotes();
+      votes = await getActiveVotes();
     } else {
-      votes = await convergeService.getActiveVotes();
+      votes = await getActiveVotes();
     }
 
-    return NextResponse.json({ votes });
+    // Transform to API response format
+    const transformedVotes = votes.map((vote) => ({
+      id: vote.id,
+      title: vote.title,
+      description: vote.description,
+      municipality: vote.municipality_id,
+      creatorId: vote.creator_id,
+      status: vote.status,
+      startDate: vote.start_date,
+      endDate: vote.end_date,
+      participantCount: vote.participant_count,
+      createdAt: vote.created_at,
+      updatedAt: vote.updated_at,
+    }));
+
+    return NextResponse.json({ votes: transformedVotes });
   } catch (error) {
     console.error('Error fetching votes:', error);
     return NextResponse.json(
@@ -77,7 +96,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate payment (in production, verify with Stripe)
+    // Validate payment (in production, verify with Green Invoice)
     if (!paymentTxId) {
       return NextResponse.json(
         { error: 'Payment required to create a vote' },
@@ -85,29 +104,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create vote options with initial count
-    const voteOptions = options.map(
-      (opt: { label: string; description?: string }, index: number) => ({
-        id: `opt_${Date.now()}_${index}`,
-        label: opt.label,
-        description: opt.description,
-        voteCount: 0,
-      })
-    );
-
-    // Create the vote
-    const vote = await convergeService.createVote({
+    // Create the vote in Supabase
+    const vote = await createVote({
       title,
       description,
-      municipality,
-      creatorId: session.userId,
+      municipality_id: municipality,
+      creator_id: session.userId,
       status: new Date(startDate) <= new Date() ? 'active' : 'pending',
-      options: voteOptions,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      start_date: new Date(startDate).toISOString(),
+      end_date: new Date(endDate).toISOString(),
+      participant_count: 0,
     });
 
-    return NextResponse.json({ vote }, { status: 201 });
+    // Create vote options separately in Supabase
+    // Note: vote_options table only has text/votes, no description field
+    const createdOptions = await createVoteOptions(
+      options.map((opt: { label: string; description?: string }) => ({
+        vote_id: vote.id,
+        text: opt.label,
+        votes: 0,
+      }))
+    );
+
+    // Transform to API response format
+    // Note: option descriptions are not stored in DB, include from input if provided
+    const responseVote = {
+      id: vote.id,
+      title: vote.title,
+      description: vote.description,
+      municipality: vote.municipality_id,
+      creatorId: vote.creator_id,
+      status: vote.status,
+      startDate: vote.start_date,
+      endDate: vote.end_date,
+      participantCount: vote.participant_count,
+      options: createdOptions.map((opt, index) => ({
+        id: opt.id,
+        label: opt.text,
+        description: options[index]?.description, // Use input description
+        voteCount: opt.votes,
+      })),
+      createdAt: vote.created_at,
+      updatedAt: vote.updated_at,
+    };
+
+    return NextResponse.json({ vote: responseVote }, { status: 201 });
   } catch (error) {
     console.error('Error creating vote:', error);
     return NextResponse.json(

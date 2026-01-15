@@ -520,6 +520,58 @@ export async function getActiveVotes(
   return data || [];
 }
 
+export async function getVotesByMunicipality(
+  municipalityId: string,
+  status?: 'pending' | 'active' | 'ended'
+): Promise<Vote[]> {
+  let query = supabaseAdmin
+    .from('votes')
+    .select('*')
+    .eq('municipality_id', municipalityId)
+    .order('created_at', { ascending: false });
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Failed to get votes by municipality:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getActiveVotesWithOptions(
+  municipalityId?: string
+): Promise<(Vote & { options: VoteOption[] })[]> {
+  let query = supabaseAdmin
+    .from('votes')
+    .select(`
+      *,
+      vote_options (*)
+    `)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false });
+
+  if (municipalityId) {
+    query = query.eq('municipality_id', municipalityId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Failed to get active votes with options:', error);
+    return [];
+  }
+
+  return (data || []).map((vote: any) => ({
+    ...vote,
+    options: vote.vote_options || [],
+  }));
+}
+
 export async function createVote(
   voteData: InsertTables<'votes'>
 ): Promise<Vote> {

@@ -5,10 +5,15 @@ import {
   getLongLivedToken,
 } from '@/services/auth/instagram';
 import { getSessionFromRequest } from '@/services/auth/session';
-import { convergeService } from '@/services/converge';
 import { calculateIdentityScore } from '@sync/shared';
 import type { SocialProof } from '@sync/shared';
 import { verifyOAuthState, verifyOAuthStatePlatform } from '@/lib/oauth-state';
+import {
+  getUserByGoogleId,
+  getSocialProofsByUserId,
+  upsertSocialProof,
+  updateUser,
+} from '@/lib/supabase/db';
 
 /**
  * GET /api/social/callback/instagram
@@ -80,38 +85,44 @@ export async function GET(request: NextRequest) {
       throw new Error('Session mismatch');
     }
 
-    // Get user profile
-    const user = await convergeService.getUserByGoogleId(session.googleId);
+    // Get user profile from Supabase
+    const user = await getUserByGoogleId(session.googleId);
     if (!user) {
       throw new Error('User not found');
     }
 
-    // Create Instagram social proof
-    const instagramProof: SocialProof = {
-      platform: 'instagram',
-      providerId: instagramUser.id,
-      displayName: instagramUser.username,
-      profileUrl: `https://instagram.com/${instagramUser.username}`,
-      connectedAt: new Date(),
-      stampWeight: 30,
-    };
+    // Upsert Instagram social proof in Supabase
+    await upsertSocialProof({
+      user_id: user.id,
+      provider: 'instagram',
+      provider_id: instagramUser.id,
+      provider_name: instagramUser.username,
+      provider_email: null,
+      provider_avatar: null,
+      connected_at: new Date().toISOString(),
+    });
 
-    // Update social proofs (keep existing, add/update Instagram)
-    const existingProofs = user.socialProofs || [];
-    const updatedProofs = existingProofs.filter(
-      (p) => p.platform !== 'instagram'
-    );
-    updatedProofs.push(instagramProof);
+    // Get all social proofs to calculate identity score
+    const dbProofs = await getSocialProofsByUserId(user.id);
+
+    // Convert to SocialProof format for identity score calculation
+    const socialProofs: SocialProof[] = dbProofs.map((p) => ({
+      platform: p.provider as 'google' | 'facebook' | 'instagram',
+      providerId: p.provider_id,
+      displayName: p.provider_name || p.provider_id, // Fallback to ID if no name
+      email: p.provider_email || undefined,
+      profileUrl: `https://${p.provider}.com/${p.provider_id}`,
+      connectedAt: new Date(p.connected_at),
+      stampWeight: p.provider === 'google' ? 40 : 30,
+    }));
 
     // Recalculate identity score
-    const newIdentityScore = calculateIdentityScore(updatedProofs);
+    const newIdentityScore = calculateIdentityScore(socialProofs);
 
-    // Update user
-    await convergeService.updateSocialProofs(
-      session.googleId,
-      updatedProofs,
-      newIdentityScore
-    );
+    // Update user identity score
+    await updateUser(user.id, {
+      identity_score: newIdentityScore.total,
+    });
 
     // Redirect to success
     return NextResponse.redirect(

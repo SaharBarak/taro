@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { convergeService } from '@/services/converge';
+import { getVoteWithOptions } from '@/lib/supabase/db';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -15,14 +15,35 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const vote = await convergeService.getVote(id);
+    const voteData = await getVoteWithOptions(id);
 
-    if (!vote) {
+    if (!voteData) {
       return NextResponse.json(
         { error: 'Vote not found' },
         { status: 404 }
       );
     }
+
+    // Transform to API response format
+    const vote = {
+      id: voteData.id,
+      title: voteData.title,
+      description: voteData.description,
+      municipality: voteData.municipality_id,
+      creatorId: voteData.creator_id,
+      status: voteData.status,
+      startDate: voteData.start_date,
+      endDate: voteData.end_date,
+      participantCount: voteData.participant_count,
+      // Note: vote_options table doesn't have description field
+      options: voteData.options.map((opt) => ({
+        id: opt.id,
+        label: opt.text,
+        voteCount: opt.votes,
+      })),
+      createdAt: voteData.created_at,
+      updatedAt: voteData.updated_at,
+    };
 
     return NextResponse.json({ vote });
   } catch (error) {

@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v18 - 3 more P2 items resolved)
-**Document Version:** 40.0
+**Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v18 - Converge to Supabase migration)
+**Document Version:** 41.0
 
 ---
 
@@ -124,7 +124,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 
 | # | Issue | File | Line | Impact | Fix Required | Status |
 |---|-------|------|------|--------|--------------|--------|
-| P3-1 | **DEAD CODE - grow.ts** | `apps/web/src/services/payments/grow.ts` | entire file | 232 lines unused, not imported anywhere | Delete file entirely | [ ] |
+| P3-1 | **DEAD CODE - grow.ts** | `apps/web/src/services/payments/grow.ts` | entire file | 232 lines unused, not imported anywhere | Delete file entirely | [x] FIXED |
 | P3-2 | **Missing VerificationRunStatus type export** | `packages/shared/src/contracts/verification.ts` | N/A | Type safety gap | Generate type with `z.infer<>` | [ ] |
 | P3-3 | **Branding inconsistency** | Multiple files | Various | Uses "Sync" and "Taru" | Standardize on "Taru" | [ ] |
 | P3-4 | **Console.log in production** | `apps/web/src/app/api/payments/webhook/route.ts` | 29, 47, 53, 63, 88, 90, 107, 124, 126, 141, 153, 158, 163 | Log noise (13 statements in webhook alone) | Replace with structured logging | [ ] |
@@ -137,7 +137,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | P3-11 | **Cron job console.log statements** | `apps/web/src/app/api/cron/verification-notifications/route.ts` | 58, 78 | Noise in logs | Replace with structured logging | [ ] |
 | P3-12 | **PAYMENT_AMOUNTS vs VOTE_COST unit inconsistency** | `packages/shared/src/types/payment.ts` vs `constants/index.ts` | N/A | PAYMENT_AMOUNTS uses agorot, VOTE_COST uses ILS | Move to constants/ and normalize to single unit | [ ] |
 
-**P3 Total: 12 items**
+**P3 Total: 11 items**
 
 ---
 
@@ -149,15 +149,15 @@ API routes currently import from `convergeService` and need to be updated to use
 
 | File | Usage | Migration Required |
 |------|-------|-------------------|
-| `apps/web/src/app/api/votes/route.ts` | `convergeService.getVotesByMunicipality()`, `getActiveVotes()`, `createVote()` | Use Supabase `votes` table |
-| `apps/web/src/app/api/votes/[id]/route.ts` | `convergeService.getVote()` | Use Supabase `votes` table |
-| `apps/web/src/app/api/votes/[id]/participate/route.ts` | `convergeService.getVote()`, `hasUserParticipated()`, `getUserByGoogleId()`, `createParticipation()`, `incrementVoteCount()`, `updateUser()` | Use Supabase `votes`, `user_votes`, `users` tables |
+| `apps/web/src/app/api/votes/route.ts` | `convergeService.getVotesByMunicipality()`, `getActiveVotes()`, `createVote()` | MIGRATED - Uses Supabase `getActiveVotes`, `getVotesByMunicipality`, `createVote`, `createVoteOptions` |
+| `apps/web/src/app/api/votes/[id]/route.ts` | `convergeService.getVote()` | MIGRATED - Uses Supabase `getVoteWithOptions` |
+| `apps/web/src/app/api/votes/[id]/participate/route.ts` | `convergeService.getVote()`, `hasUserParticipated()`, `getUserByGoogleId()`, `createParticipation()`, `incrementVoteCount()`, `updateUser()` | MIGRATED - Uses Supabase `getVoteWithOptions`, `hasUserParticipated`, `getUserByGoogleId`, `recordUserVote`, `incrementVoteOption` |
 | `apps/web/src/app/api/user/profile/route.ts` | `convergeService.getUserByGoogleId()`, `createUser()`, `updateUser()` | Use Supabase `users` table |
 | `apps/web/src/app/api/verification/status/route.ts` | `convergeService.getVerificationSchedule()` (TODO) | Use Supabase `verification_runs`, `verification_schedule` tables |
 | `apps/web/src/app/api/newsletter/subscribe/route.ts` | `convergeService.createNewsletterSignup()`, `getNewsletterSignupByEmail()` | Use Supabase or keep as external service |
 | `apps/web/src/app/api/newsletter/verify/route.ts` | `convergeService.getNewsletterSignupByToken()`, `verifyNewsletterSignup()` | Use Supabase or keep as external service |
-| `apps/web/src/app/api/social/callback/facebook/route.ts` | `convergeService.updateSocialProofs()` | Use Supabase `social_proofs` table |
-| `apps/web/src/app/api/social/callback/instagram/route.ts` | `convergeService.updateSocialProofs()` | Use Supabase `social_proofs` table |
+| `apps/web/src/app/api/social/callback/facebook/route.ts` | `convergeService.updateSocialProofs()` | MIGRATED - Uses Supabase `getUserByGoogleId`, `getSocialProofsByUserId`, `upsertSocialProof`, `updateUser` |
+| `apps/web/src/app/api/social/callback/instagram/route.ts` | `convergeService.updateSocialProofs()` | MIGRATED - Same Supabase migration as Facebook callback |
 
 **After migration, delete:**
 - `apps/web/src/services/converge/index.ts` (422 lines)
@@ -227,7 +227,7 @@ These issues have been verified as fixed:
 | R54 | P2-10: Social connect page has alert placeholder | FIXED - Fixed API endpoint paths (was `/api/social/facebook/connect`, now correctly `/api/social/connect/facebook`). Added error state handling and error message UI. Added loading of existing social proofs from user profile. Added proper detection of success/error URL params. Added CSS for error message display in `page.module.css`. File: `apps/web/src/app/[locale]/sign-up/connect-social/page.tsx` | [x] Jan 15 |
 | R55 | P2-11: Vote detail page mock data fallback | FIXED - Removed mock vote data constant entirely. Added error state management. Now shows proper error message instead of silently falling back to mock data. Shows Hebrew error messages: "ההצבעה לא נמצאה" or "שגיאה בטעינת ההצבעה". File: `apps/web/src/app/[locale]/votes/[id]/page.tsx` | [x] Jan 15 |
 
-**Total Resolved: 53 items** (3 new this session)
+**Total Resolved: 59 items** (6 new this session)
 
 ### Mobile Type Errors Fixed This Session
 
@@ -262,10 +262,10 @@ The following mobile type errors were fixed during the type alignment session:
 | **P1 High** | 0 | Required for pilot - ALL RESOLVED |
 | **P2 Medium** | 1 | Has workarounds - 1 requires infrastructure change (11 resolved total) |
 | **P2-WEB** | 0 | All 7 web type errors resolved |
-| **P3 Low** | 12 | Post-pilot cleanup |
-| **P4 Cleanup** | 9 | Converge to Supabase migration (files to update) |
-| **Resolved** | 53 | Already fixed (3 new this session) |
-| **Total Active** | 23 | Reduced from 26 (3 P2 items resolved) |
+| **P3 Low** | 11 | Post-pilot cleanup (P3-1 resolved this session) |
+| **P4 Cleanup** | 4 | Converge to Supabase migration (5 routes migrated this session) |
+| **Resolved** | 59 | Already fixed (6 new this session) |
+| **Total Active** | 17 | Reduced from 23 (1 P3 + 5 P4 items resolved) |
 
 **Stack Simplification (January 2025):**
 - Database: Supabase (PostgreSQL with RLS) - ONLY database
@@ -524,7 +524,28 @@ The API client calls WRONG paths - backend exists but at different URLs:
 ---
 
 *Last Updated: January 15, 2025*
-*Document Version: 40.0*
+*Document Version: 41.0*
+
+**Version 41.0 Changes (January 15, 2025 - Converge to Supabase Migration Session):**
+- **P3-1 RESOLVED: Dead code grow.ts deleted**
+  - File: `apps/web/src/services/payments/grow.ts` (232 lines)
+  - Was never imported anywhere - confirmed dead code
+- **P4 PROGRESS: Migrated 5 routes from Converge to Supabase:**
+  - `/api/votes/route.ts` - Now uses Supabase `getActiveVotes`, `getVotesByMunicipality`, `createVote`, `createVoteOptions`
+  - `/api/votes/[id]/route.ts` - Now uses Supabase `getVoteWithOptions`
+  - `/api/votes/[id]/participate/route.ts` - Now uses Supabase `getVoteWithOptions`, `hasUserParticipated`, `getUserByGoogleId`, `recordUserVote`, `incrementVoteOption`
+  - `/api/social/callback/facebook/route.ts` - Now uses Supabase `getUserByGoogleId`, `getSocialProofsByUserId`, `upsertSocialProof`, `updateUser`
+  - `/api/social/callback/instagram/route.ts` - Same Supabase migration as Facebook callback
+- **New Supabase db.ts functions added:**
+  - `getVotesByMunicipality(municipalityId, status?)` - Query votes by municipality
+  - `getActiveVotesWithOptions(municipalityId?)` - Query active votes with options
+- **Vitest configuration added:**
+  - Created `apps/web/vitest.config.ts` with proper test setup
+  - All 43 tests pass
+- **Stats Updated:**
+  - P3 Low: 12 -> 11 (P3-1 resolved)
+  - P4 Cleanup: 9 -> 4 (5 routes migrated)
+  - Total Resolved: 53 -> 59 (6 new items this session)
 
 **Version 40.0 Changes (January 15, 2025 - Additional P2 Resolutions):**
 - **3 P2 Items Resolved:**
