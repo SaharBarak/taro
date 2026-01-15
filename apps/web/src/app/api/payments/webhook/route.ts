@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createHash } from 'crypto';
 import {
   greenInvoiceService,
   type PaymentWebhookEvent,
@@ -12,19 +13,33 @@ import {
   getUserById,
   recordUserVote,
   incrementVoteOption,
+  getWebhookEventByEventId,
+  createWebhookEvent,
+  updateWebhookEventStatus,
+  isWebhookStale,
 } from '@/lib/supabase/db';
+
+// Maximum webhook age: 5 minutes (300 seconds)
+const MAX_WEBHOOK_AGE_SECONDS = 5 * 60;
 
 /**
  * POST /api/payments/webhook
  * Handle Green Invoice payment webhooks
- * Implements idempotency - multiple webhook calls for same payment are safe
+ *
+ * Security features:
+ * - HMAC signature verification (authenticity)
+ * - Timestamp validation (freshness - rejects events > 5 min old)
+ * - Event ID tracking (uniqueness - prevents replay attacks)
+ * - Idempotent payment processing (safe retries)
  */
 export async function POST(request: NextRequest) {
+  let eventId: string | null = null;
+
   try {
     const payload = await request.text();
     const signature = request.headers.get('x-green-invoice-signature') || '';
 
-    // Verify webhook signature
+    // Verify webhook signature (proves authenticity)
     if (!greenInvoiceService.verifyWebhookSignature(payload, signature)) {
       console.error('Webhook signature verification failed');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
@@ -33,6 +48,60 @@ export async function POST(request: NextRequest) {
     // Parse the webhook event
     const rawPayload = JSON.parse(payload);
     const event: PaymentWebhookEvent = greenInvoiceService.parseWebhookEvent(rawPayload);
+
+    // === REPLAY ATTACK PREVENTION ===
+
+    // 1. Timestamp validation (if provided by Green Invoice)
+    // Check header first, then payload timestamp
+    const timestampHeader = request.headers.get('x-green-invoice-timestamp');
+    const webhookTimestamp = timestampHeader
+      ? parseInt(timestampHeader, 10)
+      : rawPayload.createdAt
+        ? Math.floor(new Date(rawPayload.createdAt).getTime() / 1000)
+        : null;
+
+    if (webhookTimestamp && isWebhookStale(webhookTimestamp, MAX_WEBHOOK_AGE_SECONDS)) {
+      console.error('Webhook rejected: timestamp too old', {
+        timestamp: webhookTimestamp,
+        age: Math.floor(Date.now() / 1000) - webhookTimestamp,
+        maxAge: MAX_WEBHOOK_AGE_SECONDS,
+      });
+      return NextResponse.json(
+        { error: 'Webhook too old - possible replay attack' },
+        { status: 401 }
+      );
+    }
+
+    // 2. Generate unique event ID for replay detection
+    // Use Green Invoice's event ID if available, otherwise create from payload hash
+    const eventIdHeader = request.headers.get('x-green-invoice-event-id');
+    const payloadHash = createHash('sha256').update(payload).digest('hex');
+    // Ensure eventId is always a string - use fallback if all sources are null/undefined
+    const generatedEventId = eventIdHeader || rawPayload.id || `gi_${event.paymentId}_${payloadHash.substring(0, 16)}`;
+    eventId = generatedEventId;
+
+    // 3. Check if this event has already been processed
+    const existingEvent = await getWebhookEventByEventId(generatedEventId);
+    if (existingEvent) {
+      if (existingEvent.status === 'processed') {
+        console.log('Webhook already processed (replay detected):', generatedEventId);
+        return NextResponse.json({ received: true, idempotent: true, replay: true });
+      }
+      // If previous processing failed, allow retry
+      if (existingEvent.status === 'failed') {
+        console.log('Retrying previously failed webhook:', generatedEventId);
+      }
+    } else {
+      // 4. Record new webhook event before processing
+      await createWebhookEvent({
+        event_id: generatedEventId,
+        provider: 'green_invoice',
+        event_type: event.type,
+        payload_hash: payloadHash,
+        idempotency_key: event.metadata.orderId || event.paymentId,
+        status: 'pending',
+      });
+    }
 
     // Handle the event
     switch (event.type) {
@@ -78,10 +147,10 @@ export async function POST(request: NextRequest) {
         });
 
         // Mint SYNC tokens
-        if (tokensToMint > 0) {
+        if (tokensToMint > 0 && user.qubik_wallet_address) {
           try {
             await qubikService.mintTokens({
-              walletAddress: '', // TODO: Get from user profile when implemented
+              walletAddress: user.qubik_wallet_address,
               amount: tokensToMint,
               reason: payment.type,
             });
@@ -90,6 +159,8 @@ export async function POST(request: NextRequest) {
             console.error('Error minting tokens:', mintError);
             // Don't fail - tokens can be minted manually later
           }
+        } else if (tokensToMint > 0 && !user.qubik_wallet_address) {
+          console.warn(`User ${user.id} has no wallet address - cannot mint ${tokensToMint} tokens`);
         }
 
         // Send receipt email
@@ -158,9 +229,24 @@ export async function POST(request: NextRequest) {
         console.log(`Unhandled event type: ${event.type}`);
     }
 
+    // Mark webhook event as successfully processed
+    if (eventId) {
+      await updateWebhookEventStatus(eventId, 'processed');
+    }
+
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Webhook error:', error);
+
+    // Mark webhook event as failed for potential retry
+    if (eventId) {
+      await updateWebhookEventStatus(
+        eventId,
+        'failed',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }

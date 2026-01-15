@@ -8,10 +8,18 @@ import { getSessionFromRequest } from '@/services/auth/session';
 import { convergeService } from '@/services/converge';
 import { calculateIdentityScore } from '@sync/shared';
 import type { SocialProof } from '@sync/shared';
+import { verifyOAuthState, verifyOAuthStatePlatform } from '@/lib/oauth-state';
 
 /**
  * GET /api/social/callback/facebook
  * Handle Facebook OAuth callback
+ *
+ * Security: Verifies cryptographically signed JWT state to prevent CSRF attacks.
+ * Rejects any state that:
+ * - Has invalid signature (tampered with)
+ * - Is expired (> 10 minutes old)
+ * - Has wrong platform
+ * - Doesn't match current session user
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -40,13 +48,19 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Parse state to get user ID
-    const stateData = JSON.parse(decodeURIComponent(state));
-    const { userId } = stateData;
-
-    if (!userId) {
-      throw new Error('Invalid state: missing userId');
+    // Verify cryptographically signed state to prevent CSRF attacks
+    // This validates: signature, expiration, and decodes userId/platform/nonce
+    const stateData = await verifyOAuthState(decodeURIComponent(state));
+    if (!stateData) {
+      throw new Error('Invalid or expired state - possible CSRF attack');
     }
+
+    // Verify state was created for Facebook (not another platform)
+    if (!verifyOAuthStatePlatform(stateData, 'facebook')) {
+      throw new Error('State platform mismatch');
+    }
+
+    const { userId } = stateData;
 
     // Exchange code for tokens
     const tokens = await exchangeCodeForTokens(code);

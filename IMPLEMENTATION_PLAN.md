@@ -3,7 +3,7 @@
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
 **Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v15 - API endpoints session)
-**Document Version:** 35.0
+**Document Version:** 36.0
 
 ---
 
@@ -68,10 +68,10 @@ These issues don't crash immediately but cause significant problems. **Must fix 
 | P1-6 | **Verification status returns mock data** | `apps/web/src/app/api/verification/status/route.ts` | 37-65 | Inaccurate verification progress | Implement actual schedule fetch (TODO comment exists) | [!] VERIFIED |
 | P1-7 | **Profile stats hardcoded to "0"** | `apps/mobile/app/(tabs)/profile.tsx` | 144, 154 | Users see fake stats | Connect to API for real vote counts | [!] VERIFIED |
 | P1-8 | **Hero download button disabled** | `apps/web/src/components/sections/Hero/Hero.tsx` | 84 | Main website CTA blocked | Remove `disabled` prop or add app store links | [!] VERIFIED |
-| P1-11 | **OAuth state parameter not cryptographically verified** | `apps/web/src/app/api/social/callback/facebook/route.ts` | 43-49 | CSRF vulnerability - attacker could craft malicious OAuth redirect | Add HMAC signature to state or use signed JWT state | [!] VERIFIED |
-| P1-12 | **Payment webhook missing replay attack prevention** | `apps/web/src/app/api/payments/webhook/route.ts` | 22-31 | Webhook could be replayed despite signature verification | Add timestamp/nonce validation, reject events > 5 min old | [!] VERIFIED |
+| ~~P1-11~~ | ~~OAuth state parameter not cryptographically verified~~ | - | - | - | - | [x] FIXED |
+| ~~P1-12~~ | ~~Payment webhook missing replay attack prevention~~ | - | - | - | - | [x] FIXED |
 
-**P1 Total: 5 blockers** (6 resolved this session)
+**P1 Total: 3 blockers** (8 resolved this session)
 
 ---
 
@@ -208,8 +208,10 @@ These issues have been verified as fixed:
 | R33 | P1-9: Missing /api/votes/[id]/verify-location endpoint | CREATED at `apps/web/src/app/api/votes/[id]/verify-location/route.ts` | [x] Jan 15 |
 | R34 | P1-10: Missing /api/user/votes endpoint | CREATED at `apps/web/src/app/api/user/votes/route.ts` | [x] Jan 15 |
 | R35 | social-connections page useSearchParams Suspense boundary | FIXED by wrapping in SuspenseWrapper component | [x] Jan 15 |
+| R36 | P1-11: OAuth state parameter CSRF vulnerability | FIXED - Implemented JWT-signed state with HS256, 10-min expiry, platform verification, session user ID matching. New utility: `apps/web/src/lib/oauth-state.ts`. Updated: Facebook/Instagram connect and callback routes | [x] Jan 15 |
+| R37 | P1-12: Payment webhook replay attack vulnerability | FIXED - Added timestamp validation (5 min max staleness), event ID tracking with payload hash, idempotent processing with status tracking. New migration: `supabase/migrations/20250115000002_webhook_events.sql`. New DB functions: getWebhookEventByEventId, createWebhookEvent, updateWebhookEventStatus, isWebhookStale | [x] Jan 15 |
 
-**Total Resolved: 33 items** (7 new this session)
+**Total Resolved: 35 items** (9 new this session)
 
 ### Mobile Type Errors Fixed This Session
 
@@ -241,13 +243,13 @@ The following mobile type errors were fixed during the type alignment session:
 | Priority | Count | Description |
 |----------|-------|-------------|
 | **P0 Critical** | 1 | Breaks core flows - fix before testing |
-| **P1 High** | 5 | Required for pilot - fix by Jan 23 (includes 2 security items) |
+| **P1 High** | 3 | Required for pilot - fix by Jan 23 |
 | **P2 Medium** | 16 | Has workarounds - can defer |
 | **P2-WEB** | 0 | All 7 web type errors resolved |
 | **P3 Low** | 12 | Post-pilot cleanup |
 | **P4 Cleanup** | 9 | Converge to Supabase migration (files to update) |
-| **Resolved** | 33 | Already fixed (7 new this session) |
-| **Total Active** | 43 | Reduced from 49 (6 P1 endpoints created, 1 Suspense fix) |
+| **Resolved** | 35 | Already fixed (9 new this session) |
+| **Total Active** | 41 | Reduced from 43 (2 security items resolved) |
 
 **Stack Simplification (January 2025):**
 - Database: Supabase (PostgreSQL with RLS) - ONLY database
@@ -286,16 +288,12 @@ The following mobile type errors were fixed during the type alignment session:
 - [x] P1-9: /api/votes/[id]/verify-location - CREATED at `apps/web/src/app/api/votes/[id]/verify-location/route.ts`
 - [x] P1-10: /api/user/votes - CREATED at `apps/web/src/app/api/user/votes/route.ts`
 
-**Day 2: Bug Fixes + Security (P1-6, P1-11, P1-12)**
+**Day 2: Bug Fix (P1-6)**
 1. Implement actual verification schedule fetch (replace TODO at line 37)
-2. **SECURITY P1-11:** Add HMAC signature or JWT signing to OAuth state parameter
-   - File: `apps/web/src/app/api/social/callback/facebook/route.ts` lines 43-49
-   - Create state with `{ userId, timestamp, signature: HMAC(userId+timestamp, SECRET) }`
-   - Verify signature before trusting state data
-3. **SECURITY P1-12:** Add timestamp validation to payment webhook
-   - File: `apps/web/src/app/api/payments/webhook/route.ts` lines 22-31
-   - Check webhook timestamp, reject events > 5 minutes old
-   - Add nonce tracking to prevent replay attacks
+
+**RESOLVED - Security Items:**
+- [x] **P1-11:** OAuth state parameter now cryptographically verified with JWT signing
+- [x] **P1-12:** Payment webhook now has replay attack prevention with timestamp validation
 
 **Day 3: UI Fixes (P1-7, P1-8)**
 1. Connect profile stats to API (lines 144, 154)
@@ -514,7 +512,38 @@ The API client calls WRONG paths - backend exists but at different URLs:
 ---
 
 *Last Updated: January 15, 2025*
-*Document Version: 35.0*
+*Document Version: 36.0*
+
+**Version 36.0 Changes (Security Fixes Session):**
+- **P1-11 RESOLVED: OAuth State Cryptographic Verification**
+  - New utility: `/apps/web/src/lib/oauth-state.ts` - JWT-based state signing/verification
+  - Security features implemented:
+    - JWT signing with HS256 algorithm using JWT_SECRET
+    - 10-minute expiration to limit replay window
+    - Platform verification to prevent cross-platform state reuse
+    - Session user ID matching for CSRF protection
+  - Files updated:
+    - `/apps/web/src/app/api/social/connect/facebook/route.ts` - Uses createOAuthState()
+    - `/apps/web/src/app/api/social/connect/instagram/route.ts` - Uses createOAuthState()
+    - `/apps/web/src/app/api/social/callback/facebook/route.ts` - Uses verifyOAuthState() and verifyOAuthStatePlatform()
+    - `/apps/web/src/app/api/social/callback/instagram/route.ts` - Uses verifyOAuthState() and verifyOAuthStatePlatform()
+- **P1-12 RESOLVED: Payment Webhook Replay Attack Prevention**
+  - New migration: `/supabase/migrations/20250115000002_webhook_events.sql` - Creates webhook_events table
+  - New type: `WebhookEvent` in `/apps/web/src/lib/supabase/types.ts`
+  - New database functions in `/apps/web/src/lib/supabase/db.ts`:
+    - getWebhookEventByEventId() - Check for duplicate events
+    - createWebhookEvent() - Record new events before processing
+    - updateWebhookEventStatus() - Mark events as processed/failed
+    - isWebhookStale() - Check timestamp freshness (5 min max)
+  - Webhook route updated: `/apps/web/src/app/api/payments/webhook/route.ts`
+    - Timestamp validation (rejects events > 5 min old)
+    - Event ID tracking with payload hash
+    - Idempotent processing with status tracking
+    - Failed event retry support
+- **Stats Updated:**
+  - P1 High: 5 -> 3 (2 security items resolved)
+  - Total Resolved: 33 -> 35 (2 new this session)
+  - Total Active: 43 -> 41
 
 **Version 35.0 Changes (API Endpoints Session):**
 - **6 P1 API Endpoints Created:**

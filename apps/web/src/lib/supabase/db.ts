@@ -16,6 +16,7 @@ import type {
   VoteOption,
   UserVote,
   PushToken,
+  WebhookEvent,
   InsertTables,
   UpdateTables,
 } from './types';
@@ -731,4 +732,87 @@ export async function updatePushTokenLastUsed(
   if (error) {
     console.error('Failed to update push token last_used:', error);
   }
+}
+
+// ============================================
+// WEBHOOK EVENT OPERATIONS (Replay Attack Prevention)
+// ============================================
+
+/**
+ * Check if a webhook event has already been processed.
+ * Returns the existing event if found, null otherwise.
+ *
+ * Why this matters:
+ * - Prevents replay attacks where an attacker captures a valid webhook
+ *   and sends it multiple times to trigger duplicate processing
+ * - HMAC signatures prove authenticity but not uniqueness
+ */
+export async function getWebhookEventByEventId(
+  eventId: string
+): Promise<WebhookEvent | null> {
+  const { data, error } = await supabaseAdmin
+    .from('webhook_events')
+    .select('*')
+    .eq('event_id', eventId)
+    .single();
+
+  if (error || !data) return null;
+  return data;
+}
+
+/**
+ * Record a new webhook event before processing.
+ * This creates a pending record that blocks duplicate processing.
+ */
+export async function createWebhookEvent(
+  eventData: InsertTables<'webhook_events'>
+): Promise<WebhookEvent> {
+  const { data, error } = await supabaseAdmin
+    .from('webhook_events')
+    .insert(eventData)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create webhook event: ${error.message}`);
+  return data;
+}
+
+/**
+ * Update webhook event status after processing.
+ */
+export async function updateWebhookEventStatus(
+  eventId: string,
+  status: 'processed' | 'failed' | 'skipped',
+  errorMessage?: string
+): Promise<void> {
+  const updates: UpdateTables<'webhook_events'> = {
+    status,
+    processed_at: status === 'processed' ? new Date().toISOString() : null,
+    error_message: errorMessage || null,
+  };
+
+  const { error } = await supabaseAdmin
+    .from('webhook_events')
+    .update(updates)
+    .eq('event_id', eventId);
+
+  if (error) {
+    console.error('Failed to update webhook event:', error);
+  }
+}
+
+/**
+ * Check if a webhook is stale (older than max age).
+ *
+ * @param timestamp - Webhook timestamp in seconds (Unix epoch)
+ * @param maxAgeSeconds - Maximum allowed age in seconds (default 5 minutes)
+ * @returns true if webhook is too old and should be rejected
+ */
+export function isWebhookStale(
+  timestamp: number,
+  maxAgeSeconds: number = 5 * 60
+): boolean {
+  const now = Math.floor(Date.now() / 1000);
+  const age = Math.abs(now - timestamp);
+  return age > maxAgeSeconds;
 }

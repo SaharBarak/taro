@@ -438,6 +438,48 @@ export interface Database {
         };
         Relationships: [];
       };
+      webhook_events: {
+        Row: {
+          id: string;
+          event_id: string;
+          provider: string;
+          event_type: string;
+          payload_hash: string;
+          received_at: string;
+          processed_at: string | null;
+          status: 'pending' | 'processed' | 'failed' | 'skipped';
+          error_message: string | null;
+          idempotency_key: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          provider: string;
+          event_type: string;
+          payload_hash: string;
+          received_at?: string;
+          processed_at?: string | null;
+          status?: 'pending' | 'processed' | 'failed' | 'skipped';
+          error_message?: string | null;
+          idempotency_key?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          provider?: string;
+          event_type?: string;
+          payload_hash?: string;
+          received_at?: string;
+          processed_at?: string | null;
+          status?: 'pending' | 'processed' | 'failed' | 'skipped';
+          error_message?: string | null;
+          idempotency_key?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -488,3 +530,4 @@ export type Vote = Tables<'votes'>;
 export type VoteOption = Tables<'vote_options'>;
 export type UserVote = Tables<'user_votes'>;
 export type PushToken = Tables<'push_tokens'>;
+export type WebhookEvent = Tables<'webhook_events'>;
