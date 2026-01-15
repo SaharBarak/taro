@@ -3,7 +3,7 @@
  */
 
 import { getApiClient } from './client';
-import type { PaymentIntent, PaymentType, TokenBalance } from '@sync/shared';
+import type { PaymentIntent, PaymentType } from '@sync/shared';
 
 export interface CreatePaymentParams {
   type: PaymentType;
@@ -82,19 +82,5 @@ export const paymentsApi = {
     );
     return response.paymentIntent;
   },
-
-  /**
-   * Get user's token balance
-   */
-  async getTokenBalance(): Promise<TokenBalance> {
-    const client = getApiClient();
-    const response = await client.get<{ balance: number; walletAddress: string }>(
-      '/api/user/tokens'
-    );
-    return {
-      balance: response.balance,
-      walletAddress: response.walletAddress,
-      lastUpdated: new Date(),
-    };
-  },
+  // Note: Token balance moved to usersApi.getTokenBalance() to avoid duplication
 };

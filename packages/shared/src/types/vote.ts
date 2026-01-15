@@ -2,6 +2,10 @@
  * Vote Types
  */
 
+// GpsCoordinates is defined in user.ts - re-export for convenience
+import type { GpsCoordinates } from './user';
+export type { GpsCoordinates };
+
 // Note: Database uses 'ended' instead of 'completed'
 export type VoteStatus = 'pending' | 'active' | 'ended' | 'cancelled';
 
@@ -58,13 +62,6 @@ export interface VoteCreateInput {
   options: { label: string; description?: string }[];
   startDate: Date;
   endDate: Date;
-}
-
-export interface GpsCoordinates {
-  latitude: number;
-  longitude: number;
-  timestamp: Date;
-  accuracy?: number;
 }
 
 export interface Participation {

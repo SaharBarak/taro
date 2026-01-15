@@ -85,14 +85,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create Qubik wallet
-    let walletAddress = '';
+    // Create Qubik wallet - required for token operations
+    let walletAddress: string;
     try {
       walletAddress = await qubikService.createWallet(session.userId);
     } catch (e) {
-      // Qubik might not be configured in dev
-      console.warn('Could not create Qubik wallet:', e);
-      walletAddress = `mock-wallet-${session.userId}`;
+      console.error('Failed to create Qubik wallet:', e);
+      return NextResponse.json(
+        { error: 'Wallet service unavailable. Please try again later.' },
+        { status: 503 }
+      );
     }
 
     // Create profile

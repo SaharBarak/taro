@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { usersApi } from '@sync/api-client';
+import { votesApi } from '@sync/api-client';
 import { formatDate } from '@sync/shared';
 
 interface VoteHistoryItem {
@@ -14,53 +14,12 @@ interface VoteHistoryItem {
   vote?: {
     title: string;
     status: 'active' | 'ended' | 'pending';
-    municipality: string;
+    municipality?: string;
+  };
+  option?: {
+    text: string;
   };
 }
-
-// Mock data - will be replaced with API
-const mockHistory: VoteHistoryItem[] = [
-  {
-    voteId: '1',
-    optionId: 'opt1',
-    createdAt: new Date('2024-12-18'),
-    vote: {
-      title: 'הקמת גן שעשועים חדש ברובע הצפוני',
-      status: 'active',
-      municipality: 'תל אביב-יפו',
-    },
-  },
-  {
-    voteId: '2',
-    optionId: 'opt2',
-    createdAt: new Date('2024-12-15'),
-    vote: {
-      title: 'שיפוץ מתחם הספורט העירוני',
-      status: 'ended',
-      municipality: 'תל אביב-יפו',
-    },
-  },
-  {
-    voteId: '3',
-    optionId: 'opt1',
-    createdAt: new Date('2024-12-10'),
-    vote: {
-      title: 'הוספת קווי אוטובוס בשעות הערב',
-      status: 'ended',
-      municipality: 'תל אביב-יפו',
-    },
-  },
-  {
-    voteId: '4',
-    optionId: 'opt3',
-    createdAt: new Date('2024-12-05'),
-    vote: {
-      title: 'בניית מעבר חציה מואר ברחוב הרצל',
-      status: 'ended',
-      municipality: 'תל אביב-יפו',
-    },
-  },
-];
 
 function HistoryItem({ item, onPress }: { item: VoteHistoryItem; onPress: () => void }) {
   const statusColors = {
@@ -116,12 +75,29 @@ export default function HistoryScreen() {
 
   const fetchHistory = useCallback(async () => {
     try {
-      // TODO: Replace with actual API call
-      // const data = await usersApi.getVotingHistory();
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setHistory(mockHistory);
+      // Fetch participation history with vote details from API
+      const participations = await votesApi.getUserParticipations();
+
+      // Transform API response to VoteHistoryItem format
+      const historyItems: VoteHistoryItem[] = participations.map((p: any) => ({
+        voteId: p.voteId,
+        optionId: p.optionId,
+        createdAt: new Date(p.createdAt),
+        vote: p.vote ? {
+          title: p.vote.title || 'הצבעה',
+          status: p.vote.status || 'ended',
+          municipality: p.vote.municipality,
+        } : undefined,
+        option: p.option ? {
+          text: p.option.text,
+        } : undefined,
+      }));
+
+      setHistory(historyItems);
     } catch (err) {
       console.error('Error fetching history:', err);
+      // Keep empty array on error - user sees "no history" message
+      setHistory([]);
     }
   }, []);
 

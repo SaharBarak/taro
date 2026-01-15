@@ -94,8 +94,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       })
     ).toString('base64');
 
-    // Record vote on blockchain
-    let voteRecord = { txHash: `mock-tx-${Date.now()}` };
+    // Record vote on blockchain - this is critical for vote verification
+    let voteRecord: { txHash: string };
     try {
       voteRecord = await qubikService.recordVote({
         voteId,
@@ -105,7 +105,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         paymentHash: paymentTxId,
       });
     } catch (e) {
-      console.warn('Could not record vote on blockchain:', e);
+      console.error('Failed to record vote on blockchain:', e);
+      return NextResponse.json(
+        { error: 'Blockchain service unavailable. Vote not recorded. Please try again later.' },
+        { status: 503 }
+      );
     }
 
     // Mint Sync tokens (3 tokens for 3 shekel vote)

@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v16 - P1-6, P1-7, P1-8 resolved)
-**Document Version:** 38.0
+**Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v17 - 8 P2 items resolved)
+**Document Version:** 39.0
 
 ---
 
@@ -11,13 +11,13 @@
 
 This document tracks the implementation status for the Taru civic consensus platform. Items are organized by priority with the Late January 2025 Kiryat Tivon pilot as the primary deadline.
 
-**Codebase Statistics (verified Jan 15, 2025 - v38):**
+**Codebase Statistics (verified Jan 15, 2025 - v39):**
 - Shared Package: 5 type files, 5 contract files, 2 constant files (55+ Hebrew error messages), 4 utility files (47+ exported types/interfaces, 35+ utility functions, ~170+ total exports)
-- API Client: 3 modules (votes.ts 8 methods, users.ts 10 methods, payments.ts 6 methods) - 22 methods total, 22 have working backends (100%), 0 missing backend implementations
-- Web API: 29 route files (27 complete, 2 partial) - 4 TODO comments found
+- API Client: 3 modules (votes.ts 8 methods, users.ts 10 methods, payments.ts 5 methods) - 21 methods total, 21 have working backends (100%), 0 missing backend implementations (removed duplicate getTokenBalance from payments.ts)
+- Web API: 29 route files (27 complete, 2 partial) - 2 TODO comments remaining
 - Services: 14 production-ready services (4,128 lines of code) + 1 DEAD CODE file (grow.ts - 232 lines, can delete)
-- Mobile: 28 screens across 6 sections (25 complete, 3 with issues: history, profile stats, verification complete)
-- Web Pages: 14 pages (9 complete, 5 partial) - votes and download pages now complete
+- Mobile: 28 screens across 6 sections (27 complete, 1 with issues: profile stats)
+- Web Pages: 14 pages (10 complete, 4 partial) - dashboard now connected to API
 - Database: 11 tables (users, social_proofs, verification_runs, verification_schedule, verification_attempts, payments, entitlements, votes, vote_options, user_votes, push_tokens), 32+ indexes, 7 triggers, 12+ functions, RLS policies on all tables
 - Specs: 2 complete (push-notifications 98% implemented, bags-integration 0% - Priority 2)
 
@@ -82,19 +82,19 @@ These issues affect user experience but have workarounds or affect secondary flo
 | # | Issue | File | Line | Impact | Fix Required | Status |
 |---|-------|------|------|--------|--------------|--------|
 | P2-1 | **GpsCoordinates schema missing timestamp** | `packages/shared/src/contracts/verification.ts` | 18-22 | Validation may fail | Add `timestamp` field to Zod schema | [~] LOW |
-| P2-2 | **IdentityScore missing lastCalculated field** | `packages/shared/src/types/user.ts` | 25-33 | Type mismatch with contract | Add `lastCalculated?: Date` to type | [~] LOW |
-| P2-3 | **Duplicate getTokenBalance() method** | `packages/api-client/src/` | payments.ts:89, users.ts:103 | Code duplication | Remove from payments.ts, keep in users.ts | [~] LOW |
-| P2-4 | **Mock data in mobile history screen** | `apps/mobile/app/(tabs)/history.tsx` | 22-63, 119 | Shows fake history | Replace with API call after P1-2 (TODO exists) | [~] PARTIAL |
-| P2-5 | **Mock data in web dashboard** | `apps/web/src/app/[locale]/dashboard/page.tsx` | 32-37, 39-61, 78 | Shows fake stats | Replace with API calls (TODO exists) | [~] PARTIAL |
-| P2-9 | **Verification complete shows hardcoded stats** | `apps/mobile/app/verification/complete.tsx` | 137, 141, 145 | Shows "21 days", "100%" hardcoded | Connect to actual verification data | [~] PARTIAL |
+| ~~P2-2~~ | ~~IdentityScore missing lastCalculated field~~ | - | - | - | - | [x] FIXED |
+| ~~P2-3~~ | ~~Duplicate getTokenBalance() method~~ | - | - | - | - | [x] FIXED |
+| ~~P2-4~~ | ~~Mock data in mobile history screen~~ | - | - | - | - | [x] FIXED |
+| ~~P2-5~~ | ~~Mock data in web dashboard~~ | - | - | - | - | [x] FIXED |
+| ~~P2-9~~ | ~~Verification complete shows hardcoded stats~~ | - | - | - | - | [x] FIXED |
 | P2-10 | **Social connect page has alert placeholder** | `apps/web/src/app/[locale]/sign-up/connect-social/page.tsx` | 98 | Shows "Coming soon - use mobile app" | Implement web OAuth flow or remove | [~] PARTIAL |
 | P2-11 | **Vote detail page uses mock fallback** | `apps/web/src/app/[locale]/votes/[id]/page.tsx` | 33-59, 98-103 | Falls back to mock data silently | Show error instead of mock | [~] PARTIAL |
-| P2-12 | **Vote participate has mock transaction hash fallback** | `apps/web/src/app/api/votes/[id]/participate/route.ts` | 98 | Blockchain record may be fake (uses `mock-tx-${Date.now()}`) | Either fail request or add warning flag in response | [~] PARTIAL |
-| P2-13 | **User profile POST has mock wallet address fallback** | `apps/web/src/app/api/user/profile/route.ts` | 95 | Users get `mock-wallet-${userId}` if Qubik fails | Either fail registration or flag profile as "wallet pending" | [~] PARTIAL |
+| ~~P2-12~~ | ~~Vote participate has mock transaction hash fallback~~ | - | - | - | - | [x] FIXED |
+| ~~P2-13~~ | ~~User profile POST has mock wallet address fallback~~ | - | - | - | - | [x] FIXED |
 | P2-14 | **In-memory rate limiting not production-ready** | `apps/web/src/app/api/newsletter/subscribe/route.ts` | 5-6 | Rate limits reset on server restart, don't work across instances | Replace with Redis/Upstash for production | [~] PARTIAL |
-| P2-15 | **Duplicate GpsCoordinates type definition** | `packages/shared/src/types/user.ts` + `vote.ts` | 37-42, 51-56 | Code duplication, maintenance risk | Consolidate to single definition in user.ts | [~] LOW |
+| ~~P2-15~~ | ~~Duplicate GpsCoordinates type definition~~ | - | - | - | - | [x] FIXED |
 
-**P2 Total: 12 items**
+**P2 Total: 4 items** (8 resolved this session)
 
 ---
 
@@ -213,8 +213,16 @@ These issues have been verified as fixed:
 | R42 | P2-7: Votes page shows ComingSoon | FIXED - Replaced ComingSoon component with VotesList component in votes page. File: `apps/web/src/app/[locale]/votes/page.tsx` | [x] Jan 15 |
 | R43 | P2-6: Mock data in VotesList component | FIXED - Connected VotesList to /api/votes endpoint. Added useState/useEffect for data fetching, loading states, error handling, and fallback to mock data for development/empty database. File: `apps/web/src/app/[locale]/votes/components/VotesList.tsx` | [x] Jan 15 |
 | R44 | P2-8: Download page shows ComingSoon | FIXED - Created proper download page with hero section, app store badges (marked as "Coming Soon"), app features grid, pilot WhatsApp CTA, and system requirements. Files: `apps/web/src/app/[locale]/download/page.tsx`, `apps/web/src/app/[locale]/download/page.module.css` | [x] Jan 15 |
+| R45 | P2-2: IdentityScore missing lastCalculated field | FIXED - Added `lastCalculated?: Date` to IdentityScore interface in `packages/shared/src/types/user.ts` | [x] Jan 15 |
+| R46 | P2-3: Duplicate getTokenBalance() method | FIXED - Removed from `packages/api-client/src/payments.ts`, kept in `users.ts`. Updated `apps/mobile/src/stores/userStore.ts` to use `usersApi.getTokenBalance()` instead of `paymentsApi.getTokenBalance()` | [x] Jan 15 |
+| R47 | P2-4: Mock data in mobile history screen | FIXED - Replaced mock data with actual API call to `votesApi.getUserParticipations()` in `apps/mobile/app/(tabs)/history.tsx`. Removed mock data and TODO comment. | [x] Jan 15 |
+| R48 | P2-5: Mock data in web dashboard | FIXED - Replaced mock data with actual API calls to `/api/user/stats` and `/api/user/participations` in `apps/web/src/app/[locale]/dashboard/page.tsx`. Removed mock data and TODO comment. | [x] Jan 15 |
+| R49 | P2-9: Verification complete shows hardcoded stats | FIXED - Connected to `/api/verification/status` endpoint in `apps/mobile/app/verification/complete.tsx`. Now displays actual daysElapsed, completedCheckIns/totalCheckIns, and completionRate from API. | [x] Jan 15 |
+| R50 | P2-12: Vote participate has mock transaction hash fallback | FIXED - Changed to fail with 503 error instead of silently using mock `mock-tx-${Date.now()}` in `apps/web/src/app/api/votes/[id]/participate/route.ts`. Critical blockchain operations must not use fake data. | [x] Jan 15 |
+| R51 | P2-13: User profile POST has mock wallet address fallback | FIXED - Changed to fail with 503 error instead of using `mock-wallet-${userId}` in `apps/web/src/app/api/user/profile/route.ts`. Users must have real blockchain wallets. | [x] Jan 15 |
+| R52 | P2-15: Duplicate GpsCoordinates type definition | FIXED - Consolidated to single definition in `packages/shared/src/types/user.ts`. The `vote.ts` file now imports and re-exports from `user.ts`. Updated `packages/shared/src/types/index.ts` already excluded GpsCoordinates from vote.ts. | [x] Jan 15 |
 
-**Total Resolved: 42 items** (16 new this session)
+**Total Resolved: 50 items** (8 new this session)
 
 ### Mobile Type Errors Fixed This Session
 
@@ -247,12 +255,12 @@ The following mobile type errors were fixed during the type alignment session:
 |----------|-------|-------------|
 | **P0 Critical** | 1 | Breaks core flows - fix before testing |
 | **P1 High** | 0 | Required for pilot - ALL RESOLVED |
-| **P2 Medium** | 12 | Has workarounds - can defer |
+| **P2 Medium** | 4 | Has workarounds - can defer (8 resolved this session) |
 | **P2-WEB** | 0 | All 7 web type errors resolved |
 | **P3 Low** | 12 | Post-pilot cleanup |
 | **P4 Cleanup** | 9 | Converge to Supabase migration (files to update) |
-| **Resolved** | 42 | Already fixed (16 new this session) |
-| **Total Active** | 34 | Reduced from 38 (4 P2 items resolved) |
+| **Resolved** | 50 | Already fixed (8 new this session) |
+| **Total Active** | 26 | Reduced from 34 (8 P2 items resolved) |
 
 **Stack Simplification (January 2025):**
 - Database: Supabase (PostgreSQL with RLS) - ONLY database
@@ -330,13 +338,12 @@ The following mobile type errors were fixed during the type alignment session:
 - [x] Newsletter: subscribe, verify, beehiiv (GET, POST)
 - [x] Cron: verification-notifications (FULLY WORKING - sends actual push notifications)
 
-### Mobile Screens (28 Files, 25 Complete)
+### Mobile Screens (28 Files, 27 Complete)
 - [x] Auth: index, sign-in, sign-up, onboarding, connect-social (5 complete)
-- [x] Tabs: index, votes, create (3 complete)
-- [~] Tabs: profile (hardcoded stats at 144, 154), history (mock data lines 22-63, TODO at 119)
+- [x] Tabs: index, votes, create, history (4 complete - history now uses API)
+- [~] Tabs: profile (hardcoded stats at 144, 154 - pending API integration)
 - [x] Vote: [id].tsx (complete with GPS + share)
-- [x] Verification: index, check-in (2 complete)
-- [~] Verification: complete (confetti import unused at line 15, hardcoded stats at 137, 141, 145)
+- [x] Verification: index, check-in, complete (3 complete - complete now uses API for actual stats)
 - [x] Payment: checkout, success, failed (3 complete)
 - [x] Settings: profile, notifications, verification, municipality, social-connections (5 complete)
 - [x] Layouts: 6 _layout.tsx files (all complete)
@@ -350,7 +357,7 @@ The following mobile type errors were fixed during the type alignment session:
 - [x] Database: push_tokens table with RLS (migration exists)
 - [ ] EAS Project ID: Still placeholder "your-project-id" (P0-7)
 
-### Web Pages (14 Files, 9 Complete)
+### Web Pages (14 Files, 10 Complete)
 - [x] Landing: page.tsx with Hero, Features, HowItWorks, Pilot, CTA sections
 - [x] About: page.tsx with mission, technology, team sections
 - [x] FAQ: page.tsx with structured data (FAQJsonLd)
@@ -359,7 +366,7 @@ The following mobile type errors were fixed during the type alignment session:
 - [x] Create Vote: 3-step wizard with validation
 - [x] Votes: VotesList component with API integration (R42)
 - [x] Download: Complete with hero, features, badges, WhatsApp CTA (R44)
-- [~] Dashboard: mock data (lines 32-37, 39-61, TODO at line 78)
+- [x] Dashboard: Now connected to /api/user/stats and /api/user/participations (R48)
 - [~] Vote Detail: mock data fallback (lines 33-59, 98-103)
 - [~] Verification: mobile-only restriction (alert at line 98)
 - [~] Settings Social: API-connected but needs work
@@ -484,12 +491,14 @@ The API client calls WRONG paths - backend exists but at different URLs:
 
 ## TODO Comments Found in Code
 
-| File | Line | Content | Priority |
-|------|------|---------|----------|
-| `/apps/web/src/app/api/verification/status/route.ts` | 37 | `// TODO: Fetch full schedule from convergeService.getVerificationSchedule` | P1 |
-| `/apps/web/src/app/api/payments/webhook/route.ts` | 84 | `walletAddress: '', // TODO: Get from user profile when implemented` | P0 |
-| `/apps/web/src/app/[locale]/dashboard/page.tsx` | 78 | `// TODO: Replace with actual API calls` | P2 |
-| `/apps/mobile/app/(tabs)/history.tsx` | 119 | `// TODO: Replace with actual API call` | P2 |
+| File | Line | Content | Priority | Status |
+|------|------|---------|----------|--------|
+| `/apps/web/src/app/api/verification/status/route.ts` | 37 | `// TODO: Fetch full schedule from convergeService.getVerificationSchedule` | P1 | RESOLVED (R38) |
+| `/apps/web/src/app/api/payments/webhook/route.ts` | 84 | `walletAddress: '', // TODO: Get from user profile when implemented` | P0 | RESOLVED (R18) |
+| ~~`/apps/web/src/app/[locale]/dashboard/page.tsx`~~ | ~~78~~ | ~~`// TODO: Replace with actual API calls`~~ | ~~P2~~ | RESOLVED (R48) |
+| ~~`/apps/mobile/app/(tabs)/history.tsx`~~ | ~~119~~ | ~~`// TODO: Replace with actual API call`~~ | ~~P2~~ | RESOLVED (R47) |
+
+**Note:** Dashboard and history TODO comments have been resolved this session. The verification/status and webhook TODOs were resolved in earlier sessions.
 
 ---
 
@@ -510,7 +519,43 @@ The API client calls WRONG paths - backend exists but at different URLs:
 ---
 
 *Last Updated: January 15, 2025*
-*Document Version: 38.0*
+*Document Version: 39.0*
+
+**Version 39.0 Changes (January 15, 2025 - P2 Items Resolution Session):**
+- **8 P2 Items Resolved:**
+  - **P2-2 RESOLVED (R45): IdentityScore missing lastCalculated field**
+    - File: `packages/shared/src/types/user.ts`
+    - Added `lastCalculated?: Date` to IdentityScore interface
+  - **P2-3 RESOLVED (R46): Duplicate getTokenBalance() method**
+    - Removed from `packages/api-client/src/payments.ts`, kept in `users.ts`
+    - Updated `apps/mobile/src/stores/userStore.ts` to use `usersApi.getTokenBalance()`
+  - **P2-4 RESOLVED (R47): Mock data in mobile history screen**
+    - File: `apps/mobile/app/(tabs)/history.tsx`
+    - Replaced mock data with actual API call to `votesApi.getUserParticipations()`
+    - Removed mock data array and TODO comment
+  - **P2-5 RESOLVED (R48): Mock data in web dashboard**
+    - File: `apps/web/src/app/[locale]/dashboard/page.tsx`
+    - Connected to `/api/user/stats` and `/api/user/participations` endpoints
+    - Removed mock data and TODO comment
+  - **P2-9 RESOLVED (R49): Verification complete shows hardcoded stats**
+    - File: `apps/mobile/app/verification/complete.tsx`
+    - Connected to `/api/verification/status` endpoint
+    - Now displays actual daysElapsed, completedCheckIns/totalCheckIns, and completionRate
+  - **P2-12 RESOLVED (R50): Vote participate has mock transaction hash fallback**
+    - File: `apps/web/src/app/api/votes/[id]/participate/route.ts`
+    - Changed to fail with 503 error instead of using mock `mock-tx-${Date.now()}`
+    - Critical blockchain operations must not silently use fake data
+  - **P2-13 RESOLVED (R51): User profile POST has mock wallet address fallback**
+    - File: `apps/web/src/app/api/user/profile/route.ts`
+    - Changed to fail with 503 error instead of using `mock-wallet-${userId}`
+    - Users must have real blockchain wallets
+  - **P2-15 RESOLVED (R52): Duplicate GpsCoordinates type definition**
+    - Consolidated to single definition in `packages/shared/src/types/user.ts`
+    - `vote.ts` now imports and re-exports from `user.ts`
+- **Stats Updated:**
+  - P2 Medium: 12 -> 4 (8 items resolved)
+  - Total Resolved: 42 -> 50 (8 new this session: R45-R52)
+  - Total Active: 34 -> 26
 
 **Version 38.0 Changes (January 15, 2025 - P2 Web UI Session):**
 - **P2-16 RESOLVED: Header login/signup buttons now enabled**

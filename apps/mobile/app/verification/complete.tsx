@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,12 +12,54 @@ import Animated, {
   FadeIn,
   SlideInUp,
 } from 'react-native-reanimated';
-import Confetti from 'react-native-confetti';
+import { getAuthToken } from '@/lib/auth';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sync.co.il';
+
+interface VerificationStats {
+  daysElapsed: number;
+  completedCheckIns: number;
+  totalCheckIns: number;
+  completionRate: number;
+}
 
 export default function VerificationCompleteScreen() {
   const router = useRouter();
   const scale = useSharedValue(0);
   const checkmarkScale = useSharedValue(0);
+  const [stats, setStats] = useState<VerificationStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const token = await getAuthToken();
+      if (!token) return;
+
+      const response = await fetch(`${API_URL}/api/verification/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.progress) {
+          setStats({
+            daysElapsed: result.progress.daysElapsed || 21,
+            completedCheckIns: result.progress.completedCheckIns || 0,
+            totalCheckIns: result.progress.totalCheckIns || 0,
+            completionRate: result.progress.completionRate || 1,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching verification stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   useEffect(() => {
     // Badge animation
@@ -132,20 +174,30 @@ export default function VerificationCompleteScreen() {
           <Text className="text-sm font-assistant text-neutral-500 text-right mb-3">
             סיכום האימות
           </Text>
-          <View className="flex-row-reverse justify-between">
-            <View className="items-center">
-              <Text className="text-2xl font-heebo font-bold text-primary-600">21</Text>
-              <Text className="text-xs font-assistant text-neutral-500">ימים</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#2563EB" />
+          ) : (
+            <View className="flex-row-reverse justify-between">
+              <View className="items-center">
+                <Text className="text-2xl font-heebo font-bold text-primary-600">
+                  {stats?.daysElapsed ?? 21}
+                </Text>
+                <Text className="text-xs font-assistant text-neutral-500">ימים</Text>
+              </View>
+              <View className="items-center">
+                <Text className="text-2xl font-heebo font-bold text-secondary-600">
+                  {stats ? `${stats.completedCheckIns}/${stats.totalCheckIns}` : '✓'}
+                </Text>
+                <Text className="text-xs font-assistant text-neutral-500">צ'ק-אינים</Text>
+              </View>
+              <View className="items-center">
+                <Text className="text-2xl font-heebo font-bold text-accent-600">
+                  {stats ? `${Math.round(stats.completionRate * 100)}%` : '100%'}
+                </Text>
+                <Text className="text-xs font-assistant text-neutral-500">הצלחה</Text>
+              </View>
             </View>
-            <View className="items-center">
-              <Text className="text-2xl font-heebo font-bold text-secondary-600">✓</Text>
-              <Text className="text-xs font-assistant text-neutral-500">צ'ק-אינים</Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-2xl font-heebo font-bold text-accent-600">100%</Text>
-              <Text className="text-xs font-assistant text-neutral-500">הצלחה</Text>
-            </View>
-          </View>
+          )}
         </View>
       </Animated.View>
     </SafeAreaView>

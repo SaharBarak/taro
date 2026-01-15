@@ -28,38 +28,6 @@ interface RecentVote {
   option: string;
 }
 
-// Mock data - will be replaced with API
-const mockStats: DashboardStats = {
-  totalVotes: 12,
-  activeVotes: 3,
-  tokensEarned: 62,
-  votesCreated: 1,
-};
-
-const mockRecentVotes: RecentVote[] = [
-  {
-    id: '1',
-    title: 'הקמת גן שעשועים חדש ברובע הצפוני',
-    status: 'active',
-    votedAt: '2024-12-18',
-    option: 'בעד',
-  },
-  {
-    id: '2',
-    title: 'שיפוץ מתחם הספורט העירוני',
-    status: 'ended',
-    votedAt: '2024-12-15',
-    option: 'בעד עם שינויים',
-  },
-  {
-    id: '3',
-    title: 'הוספת קווי אוטובוס בשעות הערב',
-    status: 'ended',
-    votedAt: '2024-12-10',
-    option: 'בעד',
-  },
-];
-
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -73,13 +41,60 @@ export default function DashboardPage() {
       return;
     }
 
-    // Fetch dashboard data
+    // Fetch dashboard data from API
     const fetchData = async () => {
-      // TODO: Replace with actual API calls
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setStats(mockStats);
-      setRecentVotes(mockRecentVotes);
-      setDataLoading(false);
+      try {
+        // Fetch stats and participations in parallel
+        const [statsResponse, participationsResponse] = await Promise.all([
+          fetch('/api/user/stats'),
+          fetch('/api/user/participations'),
+        ]);
+
+        // Parse stats
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          setStats({
+            totalVotes: statsData.votesParticipated || 0,
+            activeVotes: 0, // Will be calculated from participations
+            tokensEarned: user?.syncTokenBalance || 0,
+            votesCreated: statsData.votesCreated || 0,
+          });
+        }
+
+        // Parse participations for recent votes
+        if (participationsResponse.ok) {
+          const participationsData = await participationsResponse.json();
+          const participations = participationsData.participations || [];
+
+          // Count active votes
+          const activeCount = participations.filter(
+            (p: any) => p.vote?.status === 'active'
+          ).length;
+
+          // Update stats with active count
+          setStats((prev) => prev ? { ...prev, activeVotes: activeCount } : null);
+
+          // Transform to RecentVote format (take last 5)
+          const recentVotesData: RecentVote[] = participations
+            .slice(0, 5)
+            .map((p: any) => ({
+              id: p.voteId,
+              title: p.vote?.title || 'הצבעה',
+              status: (p.vote?.status === 'active' ? 'active' : 'ended') as 'active' | 'ended',
+              votedAt: new Date(p.createdAt).toLocaleDateString('he-IL'),
+              option: p.option?.text || 'בעד',
+            }));
+
+          setRecentVotes(recentVotesData);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        // Set empty data on error
+        setStats({ totalVotes: 0, activeVotes: 0, tokensEarned: 0, votesCreated: 0 });
+        setRecentVotes([]);
+      } finally {
+        setDataLoading(false);
+      }
     };
 
     if (isAuthenticated) {

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { TokenBalance } from '@sync/shared';
-import { usersApi, paymentsApi } from '@sync/api-client';
+import { usersApi } from '@sync/api-client';
 
 interface UserState {
   tokenBalance: TokenBalance | null;
@@ -23,7 +23,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   fetchTokenBalance: async () => {
     set({ isLoading: true });
     try {
-      const tokenBalance = await paymentsApi.getTokenBalance();
+      const tokenBalance = await usersApi.getTokenBalance();
       set({ tokenBalance, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });

@@ -30,6 +30,7 @@ export interface IdentityScore {
     instagram: number;
   };
   level: 'basic' | 'verified' | 'trusted'; // basic: 40-69, verified: 70-99, trusted: 100
+  lastCalculated?: Date; // When the score was last calculated
 }
 
 // === GPS Verification Types (NEW - 21-Day Verification) ===
