@@ -2,8 +2,8 @@
  * Payment Types - Green Invoice Integration
  */
 
-export type PaymentStatus = 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded';
-export type PaymentType = 'vote' | 'create_vote';
+export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+export type PaymentType = 'vote_participation' | 'vote_creation';
 
 // === Green Invoice Payment Types ===
 
@@ -68,7 +68,7 @@ export interface PaymentResult {
   id: string;
   amount: number;
   currency: 'ILS';
-  status: 'succeeded' | 'failed';
+  status: 'completed' | 'failed';
   receiptUrl?: string;
   txHash: string;
   processedAt: Date;
@@ -91,11 +91,5 @@ export interface TokenTransaction {
   timestamp: Date;
 }
 
-// === Pricing Constants ===
-
-export const PAYMENT_AMOUNTS = {
-  VOTE: 300, // ₪3 in agorot
-  CREATE_VOTE: 20000, // ₪200 in agorot
-} as const;
-
-export const TOKEN_RATIO = 1; // 1 ILS = 1 SYNC token
+// Note: Payment amounts in ILS are defined in @sync/shared/constants (VOTE_COST, CREATE_VOTE_COST)
+// The backend converts to agorot (amount * 100) when storing payments

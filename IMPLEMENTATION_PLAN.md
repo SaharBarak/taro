@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v18 - Converge to Supabase migration)
-**Document Version:** 42.0
+**Last Audit:** January 15, 2025 (Opus 4.5 comprehensive codebase audit v19 - P3 cleanup session)
+**Document Version:** 43.0
 
 ---
 
@@ -11,11 +11,11 @@
 
 This document tracks the implementation status for the Taru civic consensus platform. Items are organized by priority with the Late January 2025 Kiryat Tivon pilot as the primary deadline.
 
-**Codebase Statistics (verified Jan 15, 2025 - v39):**
+**Codebase Statistics (verified Jan 15, 2025 - v43):**
 - Shared Package: 5 type files, 5 contract files, 2 constant files (55+ Hebrew error messages), 4 utility files (47+ exported types/interfaces, 35+ utility functions, ~170+ total exports)
-- API Client: 3 modules (votes.ts 8 methods, users.ts 10 methods, payments.ts 5 methods) - 21 methods total, 21 have working backends (100%), 0 missing backend implementations (removed duplicate getTokenBalance from payments.ts)
-- Web API: 29 route files (27 complete, 2 partial) - 2 TODO comments remaining
-- Services: 14 production-ready services (4,128 lines of code) + 1 DEAD CODE file (grow.ts - 232 lines, can delete)
+- API Client: 3 modules (votes.ts 8 methods, users.ts 10 methods, payments.ts 5 methods) - 21 methods total, 21 have working backends (100%), 0 missing backend implementations
+- Web API: 31 route files (29 complete, 2 partial) - Added /api/payments/[id]/verify and /api/user/verify-location
+- Services: 14 production-ready services (4,128 lines of code) - grow.ts deleted, newsletter email templates cleaned up
 - Mobile: 28 screens across 6 sections (27 complete, 1 with issues: profile stats)
 - Web Pages: 14 pages (10 complete, 4 partial) - dashboard now connected to API
 - Database: 11 tables (users, social_proofs, verification_runs, verification_schedule, verification_attempts, payments, entitlements, votes, vote_options, user_votes, push_tokens), 32+ indexes, 7 triggers, 12+ functions, RLS policies on all tables
@@ -125,26 +125,26 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | # | Issue | File | Line | Impact | Fix Required | Status |
 |---|-------|------|------|--------|--------------|--------|
 | P3-1 | **DEAD CODE - grow.ts** | `apps/web/src/services/payments/grow.ts` | entire file | 232 lines unused, not imported anywhere | Delete file entirely | [x] FIXED |
-| P3-2 | **Missing VerificationRunStatus type export** | `packages/shared/src/contracts/verification.ts` | N/A | Type safety gap | Generate type with `z.infer<>` | [ ] |
+| ~~P3-2~~ | ~~Missing VerificationRunStatus type export~~ | - | - | - | - | [x] NOT AN ISSUE |
 | P3-3 | **Branding inconsistency** | Multiple files | Various | Uses "Sync" and "Taru" | Standardize on "Taru" | [ ] |
 | P3-4 | **Console.log in production** | `apps/web/src/app/api/payments/webhook/route.ts` | 29, 47, 53, 63, 88, 90, 107, 124, 126, 141, 153, 158, 163 | Log noise (13 statements in webhook alone) | Replace with structured logging | [ ] |
 | P3-5 | **Unsafe `as any` assertions** | Mobile + Web | 10 locations | Type safety gap | Add proper typing | [ ] |
 | P3-6 | **Duplicate location verification methods** | `packages/api-client/src/` | votes.ts, users.ts | Ambiguous API | Consolidate to single method | [ ] |
-| P3-7 | **Missing /api/payments/[id]/verify endpoint** | `apps/web/src/app/api/payments/` | N/A | API client method has no backend | Create endpoint or remove client method | [ ] |
-| P3-8 | **Missing /api/user/verify-location endpoint** | `apps/web/src/app/api/user/` | N/A | API client method has no backend | Create endpoint or remove client method | [ ] |
+| ~~P3-7~~ | ~~/api/payments/[id]/verify endpoint~~ | - | - | - | - | [x] CREATED |
+| ~~P3-8~~ | ~~/api/user/verify-location endpoint~~ | - | - | - | - | [x] CREATED |
 | P3-9 | **No rate limiting on votes/participate endpoint** | `apps/web/src/app/api/votes/[id]/participate/route.ts` | N/A | Could be abused to DOS payment system | Add rate limiting (3 requests/minute per user) | [ ] |
 | P3-10 | **No rate limiting on verification/check-in endpoint** | `apps/web/src/app/api/verification/check-in/route.ts` | N/A | Could be abused during verification | Add rate limiting (10 requests/minute per user) | [ ] |
 | P3-11 | **Cron job console.log statements** | `apps/web/src/app/api/cron/verification-notifications/route.ts` | 58, 78 | Noise in logs | Replace with structured logging | [ ] |
-| P3-12 | **PAYMENT_AMOUNTS vs VOTE_COST unit inconsistency** | `packages/shared/src/types/payment.ts` vs `constants/index.ts` | N/A | PAYMENT_AMOUNTS uses agorot, VOTE_COST uses ILS | Move to constants/ and normalize to single unit | [ ] |
-| P3-13 | **DEAD CODE - newsletter verify route and email template** | `apps/web/src/app/api/newsletter/verify/route.ts`, `apps/web/src/services/email/index.ts` (lines 140-153, 427-488) | N/A | Newsletter now uses Beehiiv for verification | Delete route file and email template functions | [ ] |
+| ~~P3-12~~ | ~~PAYMENT_AMOUNTS vs VOTE_COST unit inconsistency~~ | - | - | - | - | [x] FIXED |
+| ~~P3-13~~ | ~~DEAD CODE - newsletter verify route and email template~~ | - | - | - | - | [x] DELETED |
 
-**P3 Total: 12 items**
+**P3 Total: 7 items** (5 resolved this session)
 
 ---
 
 ### P4 - CLEANUP (Technical Debt - Converge to Supabase Migration) ✅ COMPLETE
 
-**STATUS: ALL ROUTES MIGRATED** - The convergeService is no longer used by any active API routes. Only `newsletter/verify` still imports it, but that route is dead code (Beehiiv handles verification internally).
+**STATUS: ALL ROUTES MIGRATED** - The convergeService is no longer used by any active API routes. The `newsletter/verify` route that was importing it has been deleted (Beehiiv handles verification internally).
 
 **Files to update (replace Converge with Supabase queries):**
 
@@ -156,7 +156,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | `apps/web/src/app/api/user/profile/route.ts` | `convergeService.getUserByGoogleId()`, `createUser()`, `updateUser()` | MIGRATED - Uses Supabase getUserByGoogleId, createUser, updateUser, getSocialProofsByUserId, createSocialProof. Fully migrated to Supabase. |
 | `apps/web/src/app/api/verification/status/route.ts` | ~~`convergeService.getVerificationSchedule()`~~ | MIGRATED - Uses Supabase `getUserByGoogleId`, `getActiveVerificationRun`, `getVerificationSchedule`. No TODO remaining. |
 | `apps/web/src/app/api/newsletter/subscribe/route.ts` | ~~`convergeService.createNewsletterSignup()`~~ | MIGRATED - Uses Beehiiv API directly. No Converge dependency. |
-| `apps/web/src/app/api/newsletter/verify/route.ts` | `convergeService.getNewsletterSignupByToken()`, `verifyNewsletterSignup()` | DEAD CODE - Newsletter now uses Beehiiv which handles verification internally. Can be deleted. |
+| `apps/web/src/app/api/newsletter/verify/route.ts` | `convergeService.getNewsletterSignupByToken()`, `verifyNewsletterSignup()` | DELETED (v43) - Newsletter now uses Beehiiv which handles verification internally. |
 | `apps/web/src/app/api/social/callback/facebook/route.ts` | `convergeService.updateSocialProofs()` | MIGRATED - Uses Supabase `getUserByGoogleId`, `getSocialProofsByUserId`, `upsertSocialProof`, `updateUser` |
 | `apps/web/src/app/api/social/callback/instagram/route.ts` | `convergeService.updateSocialProofs()` | MIGRATED - Same Supabase migration as Facebook callback |
 
@@ -227,8 +227,13 @@ These issues have been verified as fixed:
 | R53 | P2-1: GpsCoordinates schema missing timestamp | FIXED - Added `timestamp: z.string().datetime().optional()` to GpsCoordinatesSchema in `packages/shared/src/contracts/verification.ts`. Also updated `apps/web/src/app/api/verification/check-in/route.ts` to include timestamp in location response. | [x] Jan 15 |
 | R54 | P2-10: Social connect page has alert placeholder | FIXED - Fixed API endpoint paths (was `/api/social/facebook/connect`, now correctly `/api/social/connect/facebook`). Added error state handling and error message UI. Added loading of existing social proofs from user profile. Added proper detection of success/error URL params. Added CSS for error message display in `page.module.css`. File: `apps/web/src/app/[locale]/sign-up/connect-social/page.tsx` | [x] Jan 15 |
 | R55 | P2-11: Vote detail page mock data fallback | FIXED - Removed mock vote data constant entirely. Added error state management. Now shows proper error message instead of silently falling back to mock data. Shows Hebrew error messages: "ההצבעה לא נמצאה" or "שגיאה בטעינת ההצבעה". File: `apps/web/src/app/[locale]/votes/[id]/page.tsx` | [x] Jan 15 |
+| R56 | P3-7: /api/payments/[id]/verify endpoint | CREATED at `apps/web/src/app/api/payments/[id]/verify/route.ts` - POST endpoint that verifies payment completion after redirect from Green Invoice. Returns `{ success, receiptUrl?, tokensEarned }`. | [x] Jan 15 |
+| R57 | P3-8: /api/user/verify-location endpoint | CREATED at `apps/web/src/app/api/user/verify-location/route.ts` - POST endpoint that verifies user's GPS location against their municipality. Takes `{ latitude, longitude }` and returns `{ verified, municipality?, municipalityId? }`. | [x] Jan 15 |
+| R58 | P3-12: Payment unit inconsistency | FIXED - Removed unused `PAYMENT_AMOUNTS` and `TOKEN_RATIO` constants from `packages/shared/src/types/payment.ts` (they were dead code). The active payment amounts are in `constants/index.ts` as `VOTE_COST` and `CREATE_VOTE_COST` in ILS. | [x] Jan 15 |
+| R59 | P3-13: Dead newsletter verification code | DELETED - Removed entire file `apps/web/src/app/api/newsletter/verify/route.ts` (was using convergeService). Removed `sendNewsletterVerificationEmail()` and `sendNewsletterWelcomeEmail()` methods from email service. Newsletter now uses Beehiiv which handles verification internally. | [x] Jan 15 |
+| R60 | P3-2: VerificationRunStatus type export | NOT AN ISSUE - VerificationRunStatus type IS properly defined and exported from `packages/shared/src/contracts/verification.ts`. The contracts are intentionally kept separate from types to avoid naming conflicts. Consumers who need Zod schemas should import from `@sync/shared/contracts`. | [x] Jan 15 |
 
-**Total Resolved: 59 items** (6 new this session)
+**Total Resolved: 64 items** (5 new this session)
 
 ### Mobile Type Errors Fixed This Session
 
@@ -263,10 +268,10 @@ The following mobile type errors were fixed during the type alignment session:
 | **P1 High** | 0 | Required for pilot - ALL RESOLVED |
 | **P2 Medium** | 1 | Has workarounds - 1 requires infrastructure change (11 resolved total) |
 | **P2-WEB** | 0 | All 7 web type errors resolved |
-| **P3 Low** | 12 | Post-pilot cleanup (added dead code item) |
+| **P3 Low** | 7 | Post-pilot cleanup (5 resolved this session) |
 | **P4 Cleanup** | 0 | **COMPLETE** - All routes migrated to Supabase, convergeService can be deleted |
-| **Resolved** | 62 | Already fixed (3 more routes verified migrated this session) |
-| **Total Active** | 14 | P0 + P2 + P3 remaining (P4 complete) |
+| **Resolved** | 64 | Already fixed (5 new this session) |
+| **Total Active** | 9 | P0 + P2 + P3 remaining (P4 complete) |
 
 **Stack Simplification (January 2025):**
 - Database: Supabase (PostgreSQL with RLS) - ONLY database
@@ -478,10 +483,10 @@ The API client expects these endpoints that don't exist:
 | ~~`GET /api/user/tokens/transactions`~~ | ~~`usersApi.getTokenTransactions()`~~ | ~~users.ts:116-121~~ | ~~P1~~ | **CREATED** - R32 |
 | ~~`POST /api/votes/[id]/verify-location`~~ | ~~`votesApi.verifyLocation()`~~ | ~~votes.ts:N/A~~ | ~~P1~~ | **CREATED** - R33 |
 | ~~`GET /api/user/votes`~~ | ~~`usersApi.getVotingHistory()`~~ | ~~users.ts:127-135~~ | ~~P1~~ | **CREATED** - R34 |
-| `POST /api/payments/[id]/verify` | `paymentsApi.verifyPayment()` | payments.ts:65-72 | P3 | Verify payment after redirect |
-| `POST /api/user/verify-location` | `usersApi.verifyLocation()` | users.ts:141-146 | P3 | General location verification |
+| ~~`POST /api/payments/[id]/verify`~~ | ~~`paymentsApi.verifyPayment()`~~ | ~~payments.ts:65-72~~ | ~~P3~~ | **CREATED** - R56 |
+| ~~`POST /api/user/verify-location`~~ | ~~`usersApi.verifyLocation()`~~ | ~~users.ts:141-146~~ | ~~P3~~ | **CREATED** - R57 |
 
-**Note:** 6 of 8 missing endpoints were created in the January 15 API Endpoints Session. Only 2 P3 endpoints remain.
+**Note:** All 8 missing endpoints have been created. API client now has 100% backend coverage.
 
 ### API Endpoint Path Mismatches (P0-5)
 
@@ -525,7 +530,35 @@ The API client calls WRONG paths - backend exists but at different URLs:
 ---
 
 *Last Updated: January 15, 2025*
-*Document Version: 42.0*
+*Document Version: 43.0*
+
+**Version 43.0 Changes (January 15, 2025 - P3 Cleanup Session):**
+- **P3-7 RESOLVED (R56): Created /api/payments/[id]/verify endpoint**
+  - File: `apps/web/src/app/api/payments/[id]/verify/route.ts`
+  - POST endpoint that verifies payment completion after redirect from Green Invoice
+  - Returns `{ success, receiptUrl?, tokensEarned }`
+- **P3-8 RESOLVED (R57): Created /api/user/verify-location endpoint**
+  - File: `apps/web/src/app/api/user/verify-location/route.ts`
+  - POST endpoint that verifies user's GPS location against their municipality
+  - Takes `{ latitude, longitude }` and returns `{ verified, municipality?, municipalityId? }`
+- **P3-12 RESOLVED (R58): Fixed payment unit inconsistency**
+  - Removed unused `PAYMENT_AMOUNTS` and `TOKEN_RATIO` constants from `packages/shared/src/types/payment.ts`
+  - These were dead code - the active payment amounts are in `constants/index.ts` as `VOTE_COST` and `CREATE_VOTE_COST` in ILS
+- **P3-13 RESOLVED (R59): Deleted dead newsletter verification code**
+  - Deleted entire file `apps/web/src/app/api/newsletter/verify/route.ts` (was using convergeService)
+  - Removed `sendNewsletterVerificationEmail()` and `sendNewsletterWelcomeEmail()` methods from email service
+  - Removed `getNewsletterVerificationTemplate()` and `getNewsletterWelcomeTemplate()` private methods from email service
+  - Newsletter now uses Beehiiv which handles verification internally
+- **P3-2 NOT AN ISSUE (R60): VerificationRunStatus type IS properly exported**
+  - Type is defined and exported from `packages/shared/src/contracts/verification.ts`
+  - Contracts are intentionally kept separate from types to avoid naming conflicts
+  - Consumers who need Zod schemas should import from `@sync/shared/contracts`
+- **Stats Updated:**
+  - P3 Low: 12 -> 7 (5 items resolved)
+  - Total Resolved: 59 -> 64 (5 new this session: R56-R60)
+  - Total Active: 14 -> 9
+  - Web API Routes: 29 -> 31 files (2 new endpoints)
+  - All missing API endpoints now have backends (100% coverage)
 
 **Version 42.0 Changes (January 15, 2025 - User Profile Migration & P4 Completion Session):**
 - **P4 COMPLETE: /api/user/profile migrated from Converge to Supabase:**
