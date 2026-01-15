@@ -595,6 +595,67 @@ export async function getUserVote(
   return data;
 }
 
+export async function hasUserParticipated(
+  userId: string,
+  voteId: string
+): Promise<boolean> {
+  const vote = await getUserVote(userId, voteId);
+  return !!vote;
+}
+
+export async function getUserVotes(userId: string): Promise<UserVote[]> {
+  const { data, error } = await supabaseAdmin
+    .from('user_votes')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Failed to get user votes:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getUserVotesWithDetails(
+  userId: string
+): Promise<Array<UserVote & { vote: Vote; option: VoteOption | null }>> {
+  const { data, error } = await supabaseAdmin
+    .from('user_votes')
+    .select(`
+      *,
+      votes (*),
+      vote_options (*)
+    `)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Failed to get user votes with details:', error);
+    return [];
+  }
+
+  return (data || []).map((item: any) => ({
+    ...item,
+    vote: item.votes,
+    option: item.vote_options,
+  }));
+}
+
+export async function getUserPayments(userId: string): Promise<Payment[]> {
+  const { data, error } = await supabaseAdmin
+    .from('payments')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Failed to get user payments:', error);
+    return [];
+  }
+  return data || [];
+}
+
 // ============================================
 // PUSH TOKEN OPERATIONS
 // ============================================

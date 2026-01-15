@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { motion } from 'framer-motion';
@@ -20,7 +20,7 @@ interface SocialProofsData {
   identityScore: IdentityScore;
 }
 
-export default function SocialConnectionsPage() {
+function SocialConnectionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -338,5 +338,23 @@ export default function SocialConnectionsPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+// Cast Suspense for React 19 type compatibility
+const SuspenseWrapper = Suspense as any;
+
+export default function SocialConnectionsPage() {
+  return (
+    <SuspenseWrapper
+      fallback={
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner} />
+          <p>טוען...</p>
+        </div>
+      }
+    >
+      <SocialConnectionsContent />
+    </SuspenseWrapper>
   );
 }
