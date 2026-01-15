@@ -10,7 +10,7 @@ import { formatCurrency, getTimeRemaining } from '@sync/shared';
 
 function VoteCard({ vote, onPress }: { vote: Vote; onPress: () => void }) {
   const timeRemaining = getTimeRemaining(vote.endDate);
-  const totalVotes = vote.options.reduce((sum, opt) => sum + opt.votes, 0);
+  const totalVotes = vote.options.reduce((sum, opt) => sum + (opt.voteCount || opt.votes || 0), 0);
 
   return (
     <Pressable

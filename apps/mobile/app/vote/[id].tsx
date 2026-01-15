@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { votesApi } from '@sync/api-client';
 import { Vote, VoteOption, VOTE_COST, formatCurrency, getTimeRemaining } from '@sync/shared';
-import { shareVote } from '@/src/lib/share';
+import { shareVote } from '@/lib/share';
 
 function OptionCard({
   option,
@@ -24,7 +24,8 @@ function OptionCard({
   disabled: boolean;
   voted: boolean;
 }) {
-  const percentage = totalVotes > 0 ? Math.round((option.votes / totalVotes) * 100) : 0;
+  const optionVotes = option.voteCount || option.votes || 0;
+  const percentage = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
 
   return (
     <Pressable
@@ -44,7 +45,7 @@ function OptionCard({
             selected ? 'text-primary-600 font-semibold' : 'text-neutral-700'
           }`}
         >
-          {option.text}
+          {option.label || option.text}
         </Text>
         {(voted || selected) && (
           <View
@@ -68,7 +69,7 @@ function OptionCard({
             />
           </View>
           <View className="flex-row-reverse justify-between mt-2">
-            <Text className="text-sm text-neutral-500 font-assistant">{option.votes} הצבעות</Text>
+            <Text className="text-sm text-neutral-500 font-assistant">{optionVotes} הצבעות</Text>
             <Text className="text-sm font-heebo font-medium text-primary-600">{percentage}%</Text>
           </View>
         </>
@@ -94,7 +95,8 @@ export default function VoteDetailScreen() {
       // Check if user already voted
       if (data.userVote) {
         setHasVoted(true);
-        setSelectedOption(data.userVote.optionId);
+        // userVote is the optionId directly
+        setSelectedOption(data.userVote);
       }
     } catch (err) {
       console.error('Error fetching vote:', err);
@@ -187,7 +189,7 @@ export default function VoteDetailScreen() {
     );
   }
 
-  const totalVotes = vote.options.reduce((sum, opt) => sum + opt.votes, 0);
+  const totalVotes = vote.options.reduce((sum, opt) => sum + (opt.voteCount || opt.votes || 0), 0);
   const isActive = vote.status === 'active';
   const timeRemaining = getTimeRemaining(vote.endDate);
 
@@ -323,7 +325,7 @@ export default function VoteDetailScreen() {
               נוצר על ידי
             </Text>
             <Text className="text-base font-heebo text-neutral-700 text-right">
-              {vote.creator?.name || 'אנונימי'}
+              {vote.creator?.displayName || (vote.creator?.firstName ? `${vote.creator.firstName} ${vote.creator.lastName || ''}`.trim() : 'אנונימי')}
             </Text>
           </View>
         </Animated.View>

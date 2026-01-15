@@ -7,6 +7,7 @@ export type {
   VoteStatus,
   VoteOption,
   VoteResults,
+  VoteCreator,
   Vote,
   VoteCreateInput,
   Participation,

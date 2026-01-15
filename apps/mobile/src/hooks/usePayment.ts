@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import { paymentsApi } from '@sync/api-client';
-import { PaymentIntent } from '@sync/shared';
+import type { PaymentIntent, PaymentType } from '@sync/shared';
 
-export type PaymentType = 'vote' | 'create_vote';
+// Re-export PaymentType for convenience
+export type { PaymentType };
 
 export interface PaymentResult {
   success: boolean;

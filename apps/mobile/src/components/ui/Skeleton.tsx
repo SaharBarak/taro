@@ -54,7 +54,7 @@ export function Skeleton({
           borderRadius,
           backgroundColor: '#E5E7EB',
         },
-        typeof width === 'string' && { width },
+        typeof width === 'string' && { width: width as `${number}%` },
         animatedStyle,
         style,
       ]}

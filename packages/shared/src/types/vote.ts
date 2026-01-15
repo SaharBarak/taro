@@ -2,13 +2,16 @@
  * Vote Types
  */
 
-export type VoteStatus = 'pending' | 'active' | 'completed' | 'cancelled';
+// Note: Database uses 'ended' instead of 'completed'
+export type VoteStatus = 'pending' | 'active' | 'ended' | 'cancelled';
 
 export interface VoteOption {
   id: string;
   label: string;
+  text?: string; // Alias for label (used in some UI components)
   description?: string;
   voteCount: number;
+  votes?: number; // Alias for voteCount (used in some UI components)
 }
 
 export interface VoteResults {
@@ -22,12 +25,20 @@ export interface VoteResults {
   completedAt: Date;
 }
 
+export interface VoteCreator {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+}
+
 export interface Vote {
   id: string;
   title: string;
   description: string;
   municipality: string;
   creatorId: string;
+  creator?: VoteCreator; // Expanded creator info (optional)
   status: VoteStatus;
   options: VoteOption[];
   startDate: Date;
@@ -35,6 +46,7 @@ export interface Vote {
   participantCount: number;
   qubikTxHash?: string;
   results?: VoteResults;
+  userVote?: string; // Option ID if current user has voted
   createdAt: Date;
   updatedAt: Date;
 }

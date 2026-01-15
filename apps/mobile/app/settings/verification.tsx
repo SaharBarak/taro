@@ -30,8 +30,17 @@ export default function VerificationScreen() {
     const fetchStatus = async () => {
       try {
         const profile = await usersApi.getProfile();
+        // Transform shared VerificationStatus to local status format
+        // The shared type tracks the 21-day GPS verification phase
+        // while local status tracks individual verification steps
         if (profile.verificationStatus) {
-          setStatus(profile.verificationStatus);
+          const vs = profile.verificationStatus;
+          setStatus({
+            email: profile.emailVerified || false,
+            phone: false, // TODO: Add phone verification
+            location: vs.phase === 'completed' || (vs.checkInsCompleted || 0) > 0,
+            identity: (profile.identityScore?.total || 0) >= 40,
+          });
         }
       } catch (err) {
         console.error('Error fetching verification status:', err);

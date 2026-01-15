@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useAuthStore, useUser, useSyncTokenBalance, useIdentityScore } from '@/stores/authStore';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { getIdentityLevelLabel } from '@sync/shared';
+
+const APP_URL = process.env.EXPO_PUBLIC_APP_URL || 'https://sync.co.il';
 
 function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
@@ -223,17 +226,17 @@ export default function ProfileScreen() {
               <MenuItem
                 icon="document-text"
                 label="תנאי שימוש"
-                onPress={() => router.push('/legal/terms')}
+                onPress={() => WebBrowser.openBrowserAsync(`${APP_URL}/legal/terms`)}
               />
               <MenuItem
                 icon="lock-closed"
                 label="מדיניות פרטיות"
-                onPress={() => router.push('/legal/privacy')}
+                onPress={() => WebBrowser.openBrowserAsync(`${APP_URL}/legal/privacy`)}
               />
               <MenuItem
                 icon="help-circle"
                 label="עזרה ותמיכה"
-                onPress={() => router.push('/support')}
+                onPress={() => WebBrowser.openBrowserAsync(`${APP_URL}/support`)}
               />
             </View>
           </Animated.View>

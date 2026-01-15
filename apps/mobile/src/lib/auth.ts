@@ -447,16 +447,23 @@ export async function disconnectSocialPlatform(platform: 'facebook' | 'instagram
 export async function getSocialProofs(): Promise<{
   success: boolean;
   socialProofs?: Array<{
-    platform: string;
-    username?: string;
+    platform: 'google' | 'facebook' | 'instagram';
+    providerId: string;
+    displayName: string;
+    profileUrl?: string;
+    profileImage?: string;
     email?: string;
-    verified: boolean;
-    score: number;
+    connectedAt: string;
+    stampWeight: number;
   }>;
   identityScore?: {
     total: number;
-    level: string;
-    breakdown: Record<string, number>;
+    level: 'basic' | 'verified' | 'trusted';
+    breakdown: {
+      google: number;
+      facebook: number;
+      instagram: number;
+    };
   };
   error?: string;
 }> {

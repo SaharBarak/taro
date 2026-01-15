@@ -66,35 +66,31 @@ export const usersApi = {
    */
   async getSocialProofs(): Promise<SocialProof[]> {
     const client = getApiClient();
-    const response = await client.get<{ connections: SocialProof[] }>(
-      '/api/user/social-connections'
+    const response = await client.get<{ socialProofs: SocialProof[] }>(
+      '/api/social/proofs'
     );
-    return response.connections;
+    return response.socialProofs;
   },
 
   /**
-   * Connect a social account
+   * Get OAuth URL for connecting a social account
+   * Redirects to /api/social/connect/{platform} which initiates the OAuth flow
    */
-  async connectSocialAccount(
-    platform: SocialProof['platform'],
-    accessToken: string
-  ): Promise<SocialProof> {
-    const client = getApiClient();
-    const response = await client.post<{ connection: SocialProof }>(
-      '/api/user/social-connections',
-      { platform, accessToken }
-    );
-    return response.connection;
+  async getSocialConnectUrl(platform: 'facebook' | 'instagram'): Promise<string> {
+    // Social connections use OAuth redirect flow via server-side initiation
+    // Returns the URL to the initiation endpoint which handles state generation and redirect
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${baseUrl}/api/social/connect/${platform}`;
   },
 
   /**
    * Disconnect a social account
    */
   async disconnectSocialAccount(
-    platform: SocialProof['platform']
+    platform: 'facebook' | 'instagram'
   ): Promise<void> {
     const client = getApiClient();
-    await client.delete(`/api/user/social-connections/${platform}`);
+    await client.delete(`/api/social/proofs?platform=${platform}`);
   },
 
   /**

@@ -38,9 +38,11 @@ export const SocialProofItemSchema = z.object({
   platform: SocialPlatformSchema,
   providerId: z.string(),
   displayName: z.string().nullable().optional(),
+  profileUrl: z.string().url().nullable().optional(),
   profileImage: z.string().url().nullable().optional(),
   email: z.string().email().nullable().optional(),
   connectedAt: z.string().datetime(),
+  stampWeight: z.number().min(0).max(100), // Points contribution (Google: 40, Facebook: 30, Instagram: 30)
 });
 
 export type SocialProofItem = z.infer<typeof SocialProofItemSchema>;

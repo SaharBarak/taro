@@ -72,11 +72,11 @@ export async function GET(request: NextRequest) {
     // Create Facebook social proof
     const facebookProof: SocialProof = {
       platform: 'facebook',
-      platformUserId: facebookUser.id,
+      providerId: facebookUser.id,
       displayName: facebookUser.name,
       email: facebookUser.email,
       profileUrl: `https://facebook.com/${facebookUser.id}`,
-      verifiedAt: new Date(),
+      connectedAt: new Date(),
       stampWeight: 30,
     };
 

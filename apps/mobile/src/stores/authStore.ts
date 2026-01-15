@@ -115,7 +115,8 @@ export const useAuthStore = create<AuthState>()(
 
           if (result.valid && result.user) {
             set({
-              user: result.user as AuthUser,
+              // Type assertion - validateSession returns user data from server
+              user: result.user as unknown as AuthUser,
               isAuthenticated: true,
               isLoading: false,
             });

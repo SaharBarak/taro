@@ -19,12 +19,13 @@ const FILTERS: { key: FilterType; label: string }[] = [
 
 function VoteListItem({ vote, onPress }: { vote: Vote; onPress: () => void }) {
   const timeRemaining = getTimeRemaining(vote.endDate);
-  const totalVotes = vote.options.reduce((sum, opt) => sum + opt.votes, 0);
+  const totalVotes = vote.options.reduce((sum, opt) => sum + (opt.voteCount || opt.votes || 0), 0);
 
-  const statusColors = {
+  const statusColors: Record<VoteStatus, { bg: string; text: string }> = {
     active: { bg: 'bg-green-100', text: 'text-green-600' },
     ended: { bg: 'bg-neutral-100', text: 'text-neutral-600' },
     pending: { bg: 'bg-yellow-100', text: 'text-yellow-600' },
+    cancelled: { bg: 'bg-red-100', text: 'text-red-600' },
   };
 
   const colors = statusColors[vote.status];

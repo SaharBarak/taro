@@ -113,10 +113,10 @@ export async function POST(request: NextRequest) {
       socialProofs: [
         {
           platform: 'google' as const,
-          platformUserId: session.googleId,
+          providerId: session.googleId,
           displayName: session.email,
           email: session.email,
-          verifiedAt: new Date(),
+          connectedAt: new Date(),
           stampWeight: 40,
         },
       ],

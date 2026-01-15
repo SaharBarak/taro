@@ -38,7 +38,12 @@ export default function SocialConnectionsScreen() {
     try {
       const result = await getSocialProofs();
       if (result.success) {
-        setSocialProofs(result.socialProofs || []);
+        // Transform API response to match SocialProof type (connectedAt string -> Date)
+        const transformedProofs: SocialProof[] = (result.socialProofs || []).map((proof) => ({
+          ...proof,
+          connectedAt: new Date(proof.connectedAt),
+        }));
+        setSocialProofs(transformedProofs);
         if (result.identityScore) {
           setCurrentScore(result.identityScore as IdentityScore);
           updateUser({ identityScore: result.identityScore as IdentityScore });
@@ -291,7 +296,7 @@ export default function SocialConnectionsScreen() {
                 </Text>
                 <Text className="text-sm font-assistant text-neutral-500 text-right">
                   {facebookProof
-                    ? facebookProof.username || facebookProof.email
+                    ? facebookProof.displayName || facebookProof.email
                     : 'חברו את Facebook להוספת 30 נקודות'}
                 </Text>
               </View>
@@ -359,7 +364,7 @@ export default function SocialConnectionsScreen() {
                 </Text>
                 <Text className="text-sm font-assistant text-neutral-500 text-right">
                   {instagramProof
-                    ? `@${instagramProof.username}`
+                    ? `@${instagramProof.displayName}`
                     : 'חברו את Instagram להוספת 30 נקודות'}
                 </Text>
               </View>

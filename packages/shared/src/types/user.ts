@@ -13,12 +13,12 @@ export type SocialPlatform = 'google' | 'facebook' | 'instagram';
 
 export interface SocialProof {
   platform: SocialPlatform;
-  platformUserId: string;
+  providerId: string;
   displayName: string;
   profileUrl?: string;
   profileImage?: string;
   email?: string;
-  verifiedAt: Date;
+  connectedAt: Date;
   stampWeight: number; // Points contribution (Google: 40, Facebook: 30, Instagram: 30)
 }
 
@@ -90,6 +90,15 @@ export interface DIDRecord {
   recoveredAt?: Date;
 }
 
+// === Notification Settings ===
+
+export interface NotificationSettings {
+  newVotes: boolean;
+  voteEnding: boolean;
+  voteResults: boolean;
+  marketing: boolean;
+}
+
 // === User Profile Types (ENHANCED) ===
 
 export interface UserProfile {
@@ -121,6 +130,9 @@ export interface UserProfile {
   qubikWalletAddress: string;
   syncTokenBalance: number;
 
+  // === Notifications ===
+  notificationSettings?: NotificationSettings;
+
   // === Timestamps ===
   createdAt: Date;
   updatedAt: Date;
@@ -138,6 +150,7 @@ export interface UserProfileUpdate {
   lastName?: string;
   phone?: string;
   municipality?: string;
+  notificationSettings?: NotificationSettings;
 }
 
 // === Auth Session Types (NEW) ===

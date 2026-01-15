@@ -75,10 +75,10 @@ export async function GET(request: NextRequest) {
     // Create Instagram social proof
     const instagramProof: SocialProof = {
       platform: 'instagram',
-      platformUserId: instagramUser.id,
+      providerId: instagramUser.id,
       displayName: instagramUser.username,
       profileUrl: `https://instagram.com/${instagramUser.username}`,
-      verifiedAt: new Date(),
+      connectedAt: new Date(),
       stampWeight: 30,
     };
 

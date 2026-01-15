@@ -201,24 +201,24 @@ describe('Auth Flow Integration', () => {
 
       // Google only = 40 points (basic)
       const googleOnly = calculateIdentityScore([
-        { platform: 'google', platformUserId: '123', displayName: 'Test', verifiedAt: new Date(), stampWeight: 40 },
+        { platform: 'google', providerId: '123', displayName: 'Test', connectedAt: new Date(), stampWeight: 40 },
       ]);
       expect(googleOnly.total).toBe(40);
       expect(googleOnly.level).toBe('basic');
 
       // Google + Facebook = 70 points (verified)
       const withFacebook = calculateIdentityScore([
-        { platform: 'google', platformUserId: '123', displayName: 'Test', verifiedAt: new Date(), stampWeight: 40 },
-        { platform: 'facebook', platformUserId: '456', displayName: 'Test', verifiedAt: new Date(), stampWeight: 30 },
+        { platform: 'google', providerId: '123', displayName: 'Test', connectedAt: new Date(), stampWeight: 40 },
+        { platform: 'facebook', providerId: '456', displayName: 'Test', connectedAt: new Date(), stampWeight: 30 },
       ]);
       expect(withFacebook.total).toBe(70);
       expect(withFacebook.level).toBe('verified');
 
       // All platforms = 100 points (trusted)
       const allPlatforms = calculateIdentityScore([
-        { platform: 'google', platformUserId: '123', displayName: 'Test', verifiedAt: new Date(), stampWeight: 40 },
-        { platform: 'facebook', platformUserId: '456', displayName: 'Test', verifiedAt: new Date(), stampWeight: 30 },
-        { platform: 'instagram', platformUserId: '789', displayName: 'Test', verifiedAt: new Date(), stampWeight: 30 },
+        { platform: 'google', providerId: '123', displayName: 'Test', connectedAt: new Date(), stampWeight: 40 },
+        { platform: 'facebook', providerId: '456', displayName: 'Test', connectedAt: new Date(), stampWeight: 30 },
+        { platform: 'instagram', providerId: '789', displayName: 'Test', connectedAt: new Date(), stampWeight: 30 },
       ]);
       expect(allPlatforms.total).toBe(100);
       expect(allPlatforms.level).toBe('trusted');

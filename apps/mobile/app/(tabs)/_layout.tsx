@@ -23,10 +23,10 @@ export default function TabsLayout() {
   // Check if user needs to complete verification
   // Redirect to verification if not completed
   const verificationStatus = user?.verificationStatus;
-  if (verificationStatus && verificationStatus !== 'completed') {
+  if (verificationStatus && verificationStatus.phase !== 'completed') {
     // Allow access if verification is active but not blocking
     // Only redirect if verification hasn't started
-    if (verificationStatus === 'not_started') {
+    if (verificationStatus.phase === 'not_started') {
       return <Redirect href="/verification" />;
     }
   }
