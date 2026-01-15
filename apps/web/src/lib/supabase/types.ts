@@ -30,6 +30,7 @@ export interface Database {
           avatar_url: string | null;
           identity_score: number;
           verification_status: 'none' | 'pending' | 'verified' | 'failed';
+          qubik_wallet_address: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -47,6 +48,7 @@ export interface Database {
           avatar_url?: string | null;
           identity_score?: number;
           verification_status?: 'none' | 'pending' | 'verified' | 'failed';
+          qubik_wallet_address?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -64,6 +66,43 @@ export interface Database {
           avatar_url?: string | null;
           identity_score?: number;
           verification_status?: 'none' | 'pending' | 'verified' | 'failed';
+          qubik_wallet_address?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      push_tokens: {
+        Row: {
+          id: string;
+          user_id: string;
+          token: string;
+          device_type: 'ios' | 'android' | null;
+          device_name: string | null;
+          is_active: boolean;
+          last_used: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          token: string;
+          device_type?: 'ios' | 'android' | null;
+          device_name?: string | null;
+          is_active?: boolean;
+          last_used?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          token?: string;
+          device_type?: 'ios' | 'android' | null;
+          device_name?: string | null;
+          is_active?: boolean;
+          last_used?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -448,3 +487,4 @@ export type Entitlement = Tables<'entitlements'>;
 export type Vote = Tables<'votes'>;
 export type VoteOption = Tables<'vote_options'>;
 export type UserVote = Tables<'user_votes'>;
+export type PushToken = Tables<'push_tokens'>;
