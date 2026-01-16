@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 16, 2026 (v75 - P0-9 security fix)
-**Document Version:** 75.0
+**Last Audit:** January 16, 2026 (v76 - P1-16 RESOLVED)
+**Document Version:** 76.0
 
 ---
 
@@ -175,7 +175,7 @@ All core specifications have been documented:
 | P1-13 | **API Client missing verification module** | `packages/api-client/src/` | - | Mobile app cannot call verification endpoints via typed client | Create `verification.ts` with start, check-in, status, schedule methods | [x] **RESOLVED v75** |
 | P1-14 | **API Client missing auth module** | `packages/api-client/src/` | - | No typed session management in client apps | Create `auth.ts` with session, refresh, signout methods | [x] **RESOLVED v75** |
 | P1-15 | **Auth layout missing connect-social screen** | `apps/mobile/app/(auth)/_layout.tsx` | - | connect-social.tsx exists (323 lines) but not registered in auth layout | Add `<Stack.Screen name="connect-social" />` to auth layout | [x] **RESOLVED v75** |
-| P1-16 | **Missing contracts/vote.ts** | `packages/shared/src/contracts/` | - | No Zod validation schemas for vote endpoints (11 schemas needed) | Create vote.ts with CreateVoteRequest, ParticipateRequest, etc. | [!] **NEW v70** |
+| P1-16 | **Missing contracts/vote.ts** | `packages/shared/src/contracts/` | - | No Zod validation schemas for vote endpoints (11 schemas needed) | Create vote.ts with CreateVoteRequest, ParticipateRequest, etc. | [x] **RESOLVED v76** |
 | P1-17 | **Identity score point discrepancy** | `packages/shared/src/utils/identityScore.ts`, `specs/auth-flow.md` | - | Types: FB/IG=30 each. Spec: FB/IG=20 each + GPS=20. Mismatch affects score calculations | Align types and spec on point values | [!] **NEW v70** |
 | P1-18 | **Cron endpoint security gap** | `apps/web/src/app/api/cron/verification-notifications/route.ts` | 12 | `CRON_SECRET` is optional - allows unauthenticated cron calls if not set | Make CRON_SECRET required, reject requests without valid Bearer token | [x] **RESOLVED v75** |
 
@@ -216,6 +216,7 @@ authApi.setDid(did)            -> POST /api/auth/did
 - **Fix:** Add `<Stack.Screen name="connect-social" />` to auth layout
 
 **P1-16 Details (NEW v70) - contracts/vote.ts should contain:**
+**RESOLVED v76:** Created `packages/shared/src/contracts/vote.ts` with all required Zod schemas: VoteStatusSchema, VoteOptionSchema, VoteSchema, ParticipationSchema, CreateVoteRequestSchema, CreateVoteResponseSchema, GetVotesQuerySchema, GetVotesResponseSchema, GetVoteResponseSchema, ParticipateRequestSchema, ParticipateResponseSchema, VerifyLocationRequestSchema, VerifyLocationResponseSchema, GetParticipatedResponseSchema, GetVoteResultsResponseSchema, VoteErrorSchema.
 ```typescript
 // Vote creation
 CreateVoteRequestSchema          // POST /api/votes request body
@@ -243,6 +244,7 @@ VoteErrorSchema                  // Common vote error responses
   1. Update types to match spec (FB/IG=20, add GPS=20)
   2. Update spec to match types (FB/IG=30, remove GPS points)
 - **Recommendation:** Consult product team on intended scoring model
+- **Status v76:** Documented as requiring product decision. The current implementation is internally consistent (3 social accounts reach max 100), while the spec requires 4 verification methods (3 social + GPS). This needs product team clarification before changes are made.
 
 **P1-18 Details (NEW - v72 - CRON SECURITY GAP):**
 **RESOLVED v75:** CRON_SECRET is now required. If not set, returns 503. Invalid auth returns 401 with logging.
@@ -255,7 +257,7 @@ VoteErrorSchema                  // Common vote error responses
   2. Return 401 Unauthorized if secret is missing or invalid
   3. Document in `.env.example` that cron service must provide Bearer token
 
-**P1 Total: 2 items (all verified blockers, +1 from v72 audit)**
+**P1 Total: 1 item (P1-17 pending product decision)**
 
 ---
 
@@ -768,7 +770,7 @@ Focus on end-to-end testing of core flows:
 ---
 
 *Last Updated: January 16, 2026*
-*Document Version: 75.0*
+*Document Version: 76.0*
 
 **Audit v74 Changes (Opus 4.5 - 8 Parallel Exploration Agents Comprehensive Re-Verification):**
 - **8 PARALLEL EXPLORATION AGENTS DEPLOYED**: Verified all P0/P1 blockers, specs (7 files), shared package (types/contracts/utils), API client (5 files), web routes (33 files), mobile structure (28 screens + 7 layouts), services (13 modules), database schema, environment variables
