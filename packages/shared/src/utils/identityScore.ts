@@ -151,7 +151,7 @@ export function createInitialIdentityScore(): IdentityScore {
  */
 export function createSocialProof(
   platform: SocialPlatform,
-  platformUserId: string,
+  providerId: string,
   displayName: string,
   options?: {
     profileUrl?: string;
@@ -161,12 +161,12 @@ export function createSocialProof(
 ): SocialProof {
   return {
     platform,
-    platformUserId,
+    providerId,
     displayName,
     profileUrl: options?.profileUrl,
     profileImage: options?.profileImage,
     email: options?.email,
-    verifiedAt: new Date(),
+    connectedAt: new Date(),
     stampWeight: IDENTITY_SCORE_WEIGHTS[platform],
   };
 }

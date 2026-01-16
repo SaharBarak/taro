@@ -107,11 +107,10 @@ pnpm typecheck
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| Auth | Clerk | User authentication |
+| Database | Supabase | PostgreSQL with RLS, primary data storage |
+| Auth | Supabase Auth | User authentication via OAuth (Google, social) |
 | Blockchain | Qubik | Vote recording & tokens |
-| Database | Converge | Secondary data storage |
 | Payments | Green Invoice | Israeli payment processing |
-| Subscriptions | Grow | Payment management |
 | Email | Resend | Transactional emails |
 | Hosting | Vercel | Deployment platform |
 
@@ -242,8 +241,8 @@ const primaryColor = colors.primary[600]; // '#2563EB'
 
 ### Auth Flow (`apps/mobile/app/(auth)/`)
 - `index.tsx` - Welcome screen
-- `sign-in.tsx` - Sign in with Clerk
-- `sign-up.tsx` - Sign up with email verification
+- `sign-in.tsx` - Sign in with Google OAuth (Supabase Auth)
+- `sign-up.tsx` - Sign up with email/OAuth
 - `onboarding.tsx` - Municipality selection
 
 ### Main Tabs (`apps/mobile/app/(tabs)/`)
@@ -264,8 +263,11 @@ const primaryColor = colors.primary[600]; // '#2563EB'
 ## API Routes
 
 ### Authentication
-- `POST /api/auth/clerk-webhook` - Clerk webhook handler
-- `GET /api/auth/user` - Get current user
+- `GET /api/auth/session` - Get current session
+- `POST /api/auth/session` - Verify session
+- `DELETE /api/auth/session` - Sign out
+- `POST /api/auth/session/refresh` - Refresh session token
+- `GET /api/auth/callback` - OAuth callback handler
 
 ### Votes
 - `GET /api/votes` - List votes (with municipality filter)
@@ -290,25 +292,26 @@ const primaryColor = colors.primary[600]; // '#2563EB'
 ## Environment Variables
 
 ```env
-# Clerk
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
-EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# JWT Sessions
+JWT_SECRET=
+JWT_EXPIRY=7d
+
+# Google OAuth
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 
 # Qubik Blockchain
 QUBIK_API_KEY=
 QUBIK_NETWORK=mainnet
 
-# Converge Database
-CONVERGE_API_KEY=
-CONVERGE_PROJECT_ID=
-
 # Green Invoice
 GREEN_INVOICE_API_KEY=
 GREEN_INVOICE_SECRET=
-
-# Grow
-GROW_API_KEY=
 
 # Resend
 RESEND_API_KEY=
@@ -427,4 +430,4 @@ import { votesApi } from '@sync/api-client';
 
 ---
 
-*Last Updated: December 2024*
+*Last Updated: January 2025*

@@ -12,8 +12,8 @@ const technologies = [
     color: 'primary',
   },
   {
-    name: 'Clerk Authentication',
-    description: 'מערכת אימות משתמשים מאובטחת ומתקדמת',
+    name: 'Supabase Auth',
+    description: 'מערכת אימות משתמשים מאובטחת עם OAuth וסשנים',
     color: 'secondary',
   },
   {
@@ -32,8 +32,8 @@ const technologies = [
     color: 'secondary',
   },
   {
-    name: 'Converge Database',
-    description: 'מסד נתונים מבוזר ומאובטח',
+    name: 'Supabase Database',
+    description: 'מסד נתונים PostgreSQL מאובטח עם RLS',
     color: 'accent',
   },
 ];
