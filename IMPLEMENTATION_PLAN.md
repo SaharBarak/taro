@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 16, 2026 (v76.6 - P3-5 error typing complete)
-**Document Version:** 76.6
+**Last Audit:** January 16, 2026 (v76.7 - API route testing partial)
+**Document Version:** 76.7
 
 ---
 
@@ -20,7 +20,7 @@ This document tracks the implementation status for the Taru civic consensus plat
 - Web Pages: 14 pages - All complete
 - Database: 5 migrations (12 tables, 22+ indexes, 17 RLS policies, 9 functions, 7 triggers) - missing 4 tables (P0-BAGS: treasury system)
 - Specs: 7 complete (auth-flow 90%, verification-protocol 85%, voting-system 88%, payment-flow 92%, api-contracts 95%, push-notifications 98%, bags-integration 0%)
-- Tests: 149 passing (8 test files across 2 packages) - Vitest + Playwright configured, 0 skipped/flaky
+- Tests: 303 passing (shared: 106, api-client: 110, web: 87) - Vitest + Playwright configured, 0 skipped/flaky
 - Tech Debt: 1 TODO, 25 `any` type usages (16 acceptable catch blocks, 9 need review), 5 "Coming Soon" UI strings, 2 QR placeholders
 - Security: Webhook security EXCELLENT (HMAC + timestamp + event deduplication), Rate limiting partial (3 endpoints, in-memory only)
 - Environment: 9 missing env variables in .env.example (P0-12 NEW)
@@ -428,7 +428,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | P3-9 | **Google verification placeholder** | `apps/web/src/app/[locale]/layout.tsx` | 121 | SEO verification not configured | Replace with actual Google Search Console code | [ ] |
 | P3-10 | **WhatsApp link placeholder** | `apps/web/src/app/[locale]/layout.tsx` | 150 | Schema.org references placeholder | Update with actual WhatsApp group link | [ ] |
 | P3-11 | **Profile photo upload UI without implementation** | `apps/mobile/app/settings/profile.tsx` | 87 | "Change photo" button does nothing | Implement image picker and upload | [ ] |
-| P3-12 | **No tests for API routes** | `apps/web/src/app/api/` | - | 33 routes with 0% test coverage | Add API route tests | [ ] |
+| P3-12 | **No tests for API routes** | `apps/web/src/app/api/` | - | 33 routes with 0% test coverage | Add API route tests | [~] |
 | P3-13 | **No tests for mobile app** | `apps/mobile/` | - | 28 screens with 0% test coverage | Add mobile tests | [ ] |
 | P3-14 | **No tests for API client** | `packages/api-client/` | - | 25 methods with 0% test coverage | Add API client tests | [x] |
 
@@ -470,6 +470,15 @@ All 15 instances of `catch (err: any)` have been converted to `catch (err: unkno
 - `bags.ts` (16 tests)
 
 Total test count increased from 149 to 259 tests.
+
+**P3-12 API Route Testing (PARTIAL v76.7):**
+44 API route tests added covering votes, user profile, verification start, and auth session endpoints (4 test files):
+- `src/__tests__/api/votes.test.ts` (13 tests) - GET/POST /api/votes
+- `src/__tests__/api/user-profile.test.ts` (17 tests) - GET/POST/PATCH /api/user/profile
+- `src/__tests__/api/verification.test.ts` (8 tests) - POST /api/verification/start
+- `src/__tests__/api/auth-session.test.ts` (6 tests) - POST/DELETE /api/auth/session
+
+Routes remaining: payments, social, newsletter, cron, treasury, bags, remaining verification routes (29/33 route files pending).
 
 **Documentation Discrepancy Note:**
 - CLAUDE.md says "Vote creation (₪50)" but implementation uses ₪200 consistently
@@ -753,9 +762,9 @@ Focus on end-to-end testing of core flows:
 ### Test Coverage
 - [x] Shared Utils: 106 tests (formatters, retry, DID, identity score)
 - [x] Web Integration: 43 tests (auth, verification, payments)
-- [ ] API Routes: 0 tests (P3-12)
+- [~] API Routes: 44 tests (P3-12 - partial)
 - [ ] Mobile App: 0 tests (P3-13)
-- [ ] API Client: 0 tests (P3-14)
+- [x] API Client: 110 tests (P3-14)
 
 ---
 
@@ -806,7 +815,17 @@ Focus on end-to-end testing of core flows:
 ---
 
 *Last Updated: January 16, 2026*
-*Document Version: 76.4*
+*Document Version: 76.7*
+
+**Audit v76.7 Changes (Opus 4.5 - API Route Testing):**
+- **P3-12 PARTIAL**: Added 44 API route tests across 4 new test files:
+  - `src/__tests__/api/votes.test.ts` (13 tests) - GET/POST /api/votes
+  - `src/__tests__/api/user-profile.test.ts` (17 tests) - GET/POST/PATCH /api/user/profile
+  - `src/__tests__/api/verification.test.ts` (8 tests) - POST /api/verification/start
+  - `src/__tests__/api/auth-session.test.ts` (6 tests) - POST/DELETE /api/auth/session
+- **Test Coverage**: Total tests increased from 259 to 303 (shared: 106, api-client: 110, web: 87)
+- **Routes Tested**: votes, user profile, verification start, auth session (4/33 route files)
+- Additional routes pending: payments, social, newsletter, cron, treasury, bags, remaining verification routes
 
 **Audit v76.4 Changes (Opus 4.5 - API Client Completeness):**
 - **P2-15 RESOLVED**: Created `packages/api-client/src/notifications.ts` with 4 methods:
