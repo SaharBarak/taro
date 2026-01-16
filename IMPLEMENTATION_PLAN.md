@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 16, 2026 (v76 - P1-16 RESOLVED)
-**Document Version:** 76.0
+**Last Audit:** January 16, 2026 (v76.1 - Bags.fm types & contracts added)
+**Document Version:** 76.1
 
 ---
 
@@ -326,12 +326,12 @@ The Bags.fm integration enables the "Taru Proxy Strategy" - users pay in ILS, ba
 |---|-----------|------|---------|--------|
 | P2-B6 | **Bags API Client** | `packages/api-client/src/bags.ts` | Client-side Bags operations | [ ] NOT STARTED |
 
-#### Types & Contracts (0/2 files)
+#### Types & Contracts (2/2 files)
 
 | # | Component | File | Purpose | Status |
 |---|-----------|------|---------|--------|
-| P2-B7 | **Bags Types** | `packages/shared/src/types/bags.ts` | TypeScript interfaces | [ ] NOT STARTED |
-| P2-B8 | **Bags Contracts** | `packages/shared/src/contracts/bags.ts` | Zod validation schemas | [ ] NOT STARTED |
+| P2-B7 | **Bags Types** | `packages/shared/src/types/bags.ts` | TypeScript interfaces | [x] **COMPLETE v76** |
+| P2-B8 | **Bags Contracts** | `packages/shared/src/contracts/bags.ts` | Zod validation schemas | [x] **COMPLETE v76** |
 
 **Required Types:**
 - `TokenMetadata` - Vote title, symbol, description, image, municipality
@@ -371,7 +371,7 @@ The Bags.fm integration enables the "Taru Proxy Strategy" - users pay in ILS, ba
 | P2-B21 | **Multiplier Dashboard** | Web | Local + SocialFi fund display | [ ] NOT STARTED |
 | P2-B22 | **External Supporter Flow** | Web | Wallet connect + purchase | [ ] NOT STARTED |
 
-**P2-BAGS Total: 22 items (0 complete)**
+**P2-BAGS Total: 22 items (2 complete)**
 
 ---
 
@@ -489,7 +489,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | **P0 Critical** | 1 | 1 blocker (P0-11 Bags.fm CRITICAL) |
 | **P1 High** | 7 | Required for pilot (P1-12 through P1-18, includes 1 new v72 finding) |
 | **P2 Medium** | 3 | Has workarounds - requires infrastructure change |
-| **P0-BAGS** | 22 | **Bags.fm Payment Integration - MOVED TO P0 CRITICAL** |
+| **P0-BAGS** | 22 (2 done) | **Bags.fm Payment Integration - types & contracts done v76** |
 | **P2-NFT** | 6 | Post-resolution NFTs - NOT STARTED |
 | **P3 Low** | 11 | Post-pilot cleanup |
 | **Resolved** | 73 | Already fixed (includes P0-7, P0-10) |
@@ -770,7 +770,7 @@ Focus on end-to-end testing of core flows:
 ---
 
 *Last Updated: January 16, 2026*
-*Document Version: 76.0*
+*Document Version: 76.1*
 
 **Audit v74 Changes (Opus 4.5 - 8 Parallel Exploration Agents Comprehensive Re-Verification):**
 - **8 PARALLEL EXPLORATION AGENTS DEPLOYED**: Verified all P0/P1 blockers, specs (7 files), shared package (types/contracts/utils), API client (5 files), web routes (33 files), mobile structure (28 screens + 7 layouts), services (13 modules), database schema, environment variables
