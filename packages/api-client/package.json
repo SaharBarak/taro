@@ -8,16 +8,24 @@
     ".": "./src/index.ts",
     "./votes": "./src/votes.ts",
     "./users": "./src/users.ts",
-    "./payments": "./src/payments.ts"
+    "./payments": "./src/payments.ts",
+    "./auth": "./src/auth.ts",
+    "./verification": "./src/verification.ts",
+    "./notifications": "./src/notifications.ts",
+    "./newsletter": "./src/newsletter.ts",
+    "./bags": "./src/bags.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@sync/shared": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^1.6.0"
   }
 }

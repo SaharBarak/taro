@@ -221,6 +221,9 @@ importers:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
+      vitest:
+        specifier: ^1.6.0
+        version: 1.6.1(@types/node@22.19.3)(lightningcss@1.27.0)(terser@5.44.1)
 
   packages/design-tokens:
     devDependencies:

@@ -430,9 +430,9 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | P3-11 | **Profile photo upload UI without implementation** | `apps/mobile/app/settings/profile.tsx` | 87 | "Change photo" button does nothing | Implement image picker and upload | [ ] |
 | P3-12 | **No tests for API routes** | `apps/web/src/app/api/` | - | 33 routes with 0% test coverage | Add API route tests | [ ] |
 | P3-13 | **No tests for mobile app** | `apps/mobile/` | - | 28 screens with 0% test coverage | Add mobile tests | [ ] |
-| P3-14 | **No tests for API client** | `packages/api-client/` | - | 25 methods with 0% test coverage | Add API client tests | [ ] |
+| P3-14 | **No tests for API client** | `packages/api-client/` | - | 25 methods with 0% test coverage | Add API client tests | [x] |
 
-**P3 Total: 10 items remaining (1 completed)**
+**P3 Total: 9 items remaining (2 completed)**
 
 **P3-3 Branding Inconsistency Note:**
 - Web app uses "Taro" (Hebrew name shown as "תַּרְאוּ" and "Taru" in tech docs)
@@ -456,6 +456,20 @@ All 15 instances of `catch (err: any)` have been converted to `catch (err: unkno
 - `apps/mobile/src/stores/userStore.ts` (2 instances)
 - `apps/mobile/src/hooks/usePayment.ts`
 - `apps/mobile/src/hooks/useLocation.ts`
+
+**P3-14 API Client Testing (RESOLVED v76.7):**
+110 tests added across 9 test files covering all API client modules with comprehensive coverage:
+- `client.ts` (24 tests)
+- `auth.ts` (9 tests)
+- `votes.ts` (15 tests)
+- `verification.ts` (10 tests)
+- `users.ts` (16 tests)
+- `payments.ts` (9 tests)
+- `notifications.ts` (7 tests)
+- `newsletter.ts` (4 tests)
+- `bags.ts` (16 tests)
+
+Total test count increased from 149 to 259 tests.
 
 **Documentation Discrepancy Note:**
 - CLAUDE.md says "Vote creation (₪50)" but implementation uses ₪200 consistently
