@@ -60,7 +60,7 @@ These issues cause immediate runtime failures or prevent users from completing t
 | P0-9 | ~~CRITICAL: Payment verification bypassed in vote routes~~ | `apps/web/src/app/api/votes/route.ts`, `apps/web/src/app/api/votes/[id]/participate/route.ts` | 99-105, 49-54 | ~~FINANCIAL FRAUD~~ | N/A | [x] **RESOLVED v75** |
 | P0-10 | ~~Mobile root layout missing route groups~~ | `apps/mobile/app/_layout.tsx` | - | ~~Navigation broken~~ | N/A | [x] **RESOLVED** (v67: Expo Router file-system routing handles directory layouts correctly) |
 | P0-11 | **CRITICAL: Bags.fm integration NOT implemented** | Multiple files | - | **PAYMENT FLOW BROKEN**: Treasury wallet, Issue Coins, and payment allocation not working | Implement full Bags.fm integration per `specs/bags-integration.md` | [!] **CRITICAL - BLOCKING PAYMENTS** |
-| P0-12 | **Missing environment variables in .env.example** | `.env.example` | - | **DEPLOYMENT FAILURE**: Social auth and newsletter features silently disabled | Add 9 missing env vars: FACEBOOK_APP_ID/SECRET, INSTAGRAM_APP_ID/SECRET, EXPO_PUBLIC_FACEBOOK/INSTAGRAM_APP_ID, BEEHIIV_API_KEY/PUBLICATION_ID, CRON_SECRET | [!] **NEW v72** |
+| P0-12 | ~~Missing environment variables in .env.example~~ | `.env.example` | - | ~~DEPLOYMENT FAILURE: Social auth and newsletter features silently disabled~~ | N/A | [x] **RESOLVED v75** |
 
 **P0-8 Details (RESOLVED v75):**
 **RESOLVED v75 (Jan 16, 2026):** Push notifications now wired in `apps/mobile/app/_layout.tsx`. Added imports for `registerForPushNotificationsAsync` and `useNotificationListeners`. Registration happens after authentication check, and notification taps navigate to verification or vote screens based on notification data.
@@ -97,7 +97,9 @@ useNotificationListeners({
 - ~~**Vulnerability Location 2:** `apps/web/src/app/api/votes/[id]/participate/route.ts` lines 49-54~~
 - **Status:** FIXED - Payment verification now enforced in both routes
 
-**P0-12 Details (NEW - v72 - MISSING ENVIRONMENT VARIABLES):**
+**P0-12 Details (RESOLVED v75):**
+**RESOLVED v75 (Jan 16, 2026):** Added all missing environment variables to `.env.example`: Google OAuth (GOOGLE_CLIENT_ID/SECRET, NEXT_PUBLIC_GOOGLE_CLIENT_ID), Facebook OAuth (FACEBOOK_APP_ID/SECRET, EXPO_PUBLIC_FACEBOOK_APP_ID), Instagram OAuth (INSTAGRAM_APP_ID/SECRET, EXPO_PUBLIC_INSTAGRAM_APP_ID), JWT (JWT_SECRET, JWT_EXPIRY), Beehiiv (BEEHIIV_API_KEY, BEEHIIV_PUBLICATION_ID), and CRON_SECRET. Bags.fm variables added as comments for post-pilot.
+
 - **Files Affected:**
   - `apps/web/src/services/auth/facebook.ts` - references `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`
   - `apps/web/src/services/auth/instagram.ts` - references `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`
@@ -114,8 +116,8 @@ useNotificationListeners({
   7. `BEEHIIV_API_KEY` - Newsletter service API key
   8. `BEEHIIV_PUBLICATION_ID` - Newsletter publication ID
   9. `CRON_SECRET` - Cron job authentication token
-- **Impact:** Social auth fails silently, newsletter signup fails with 500 error, cron endpoints unauthenticated
-- **Fix Required:** Add all 9 variables to `.env.example` with documentation comments
+- ~~**Impact:** Social auth fails silently, newsletter signup fails with 500 error, cron endpoints unauthenticated~~
+- ~~**Fix Required:** Add all 9 variables to `.env.example` with documentation comments~~
 
 **P0-10 Details (RESOLVED - v67):**
 - **FALSE POSITIVE CORRECTED:** Expo Router's file-system routing handles directory-based layouts correctly
@@ -161,7 +163,7 @@ All core specifications have been documented:
   - Error response formats
   - Rate limiting rules (3/min voting, 10/min check-in)
 
-**P0 Total: 3 blockers (P0-8 push notifications, P0-11 Bags.fm CRITICAL, P0-12 missing env vars)**
+**P0 Total: 1 blocker (P0-11 Bags.fm CRITICAL)**
 
 ---
 
@@ -439,6 +441,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 **Total Resolved: 72 items** - See git history for details
 
 **Recent Resolutions (v50-v75):**
+- **P0-12:** Missing environment variables added to .env.example - RESOLVED (v75)
 - **P0-8:** Push notifications wired to mobile app lifecycle - RESOLVED (v75)
 - **P0-9:** Payment verification security fix - RESOLVED (v75)
 - **P0-7:** EAS project ID configured (d36014d1-969a-445f-9f92-109ab2f0f201) - VERIFIED RESOLVED
@@ -471,7 +474,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 
 | Priority | Count | Description |
 |----------|-------|-------------|
-| **P0 Critical** | 2 | 2 blockers (P0-11 Bags.fm CRITICAL, P0-12 missing env vars) |
+| **P0 Critical** | 1 | 1 blocker (P0-11 Bags.fm CRITICAL) |
 | **P1 High** | 7 | Required for pilot (P1-12 through P1-18, includes 1 new v72 finding) |
 | **P2 Medium** | 3 | Has workarounds - requires infrastructure change |
 | **P0-BAGS** | 22 | **Bags.fm Payment Integration - MOVED TO P0 CRITICAL** |
