@@ -1,0 +1,662 @@
+/**
+ * Vote Participation API Route Tests
+ *
+ * Tests for vote-related endpoints:
+ * - POST /api/votes/[id]/participate - Cast a vote
+ * - POST /api/votes/[id]/verify-location - Verify GPS location
+ * - GET /api/votes/[id]/participated - Check if user participated
+ */
+
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { NextRequest } from 'next/server';
+import { POST as participate } from '@/app/api/votes/[id]/participate/route';
+import { POST as verifyLocation } from '@/app/api/votes/[id]/verify-location/route';
+import { GET as checkParticipated } from '@/app/api/votes/[id]/participated/route';
+
+// Mock session service
+vi.mock('@/services/auth/session', () => ({
+  getSessionFromRequest: vi.fn(),
+}));
+
+// Mock database functions
+vi.mock('@/lib/supabase/db', () => ({
+  getVoteWithOptions: vi.fn(),
+  getVoteById: vi.fn(),
+  hasUserParticipated: vi.fn(),
+  getUserByGoogleId: vi.fn(),
+  getUserById: vi.fn(),
+  recordUserVote: vi.fn(),
+  incrementVoteOption: vi.fn(),
+  updateUser: vi.fn(),
+  verifyPaymentCompleted: vi.fn(),
+  isPaymentAlreadyUsed: vi.fn(),
+}));
+
+// Mock Supabase admin
+vi.mock('@/lib/supabase/server', () => ({
+  supabaseAdmin: {
+    from: vi.fn(() => ({
+      update: vi.fn(() => ({
+        eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+      })),
+    })),
+  },
+}));
+
+// Mock Qubik service
+vi.mock('@/services/qubik', () => ({
+  qubikService: {
+    recordVote: vi.fn(),
+    mintTokens: vi.fn(),
+  },
+}));
+
+// Mock email service
+vi.mock('@/services/email', () => ({
+  emailService: {
+    sendPaymentReceiptEmail: vi.fn(),
+  },
+}));
+
+// Mock rate limiter
+vi.mock('@/lib/rate-limit', () => ({
+  voteParticipationLimiter: {
+    check: vi.fn(() => ({ limited: false })),
+  },
+  createRateLimitResponse: vi.fn(),
+}));
+
+// Mock municipality service
+vi.mock('@/services/verification/municipality', () => ({
+  verifyLocationInMunicipality: vi.fn(),
+  findMunicipalityByCoordinates: vi.fn(),
+}));
+
+// Import mocked modules for type-safe access
+import { getSessionFromRequest } from '@/services/auth/session';
+import {
+  getVoteWithOptions,
+  getVoteById,
+  hasUserParticipated,
+  getUserByGoogleId,
+  getUserById,
+  recordUserVote,
+  incrementVoteOption,
+  verifyPaymentCompleted,
+  isPaymentAlreadyUsed,
+} from '@/lib/supabase/db';
+import { qubikService } from '@/services/qubik';
+import { emailService } from '@/services/email';
+import { voteParticipationLimiter, createRateLimitResponse } from '@/lib/rate-limit';
+import {
+  verifyLocationInMunicipality,
+  findMunicipalityByCoordinates,
+} from '@/services/verification/municipality';
+
+describe('Vote Participation API Routes', () => {
+  const mockSession = {
+    userId: 'user-123',
+    googleId: 'google-123',
+    email: 'test@example.com',
+    did: 'did:sync:' + 'a'.repeat(43),
+    expiresAt: Date.now() + 86400000,
+  };
+
+  const mockUser = {
+    id: 'user-123',
+    email: 'test@example.com',
+    first_name: 'Test',
+    last_name: 'User',
+    identity_score: 60,
+    verification_status: 'verified',
+    municipality_id: 'tel-aviv',
+    qubik_wallet_address: 'wallet-123',
+  };
+
+  // Use future dates to avoid "vote has ended" errors
+  const futureEndDate = new Date(Date.now() + 86400000 * 365).toISOString(); // 1 year from now
+  const pastStartDate = new Date(Date.now() - 86400000).toISOString(); // 1 day ago
+
+  const mockVote = {
+    id: 'vote-123',
+    title: 'Test Vote',
+    description: 'A test vote',
+    municipality_id: 'tel-aviv',
+    creator_id: 'user-456',
+    status: 'active',
+    start_date: pastStartDate,
+    end_date: futureEndDate,
+    participant_count: 10,
+    options: [
+      { id: 'option-1', text: 'Option A', votes: 5 },
+      { id: 'option-2', text: 'Option B', votes: 5 },
+    ],
+    created_at: pastStartDate,
+    updated_at: pastStartDate,
+  };
+
+  const createParams = (id: string) => Promise.resolve({ id });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('POST /api/votes/[id]/participate', () => {
+    const validParticipateData = {
+      optionId: 'option-1',
+      paymentTxId: 'payment-123',
+      gpsCoordinates: {
+        latitude: 32.0853,
+        longitude: 34.7818,
+        timestamp: Date.now(),
+      },
+    };
+
+    it('should return 401 when not authenticated', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(null);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe('Unauthorized');
+    });
+
+    it('should return 429 when rate limited', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: true, remaining: 0 });
+      (createRateLimitResponse as Mock).mockReturnValue(
+        new Response(JSON.stringify({ error: 'Too many requests' }), { status: 429 })
+      );
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+
+      expect(response.status).toBe(429);
+      expect(voteParticipationLimiter.check).toHaveBeenCalledWith(mockSession.userId);
+    });
+
+    it('should return 400 when required fields are missing', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify({ optionId: 'option-1' }), // Missing paymentTxId and gpsCoordinates
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain('Missing required fields');
+    });
+
+    it('should return 404 when vote not found', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockResolvedValue(null);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/nonexistent/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('nonexistent') });
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toBe('Vote not found');
+    });
+
+    it('should return 400 when vote is not active', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockResolvedValue({ ...mockVote, status: 'pending' });
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Vote is not active');
+    });
+
+    it('should return 400 when vote has ended', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      const pastEndDate = new Date(Date.now() - 86400000).toISOString(); // 1 day ago
+      (getVoteWithOptions as Mock).mockResolvedValue({
+        ...mockVote,
+        end_date: pastEndDate,
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Vote has ended');
+    });
+
+    it('should return 400 when user has already participated', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
+      (hasUserParticipated as Mock).mockResolvedValue(true);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain('already participated');
+    });
+
+    it('should return 400 when option is invalid', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
+      (hasUserParticipated as Mock).mockResolvedValue(false);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify({ ...validParticipateData, optionId: 'invalid-option' }),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Invalid option');
+    });
+
+    it('should return 400 when user profile not found', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
+      (hasUserParticipated as Mock).mockResolvedValue(false);
+      (getUserByGoogleId as Mock).mockResolvedValue(null);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('User profile not found');
+    });
+
+    it('should return 403 when identity score is too low', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
+      (hasUserParticipated as Mock).mockResolvedValue(false);
+      (getUserByGoogleId as Mock).mockResolvedValue({ ...mockUser, identity_score: 30 });
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.error).toContain('Insufficient identity score');
+    });
+
+    it('should return 402 when payment verification fails', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
+      (hasUserParticipated as Mock).mockResolvedValue(false);
+      (getUserByGoogleId as Mock).mockResolvedValue(mockUser);
+      (verifyPaymentCompleted as Mock).mockResolvedValue({ valid: false, error: 'Payment not found' });
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(402);
+      expect(data.error).toContain('Payment verification failed');
+    });
+
+    it('should return 400 when payment has already been used', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
+      (hasUserParticipated as Mock).mockResolvedValue(false);
+      (getUserByGoogleId as Mock).mockResolvedValue(mockUser);
+      (verifyPaymentCompleted as Mock).mockResolvedValue({ valid: true });
+      (isPaymentAlreadyUsed as Mock).mockResolvedValue(true);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Payment has already been used');
+    });
+
+    it('should return 503 when blockchain service fails', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
+      (hasUserParticipated as Mock).mockResolvedValue(false);
+      (getUserByGoogleId as Mock).mockResolvedValue(mockUser);
+      (verifyPaymentCompleted as Mock).mockResolvedValue({ valid: true });
+      (isPaymentAlreadyUsed as Mock).mockResolvedValue(false);
+      (qubikService.recordVote as Mock).mockRejectedValue(new Error('Blockchain unavailable'));
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(503);
+      expect(data.error).toContain('Blockchain service unavailable');
+    });
+
+    it('should successfully record vote participation', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
+      (hasUserParticipated as Mock).mockResolvedValue(false);
+      (getUserByGoogleId as Mock).mockResolvedValue(mockUser);
+      (verifyPaymentCompleted as Mock).mockResolvedValue({ valid: true });
+      (isPaymentAlreadyUsed as Mock).mockResolvedValue(false);
+      (qubikService.recordVote as Mock).mockResolvedValue({ txHash: 'tx-hash-123' });
+      (qubikService.mintTokens as Mock).mockResolvedValue(undefined);
+      (recordUserVote as Mock).mockResolvedValue({
+        id: 'user-vote-123',
+        user_id: mockSession.userId,
+        vote_id: 'vote-123',
+        option_id: 'option-1',
+        created_at: new Date().toISOString(),
+      });
+      (incrementVoteOption as Mock).mockResolvedValue(undefined);
+      (emailService.sendPaymentReceiptEmail as Mock).mockResolvedValue(undefined);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.txHash).toBe('tx-hash-123');
+      expect(data.tokensEarned).toBe(3);
+      expect(qubikService.recordVote).toHaveBeenCalledWith({
+        voteId: 'vote-123',
+        userId: mockSession.userId,
+        optionId: 'option-1',
+        locationHash: expect.any(String),
+        paymentHash: 'payment-123',
+      });
+      expect(recordUserVote).toHaveBeenCalled();
+      expect(incrementVoteOption).toHaveBeenCalledWith('option-1');
+    });
+
+    it('should handle database errors gracefully', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (getVoteWithOptions as Mock).mockRejectedValue(new Error('Database error'));
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Failed to participate in vote');
+    });
+  });
+
+  describe('POST /api/votes/[id]/verify-location', () => {
+    const validLocationData = {
+      latitude: 32.0853,
+      longitude: 34.7818,
+    };
+
+    it('should return 401 when not authenticated', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(null);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/verify-location', {
+        method: 'POST',
+        body: JSON.stringify(validLocationData),
+      });
+      const response = await verifyLocation(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe('Unauthorized');
+    });
+
+    it('should return 400 when vote ID is empty', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+
+      const request = new NextRequest('http://localhost:3000/api/votes//verify-location', {
+        method: 'POST',
+        body: JSON.stringify(validLocationData),
+      });
+      const response = await verifyLocation(request, { params: createParams('') });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Vote ID is required');
+    });
+
+    it('should return 400 when coordinates are invalid', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/verify-location', {
+        method: 'POST',
+        body: JSON.stringify({ latitude: 'invalid', longitude: 34.7818 }),
+      });
+      const response = await verifyLocation(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain('Latitude and longitude are required');
+    });
+
+    it('should return 404 when vote not found', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (getVoteById as Mock).mockResolvedValue(null);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/nonexistent/verify-location', {
+        method: 'POST',
+        body: JSON.stringify(validLocationData),
+      });
+      const response = await verifyLocation(request, { params: createParams('nonexistent') });
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toBe('Vote not found');
+    });
+
+    it('should verify location against vote municipality', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (getVoteById as Mock).mockResolvedValue({ ...mockVote, municipality_id: 'tel-aviv' });
+      (verifyLocationInMunicipality as Mock).mockReturnValue({
+        isInside: true,
+        municipality: { name: 'Tel Aviv' },
+        distanceFromCenter: 500,
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/verify-location', {
+        method: 'POST',
+        body: JSON.stringify(validLocationData),
+      });
+      const response = await verifyLocation(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.verified).toBe(true);
+      expect(data.municipality).toBe('Tel Aviv');
+      expect(data.distanceFromCenter).toBe(500);
+      expect(verifyLocationInMunicipality).toHaveBeenCalledWith(32.0853, 34.7818, 'tel-aviv');
+    });
+
+    it('should verify location against user municipality when vote has no municipality', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (getVoteById as Mock).mockResolvedValue({ ...mockVote, municipality_id: null });
+      (findMunicipalityByCoordinates as Mock).mockReturnValue('tel-aviv');
+      (getUserById as Mock).mockResolvedValue(mockUser);
+      (verifyLocationInMunicipality as Mock).mockReturnValue({
+        isInside: true,
+        municipality: { name: 'Tel Aviv' },
+        distanceFromCenter: 300,
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/verify-location', {
+        method: 'POST',
+        body: JSON.stringify(validLocationData),
+      });
+      const response = await verifyLocation(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.verified).toBe(true);
+      expect(getUserById).toHaveBeenCalledWith(mockSession.userId);
+    });
+
+    it('should return detected municipality when no context available', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (getVoteById as Mock).mockResolvedValue({ ...mockVote, municipality_id: null });
+      (findMunicipalityByCoordinates as Mock).mockReturnValue('jerusalem');
+      (getUserById as Mock).mockResolvedValue({ ...mockUser, municipality_id: null });
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/verify-location', {
+        method: 'POST',
+        body: JSON.stringify(validLocationData),
+      });
+      const response = await verifyLocation(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.verified).toBe(true);
+      expect(data.municipality).toBe('jerusalem');
+    });
+
+    it('should return not verified when no municipality detected', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (getVoteById as Mock).mockResolvedValue({ ...mockVote, municipality_id: null });
+      (findMunicipalityByCoordinates as Mock).mockReturnValue(null);
+      (getUserById as Mock).mockResolvedValue({ ...mockUser, municipality_id: null });
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/verify-location', {
+        method: 'POST',
+        body: JSON.stringify(validLocationData),
+      });
+      const response = await verifyLocation(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.verified).toBe(false);
+    });
+
+    it('should handle database errors gracefully', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (getVoteById as Mock).mockRejectedValue(new Error('Database error'));
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/verify-location', {
+        method: 'POST',
+        body: JSON.stringify(validLocationData),
+      });
+      const response = await verifyLocation(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Failed to verify location');
+    });
+  });
+
+  describe('GET /api/votes/[id]/participated', () => {
+    it('should return 401 when not authenticated', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(null);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participated');
+      const response = await checkParticipated(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe('Unauthorized');
+    });
+
+    it('should return 400 when vote ID is empty', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+
+      const request = new NextRequest('http://localhost:3000/api/votes//participated');
+      const response = await checkParticipated(request, { params: createParams('') });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Vote ID is required');
+    });
+
+    it('should return true when user has participated', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (hasUserParticipated as Mock).mockResolvedValue(true);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participated');
+      const response = await checkParticipated(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.participated).toBe(true);
+      expect(hasUserParticipated).toHaveBeenCalledWith(mockSession.userId, 'vote-123');
+    });
+
+    it('should return false when user has not participated', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (hasUserParticipated as Mock).mockResolvedValue(false);
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participated');
+      const response = await checkParticipated(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.participated).toBe(false);
+    });
+
+    it('should handle database errors gracefully', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (hasUserParticipated as Mock).mockRejectedValue(new Error('Database error'));
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participated');
+      const response = await checkParticipated(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.error).toBe('Failed to check participation status');
+    });
+  });
+});

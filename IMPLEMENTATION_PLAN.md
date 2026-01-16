@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 16, 2026 (v76.7 - API route testing partial)
-**Document Version:** 76.7
+**Last Audit:** January 16, 2026 (v76.8 - API route testing expanded)
+**Document Version:** 76.8
 
 ---
 
@@ -20,7 +20,7 @@ This document tracks the implementation status for the Taru civic consensus plat
 - Web Pages: 14 pages - All complete
 - Database: 5 migrations (12 tables, 22+ indexes, 17 RLS policies, 9 functions, 7 triggers) - missing 4 tables (P0-BAGS: treasury system)
 - Specs: 7 complete (auth-flow 90%, verification-protocol 85%, voting-system 88%, payment-flow 92%, api-contracts 95%, push-notifications 98%, bags-integration 0%)
-- Tests: 303 passing (shared: 106, api-client: 110, web: 87) - Vitest + Playwright configured, 0 skipped/flaky
+- Tests: 391 passing (shared: 106, api-client: 110, web: 175) - Vitest + Playwright configured, 0 skipped/flaky
 - Tech Debt: 1 TODO, 25 `any` type usages (16 acceptable catch blocks, 9 need review), 5 "Coming Soon" UI strings, 2 QR placeholders
 - Security: Webhook security EXCELLENT (HMAC + timestamp + event deduplication), Rate limiting partial (3 endpoints, in-memory only)
 - Environment: 9 missing env variables in .env.example (P0-12 NEW)
@@ -471,14 +471,16 @@ All 15 instances of `catch (err: any)` have been converted to `catch (err: unkno
 
 Total test count increased from 149 to 259 tests.
 
-**P3-12 API Route Testing (PARTIAL v76.7):**
-44 API route tests added covering votes, user profile, verification start, and auth session endpoints (4 test files):
+**P3-12 API Route Testing (PARTIAL v76.8):**
+132 API route tests added covering votes, user profile, verification, auth session, payments, and vote participation endpoints (6 test files):
 - `src/__tests__/api/votes.test.ts` (13 tests) - GET/POST /api/votes
 - `src/__tests__/api/user-profile.test.ts` (17 tests) - GET/POST/PATCH /api/user/profile
-- `src/__tests__/api/verification.test.ts` (8 tests) - POST /api/verification/start
+- `src/__tests__/api/verification.test.ts` (30 tests) - POST /api/verification/start, GET /api/verification/status, POST /api/verification/schedule, POST /api/verification/check-in
 - `src/__tests__/api/auth-session.test.ts` (6 tests) - POST/DELETE /api/auth/session
+- `src/__tests__/api/payments.test.ts` (37 tests) - POST/GET /api/payments/create, GET /api/payments/[id]/status, POST /api/payments/[id]/verify, POST /api/payments/webhook
+- `src/__tests__/api/vote-participation.test.ts` (29 tests) - POST /api/votes/[id]/participate, POST /api/votes/[id]/verify-location, GET /api/votes/[id]/participated
 
-Routes remaining: payments, social, newsletter, cron, treasury, bags, remaining verification routes (29/33 route files pending).
+Routes remaining: social, newsletter, cron, treasury, bags (27/33 route files pending).
 
 **Documentation Discrepancy Note:**
 - CLAUDE.md says "Vote creation (₪50)" but implementation uses ₪200 consistently
@@ -815,7 +817,19 @@ Focus on end-to-end testing of core flows:
 ---
 
 *Last Updated: January 16, 2026*
-*Document Version: 76.7*
+*Document Version: 76.8*
+
+**Audit v76.8 Changes (Opus 4.5 - API Route Testing Expanded):**
+- **P3-12 PARTIAL**: Expanded API route tests from 44 to 132 tests across 6 test files:
+  - `src/__tests__/api/votes.test.ts` (13 tests) - GET/POST /api/votes
+  - `src/__tests__/api/user-profile.test.ts` (17 tests) - GET/POST/PATCH /api/user/profile
+  - `src/__tests__/api/verification.test.ts` (30 tests) - POST /api/verification/start, GET /api/verification/status, POST /api/verification/schedule, POST /api/verification/check-in
+  - `src/__tests__/api/auth-session.test.ts` (6 tests) - POST/DELETE /api/auth/session
+  - `src/__tests__/api/payments.test.ts` (37 tests) - POST/GET /api/payments/create, GET /api/payments/[id]/status, POST /api/payments/[id]/verify, POST /api/payments/webhook
+  - `src/__tests__/api/vote-participation.test.ts` (29 tests) - POST /api/votes/[id]/participate, POST /api/votes/[id]/verify-location, GET /api/votes/[id]/participated
+- **Test Coverage**: Total tests increased from 303 to 391 (shared: 106, api-client: 110, web: 175)
+- **Routes Tested**: votes, user profile, verification (expanded), auth session, payments (NEW), vote participation (NEW) (6/33 route files)
+- Additional routes pending: social, newsletter, cron, treasury, bags
 
 **Audit v76.7 Changes (Opus 4.5 - API Route Testing):**
 - **P3-12 PARTIAL**: Added 44 API route tests across 4 new test files:
