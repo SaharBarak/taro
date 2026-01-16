@@ -171,15 +171,16 @@ All core specifications have been documented:
 
 | # | Issue | File | Line | Impact | Fix Required | Status |
 |---|-------|------|------|--------|--------------|--------|
-| P1-12 | **Settings layout missing social-connections screen** | `apps/mobile/app/settings/_layout.tsx` | 14 | Navigation crashes when accessing social-connections from profile menu | Add `<Stack.Screen name="social-connections" />` to layout | [!] VERIFIED |
+| P1-12 | **Settings layout missing social-connections screen** | `apps/mobile/app/settings/_layout.tsx` | 14 | Navigation crashes when accessing social-connections from profile menu | Add `<Stack.Screen name="social-connections" />` to layout | [x] **RESOLVED v75** |
 | P1-13 | **API Client missing verification module** | `packages/api-client/src/` | - | Mobile app cannot call verification endpoints via typed client | Create `verification.ts` with start, check-in, status, schedule methods | [!] VERIFIED |
 | P1-14 | **API Client missing auth module** | `packages/api-client/src/` | - | No typed session management in client apps | Create `auth.ts` with session, refresh, signout methods | [!] VERIFIED |
-| P1-15 | **Auth layout missing connect-social screen** | `apps/mobile/app/(auth)/_layout.tsx` | - | connect-social.tsx exists (323 lines) but not registered in auth layout | Add `<Stack.Screen name="connect-social" />` to auth layout | [!] VERIFIED |
+| P1-15 | **Auth layout missing connect-social screen** | `apps/mobile/app/(auth)/_layout.tsx` | - | connect-social.tsx exists (323 lines) but not registered in auth layout | Add `<Stack.Screen name="connect-social" />` to auth layout | [x] **RESOLVED v75** |
 | P1-16 | **Missing contracts/vote.ts** | `packages/shared/src/contracts/` | - | No Zod validation schemas for vote endpoints (11 schemas needed) | Create vote.ts with CreateVoteRequest, ParticipateRequest, etc. | [!] **NEW v70** |
 | P1-17 | **Identity score point discrepancy** | `packages/shared/src/utils/identityScore.ts`, `specs/auth-flow.md` | - | Types: FB/IG=30 each. Spec: FB/IG=20 each + GPS=20. Mismatch affects score calculations | Align types and spec on point values | [!] **NEW v70** |
-| P1-18 | **Cron endpoint security gap** | `apps/web/src/app/api/cron/verification-notifications/route.ts` | 12 | `CRON_SECRET` is optional - allows unauthenticated cron calls if not set | Make CRON_SECRET required, reject requests without valid Bearer token | [!] **NEW v72** |
+| P1-18 | **Cron endpoint security gap** | `apps/web/src/app/api/cron/verification-notifications/route.ts` | 12 | `CRON_SECRET` is optional - allows unauthenticated cron calls if not set | Make CRON_SECRET required, reject requests without valid Bearer token | [x] **RESOLVED v75** |
 
 **P1-12 Details (VERIFIED):**
+**RESOLVED v75:** Added `<Stack.Screen name="social-connections" />` to settings layout.
 - Screen exists: `apps/mobile/app/settings/social-connections.tsx` (fully functional)
 - Layout file: `apps/mobile/app/settings/_layout.tsx` has only 4 screens registered:
   - `profile`, `municipality`, `notifications`, `verification`
@@ -205,6 +206,7 @@ authApi.setDid(did)            -> POST /api/auth/did
 ```
 
 **P1-15 Details (VERIFIED):**
+**RESOLVED v75:** Added `<Stack.Screen name="connect-social" />` to auth layout.
 - Screen exists: `apps/mobile/app/(auth)/connect-social.tsx` (323 lines, fully functional)
 - Handles Facebook and Instagram OAuth connections for identity scoring
 - Auth layout only registers: `index`, `sign-in`, `sign-up`, `onboarding`
@@ -241,6 +243,7 @@ VoteErrorSchema                  // Common vote error responses
 - **Recommendation:** Consult product team on intended scoring model
 
 **P1-18 Details (NEW - v72 - CRON SECURITY GAP):**
+**RESOLVED v75:** CRON_SECRET is now required. If not set, returns 503. Invalid auth returns 401 with logging.
 - **File:** `apps/web/src/app/api/cron/verification-notifications/route.ts` line 12
 - **Current Code:** `if (CRON_SECRET && authHeader !== ...)` - allows unauthenticated calls if CRON_SECRET not set
 - **Vulnerability:** Verification notification cron can be called by anyone without the secret in production
@@ -250,7 +253,7 @@ VoteErrorSchema                  // Common vote error responses
   2. Return 401 Unauthorized if secret is missing or invalid
   3. Document in `.env.example` that cron service must provide Bearer token
 
-**P1 Total: 7 items (all verified blockers, +1 from v72 audit)**
+**P1 Total: 4 items (all verified blockers, +1 from v72 audit)**
 
 ---
 
@@ -441,6 +444,9 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 **Total Resolved: 72 items** - See git history for details
 
 **Recent Resolutions (v50-v75):**
+- **P1-12:** Settings layout missing social-connections screen - RESOLVED (v75)
+- **P1-15:** Auth layout missing connect-social screen - RESOLVED (v75)
+- **P1-18:** Cron endpoint security gap fixed (CRON_SECRET now required) - RESOLVED (v75)
 - **P0-12:** Missing environment variables added to .env.example - RESOLVED (v75)
 - **P0-8:** Push notifications wired to mobile app lifecycle - RESOLVED (v75)
 - **P0-9:** Payment verification security fix - RESOLVED (v75)

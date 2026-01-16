@@ -12,6 +12,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="municipality" />
       <Stack.Screen name="notifications" />
       <Stack.Screen name="verification" />
+      <Stack.Screen name="social-connections" />
     </Stack>
   );
 }

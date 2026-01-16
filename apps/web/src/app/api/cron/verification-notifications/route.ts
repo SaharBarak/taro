@@ -22,9 +22,21 @@ const CRON_SECRET = process.env.CRON_SECRET;
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify cron secret
+    // SECURITY: Verify cron secret (required in production)
     const authHeader = request.headers.get('authorization');
-    if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+
+    // CRON_SECRET must be configured - reject if not set
+    if (!CRON_SECRET) {
+      log.error('CRON_SECRET not configured - rejecting request');
+      return NextResponse.json(
+        { error: 'Cron endpoint not configured' },
+        { status: 503 }
+      );
+    }
+
+    // Verify authorization header matches expected Bearer token
+    if (authHeader !== `Bearer ${CRON_SECRET}`) {
+      log.warn('Invalid cron authorization attempt');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
