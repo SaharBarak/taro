@@ -349,6 +349,74 @@ export async function getUpcomingReminders(): Promise<
 // PAYMENT OPERATIONS
 // ============================================
 
+/**
+ * Verify that a payment is completed and belongs to the user.
+ * CRITICAL SECURITY: This function must be called before processing any
+ * vote creation or participation to prevent free votes.
+ *
+ * @param paymentId - The payment ID to verify
+ * @param userId - The user ID who should own the payment
+ * @param expectedType - Expected payment type ('vote_creation' or 'vote_participation')
+ * @returns true if payment is valid and completed, false otherwise
+ */
+export async function verifyPaymentCompleted(
+  paymentId: string,
+  userId: string,
+  expectedType: 'vote_creation' | 'vote_participation'
+): Promise<{ valid: boolean; error?: string }> {
+  const { data: payment, error } = await supabaseAdmin
+    .from('payments')
+    .select('*')
+    .eq('id', paymentId)
+    .single();
+
+  if (error || !payment) {
+    return { valid: false, error: 'Payment not found' };
+  }
+
+  if (payment.user_id !== userId) {
+    return { valid: false, error: 'Payment does not belong to user' };
+  }
+
+  if (payment.status !== 'completed') {
+    return { valid: false, error: `Payment not completed (status: ${payment.status})` };
+  }
+
+  if (payment.type !== expectedType) {
+    return { valid: false, error: `Invalid payment type (expected: ${expectedType}, got: ${payment.type})` };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Check if a payment has already been used for a vote or vote creation.
+ * Prevents payment reuse attacks.
+ */
+export async function isPaymentAlreadyUsed(
+  paymentId: string,
+  forType: 'vote_creation' | 'vote_participation'
+): Promise<boolean> {
+  if (forType === 'vote_participation') {
+    // Check if payment ID is already in user_votes
+    const { data } = await supabaseAdmin
+      .from('user_votes')
+      .select('id')
+      .eq('payment_id', paymentId)
+      .single();
+    return !!data;
+  } else {
+    // Check if there's a vote created with this payment (via entitlements)
+    const { data } = await supabaseAdmin
+      .from('entitlements')
+      .select('id')
+      .eq('payment_id', paymentId)
+      .eq('type', 'create_vote')
+      .single();
+    return !!data;
+  }
+}
+
 export async function getPaymentById(paymentId: string): Promise<Payment | null> {
   const { data, error } = await supabaseAdmin
     .from('payments')

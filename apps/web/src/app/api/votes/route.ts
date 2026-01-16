@@ -5,6 +5,8 @@ import {
   getVotesByMunicipality,
   createVote,
   createVoteOptions,
+  verifyPaymentCompleted,
+  isPaymentAlreadyUsed,
 } from '@/lib/supabase/db';
 
 /**
@@ -96,11 +98,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate payment (in production, verify with Green Invoice)
+    // CRITICAL SECURITY: Validate payment exists, is completed, and belongs to user
     if (!paymentTxId) {
       return NextResponse.json(
         { error: 'Payment required to create a vote' },
         { status: 402 }
+      );
+    }
+
+    // Verify payment is completed and has correct type
+    const paymentVerification = await verifyPaymentCompleted(
+      paymentTxId,
+      session.userId,
+      'vote_creation'
+    );
+
+    if (!paymentVerification.valid) {
+      console.warn(
+        `Payment verification failed for vote creation: ${paymentVerification.error}`,
+        { paymentTxId, userId: session.userId }
+      );
+      return NextResponse.json(
+        { error: `Payment verification failed: ${paymentVerification.error}` },
+        { status: 402 }
+      );
+    }
+
+    // Check if payment has already been used (prevents double-spend)
+    const paymentUsed = await isPaymentAlreadyUsed(paymentTxId, 'vote_creation');
+    if (paymentUsed) {
+      console.warn(
+        `Payment already used for vote creation: ${paymentTxId}`,
+        { userId: session.userId }
+      );
+      return NextResponse.json(
+        { error: 'Payment has already been used' },
+        { status: 400 }
       );
     }
 

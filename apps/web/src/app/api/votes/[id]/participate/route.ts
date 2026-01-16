@@ -9,6 +9,8 @@ import {
   recordUserVote,
   incrementVoteOption,
   updateUser,
+  verifyPaymentCompleted,
+  isPaymentAlreadyUsed,
 } from '@/lib/supabase/db';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import {
@@ -103,6 +105,37 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json(
         { error: 'Insufficient identity score to vote. Minimum 40 required.' },
         { status: 403 }
+      );
+    }
+
+    // CRITICAL SECURITY: Verify payment is completed and belongs to user
+    const paymentVerification = await verifyPaymentCompleted(
+      paymentTxId,
+      session.userId,
+      'vote_participation'
+    );
+
+    if (!paymentVerification.valid) {
+      console.warn(
+        `Payment verification failed for vote participation: ${paymentVerification.error}`,
+        { paymentTxId, userId: session.userId, voteId }
+      );
+      return NextResponse.json(
+        { error: `Payment verification failed: ${paymentVerification.error}` },
+        { status: 402 }
+      );
+    }
+
+    // Check if payment has already been used (prevents double-spend)
+    const paymentUsed = await isPaymentAlreadyUsed(paymentTxId, 'vote_participation');
+    if (paymentUsed) {
+      console.warn(
+        `Payment already used for vote participation: ${paymentTxId}`,
+        { userId: session.userId, voteId }
+      );
+      return NextResponse.json(
+        { error: 'Payment has already been used' },
+        { status: 400 }
       );
     }
 
