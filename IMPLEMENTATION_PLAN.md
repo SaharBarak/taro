@@ -699,22 +699,22 @@ Focus on end-to-end testing of core flows:
 - [x] Cron: `/api/cron/verification-notifications` (128 lines)
 - [x] Database: push_tokens table with RLS
 - [x] EAS Project ID: d36014d1-969a-445f-9f92-109ab2f0f201
-- [ ] **App Integration:** NOT wired to root layout (P0-8)
+- [x] **App Integration:** Wired to root layout (P0-8 RESOLVED v75)
 
 ### Web Pages (14 Files, 14 Complete)
 - [x] Landing, About, FAQ, Auth (sign-in, sign-up), Onboarding, Create Vote, Votes, Download, Dashboard
 - [x] Vote Detail, Verification, Settings Social, Connect Social (all complete - verification has mobile-only alert for GPS)
 
-### Database (12/16 Tables Complete)
+### Database (16/16 Tables Complete)
 - [x] users, social_proofs, verification_runs, verification_schedule, verification_attempts, payments, entitlements, votes, vote_options, user_votes, push_tokens, webhook_events
 - [x] 32+ indexes for query performance
 - [x] 7 triggers for automation
 - [x] 9 functions for business logic
 - [x] 19 RLS policies for security
-- [ ] treasury (Priority 2 - Bags.fm)
-- [ ] treasury_transactions (Priority 2 - Bags.fm)
-- [ ] issue_coins (Priority 2 - Bags.fm)
-- [ ] issue_coin_holdings (Priority 2 - Bags.fm)
+- [x] treasury (COMPLETE v76.3 - Bags.fm)
+- [x] treasury_transactions (COMPLETE v76.3 - Bags.fm)
+- [x] issue_coins (COMPLETE v76.3 - Bags.fm)
+- [x] issue_coin_holdings (COMPLETE v76.3 - Bags.fm)
 
 ### Shared Package (@sync/shared)
 - [x] Types: 37+ types/interfaces (user, vote, payment, signup, verification)
@@ -729,10 +729,11 @@ Focus on end-to-end testing of core flows:
 - [x] Votes API: `votes.ts` (8 methods)
 - [x] Users API: `users.ts` (11 methods)
 - [x] Payments API: `payments.ts` (5 methods)
-- [ ] Auth API: Missing (P1-14)
-- [ ] Verification API: Missing (P1-13)
+- [x] Auth API: `auth.ts` (5 methods) - RESOLVED v75
+- [x] Verification API: `verification.ts` (4 methods) - RESOLVED v75
 - [x] Notifications API: `notifications.ts` (4 methods)
 - [x] Newsletter API: `newsletter.ts` (1 method)
+- [x] Bags API: `bags.ts` (3 methods) - RESOLVED v76.3
 
 ### Test Coverage
 - [x] Shared Utils: 106 tests (formatters, retry, DID, identity score)
