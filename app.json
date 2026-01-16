@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "40ee377c-37d1-4b39-ada6-cfa1cfd12a05"
+      }
+    },
+    "android": {
+      "package": "com.saharbarak.taruumonorepo"
+    },
+    "ios": {
+      "bundleIdentifier": "com.saharbarak.taruumonorepo",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}

@@ -17,9 +17,16 @@ else
     exit 1
 fi
 
-# Load .env if exists
+# Load .env if exists (filter to valid VAR=value lines only)
 if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
+    while IFS='=' read -r key value; do
+        # Skip comments, empty lines, and lines without =
+        [[ "$key" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$key" ]] && continue
+        # Trim whitespace and export valid variable names
+        key=$(echo "$key" | xargs)
+        [[ "$key" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] && export "$key=$value"
+    done < .env
 fi
 
 # Check for Claude access token
@@ -40,10 +47,10 @@ if [ -z "$CLAUDE_ACCESS_TOKEN" ]; then
     exit 1
 fi
 
-# Build if needed
+# Build if needed (skip .env file - Docker doesn't like its format)
 echo "Building Docker image..."
-$COMPOSE build
+$COMPOSE --env-file /dev/null build
 
 # Run the loop inside container
 echo "Starting Ralph loop in Docker sandbox..."
-$COMPOSE run --rm ralph ./loop.sh "$@"
+$COMPOSE --env-file /dev/null run --rm ralph ./loop.sh "$@"

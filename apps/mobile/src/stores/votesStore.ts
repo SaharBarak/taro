@@ -32,8 +32,8 @@ export const useVotesStore = create<VotesState>((set, get) => ({
     try {
       const votes = await votesApi.getVotes();
       set({ votes, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.message || 'שגיאה בטעינת ההצבעות', isLoading: false });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : 'שגיאה בטעינת ההצבעות', isLoading: false });
     }
   },
 
@@ -42,8 +42,8 @@ export const useVotesStore = create<VotesState>((set, get) => ({
     try {
       const activeVotes = await votesApi.getActiveVotes();
       set({ activeVotes, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.message || 'שגיאה בטעינת ההצבעות', isLoading: false });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : 'שגיאה בטעינת ההצבעות', isLoading: false });
     }
   },
 

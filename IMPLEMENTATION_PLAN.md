@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 16, 2026 (v76.4 - API Client completeness)
-**Document Version:** 76.4
+**Last Audit:** January 16, 2026 (v76.6 - P3-5 error typing complete)
+**Document Version:** 76.6
 
 ---
 
@@ -421,7 +421,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | # | Issue | File | Line | Impact | Fix Required | Status |
 |---|-------|------|------|--------|--------------|--------|
 | P3-3 | **Branding inconsistency** | Multiple files | Various | Uses "Sync" and "Taru" inconsistently | Standardize branding - needs team decision | [ ] |
-| P3-5 | **Weak error typing** | Mobile + Web | 15 locations | Uses `catch (err: any)` instead of proper error types | Convert to `catch (err: unknown)` with type guards | [~] PARTIAL |
+| P3-5 | **Weak error typing** | Mobile + Web | 15 locations | Uses `catch (err: any)` instead of proper error types | Convert to `catch (err: unknown)` with type guards | [x] **COMPLETE v76.6** |
 | P3-6 | **Phone verification stub** | `apps/mobile/app/settings/verification.tsx` | 40 | Returns false with "Coming Soon" message | Implement SMS verification | [ ] |
 | P3-7 | **QR code placeholders** | `apps/web/src/app/[locale]/download/` | 80,84 | Shows "QR" text instead of actual codes | Generate App Store/Play Store QR codes | [ ] |
 | P3-8 | **Missing .env variables** | `.env.example` | - | 16 variables missing: GOOGLE_CLIENT_ID/SECRET, FACEBOOK_APP_ID/SECRET, INSTAGRAM_APP_ID/SECRET, JWT_SECRET, JWT_EXPIRY, CRON_SECRET, BEEHIIV_API_KEY, BEEHIIV_PUBLICATION_ID, BAGS_API_KEY, BAGS_MASTER_WALLET_PRIVATE_KEY, BAGS_MASTER_WALLET_ADDRESS, BAGS_WEBHOOK_SECRET, NEXT_PUBLIC_GOOGLE_CLIENT_ID | Add to .env.example | [ ] |
@@ -432,7 +432,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | P3-13 | **No tests for mobile app** | `apps/mobile/` | - | 28 screens with 0% test coverage | Add mobile tests | [ ] |
 | P3-14 | **No tests for API client** | `packages/api-client/` | - | 25 methods with 0% test coverage | Add API client tests | [ ] |
 
-**P3 Total: 11 items**
+**P3 Total: 10 items remaining (1 completed)**
 
 **P3-3 Branding Inconsistency Note:**
 - Web app uses "Taro" (Hebrew name shown as "תַּרְאוּ" and "Taru" in tech docs)
@@ -442,10 +442,11 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - Email uses taro.co.il domain
 - **This needs team decision on which brand name to standardize on**
 
-**P3-5 Weak Error Typing Locations (15 instances):**
-- `apps/web/src/app/[locale]/votes/create/page.tsx:135`
-- `apps/web/src/app/[locale]/votes/[id]/page.tsx:169`
-- `apps/web/src/services/notifications/expo.ts:86, 152`
+**P3-5 Weak Error Typing (RESOLVED v76.6):**
+All 15 instances of `catch (err: any)` have been converted to `catch (err: unknown)` with proper type guards (`err instanceof Error ? err.message : 'fallback'`). Files fixed:
+- `apps/web/src/app/[locale]/votes/create/page.tsx`
+- `apps/web/src/app/[locale]/votes/[id]/page.tsx`
+- `apps/web/src/services/notifications/expo.ts` (3 instances)
 - `apps/mobile/app/settings/verification.tsx`
 - `apps/mobile/app/settings/municipality.tsx`
 - `apps/mobile/app/settings/notifications.tsx`
@@ -453,7 +454,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - `apps/mobile/app/(auth)/onboarding.tsx`
 - `apps/mobile/src/stores/votesStore.ts` (2 instances)
 - `apps/mobile/src/stores/userStore.ts` (2 instances)
-- `apps/mobile/src/hooks/usePayment.ts:60`
+- `apps/mobile/src/hooks/usePayment.ts`
 - `apps/mobile/src/hooks/useLocation.ts`
 
 **Documentation Discrepancy Note:**

@@ -23,8 +23,8 @@ export default function OnboardingScreen() {
         municipality: selectedMunicipality,
       });
       router.replace('/(tabs)');
-    } catch (err: any) {
-      setError(err.message || 'שגיאה ביצירת הפרופיל');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'שגיאה בשמירת הנתונים');
     } finally {
       setLoading(false);
     }

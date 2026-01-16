@@ -40,6 +40,36 @@ if [ ! -f "$PROMPT_FILE" ]; then
     exit 1
 fi
 
+# Test git push capability before starting loop
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Testing git push capability..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Test SSH connection to GitHub
+if ! ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+    echo "❌ ERROR: Cannot authenticate with GitHub via SSH"
+    echo "Please check:"
+    echo "  1. SSH keys are properly mounted (Docker)"
+    echo "  2. SSH keys exist at ~/.ssh/id_rsa (Local)"
+    echo "  3. GitHub knows your public key"
+    exit 1
+fi
+echo "✓ SSH authentication to GitHub works"
+
+# Test git push
+if git push origin "$CURRENT_BRANCH" 2>&1; then
+    echo "✓ Git push test successful"
+else
+    echo "❌ ERROR: Git push failed"
+    echo "Cannot proceed with Ralph loop if push doesn't work"
+    exit 1
+fi
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "All pre-flight checks passed! Starting loop..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
 while true; do
     if [ $MAX_ITERATIONS -gt 0 ] && [ $ITERATION -ge $MAX_ITERATIONS ]; then
         echo "Reached max iterations: $MAX_ITERATIONS"

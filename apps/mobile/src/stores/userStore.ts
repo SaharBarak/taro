@@ -25,8 +25,8 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const tokenBalance = await usersApi.getTokenBalance();
       set({ tokenBalance, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.message, isLoading: false });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : 'שגיאה בטעינת הנתונים', isLoading: false });
     }
   },
 
@@ -35,8 +35,8 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const votingHistory = await usersApi.getVotingHistory();
       set({ votingHistory, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.message, isLoading: false });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : 'שגיאה בטעינת הנתונים', isLoading: false });
     }
   },
 

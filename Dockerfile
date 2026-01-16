@@ -26,9 +26,14 @@ RUN mkdir -p /home/ralph/.claude && chown -R ralph:ralph /home/ralph/.claude
 USER ralph
 WORKDIR /home/ralph/project
 
-# Git config for commits
-RUN git config --global user.email "ralph@taru.local" \
-    && git config --global user.name "Ralph Loop"
+# Git config for commits (matches GitHub account)
+RUN git config --global user.email "sahar.h.barak@gmail.com" \
+    && git config --global user.name "SaharBarak"
+
+# Pre-populate known_hosts with GitHub to avoid SSH prompt
+RUN mkdir -p /home/ralph/.ssh \
+    && ssh-keyscan github.com >> /home/ralph/.ssh/known_hosts 2>/dev/null \
+    && chown -R ralph:ralph /home/ralph/.ssh
 
 # Copy entrypoint script
 COPY --chown=ralph:ralph docker-entrypoint.sh /home/ralph/docker-entrypoint.sh

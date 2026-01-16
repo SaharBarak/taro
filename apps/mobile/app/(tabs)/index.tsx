@@ -68,8 +68,8 @@ export default function HomeScreen() {
       const data = await votesApi.getActiveVotes();
       setVotes(data);
       setError('');
-    } catch (err: any) {
-      setError(err.message || 'שגיאה בטעינת ההצבעות');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'שגיאה בטעינת ההצבעות');
     }
   }, []);
 

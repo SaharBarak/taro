@@ -41,8 +41,8 @@ export default function ChangeMunicipalityScreen() {
       Alert.alert('הצלחה', 'הרשות המקומית עודכנה בהצלחה', [
         { text: 'אישור', onPress: () => router.back() },
       ]);
-    } catch (err: any) {
-      Alert.alert('שגיאה', err.message || 'לא ניתן לעדכן את הרשות');
+    } catch (err: unknown) {
+      Alert.alert('שגיאה', err instanceof Error ? err.message : 'שגיאה בעדכון הרשות המקומית');
     } finally {
       setSaving(false);
     }

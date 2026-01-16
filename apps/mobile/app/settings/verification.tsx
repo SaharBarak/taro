@@ -72,8 +72,8 @@ export default function VerificationScreen() {
 
       setStatus((prev) => ({ ...prev, location: true }));
       Alert.alert('הצלחה', 'המיקום אומת בהצלחה');
-    } catch (err: any) {
-      Alert.alert('שגיאה', err.message || 'לא ניתן לאמת את המיקום');
+    } catch (err: unknown) {
+      Alert.alert('שגיאה', err instanceof Error ? err.message : 'שגיאה בבדיקת האימות');
     } finally {
       setVerifying(null);
     }

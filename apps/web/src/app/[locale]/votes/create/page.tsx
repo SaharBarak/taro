@@ -132,9 +132,9 @@ export default function CreateVotePage() {
       } else {
         throw new Error('No payment URL received');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Payment error:', err);
-      setError(err.message || 'שגיאה ביצירת ההצבעה');
+      setError(err instanceof Error ? err.message : 'שגיאה ביצירת ההצבעה');
       setSubmitting(false);
     }
   };

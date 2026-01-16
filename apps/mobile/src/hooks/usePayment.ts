@@ -57,8 +57,8 @@ export function usePayment() {
           cancelled: false,
           paymentIntent,
         };
-      } catch (err: any) {
-        const message = err.message || 'שגיאה בתהליך התשלום';
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'שגיאה בתהליך התשלום';
         setError(message);
         return {
           success: false,

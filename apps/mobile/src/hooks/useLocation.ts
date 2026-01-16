@@ -49,8 +49,8 @@ export function useLocation() {
 
       setLocation(locationData);
       return locationData;
-    } catch (err: any) {
-      const message = err.message || 'שגיאה בקבלת המיקום';
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'שגיאה בקבלת המיקום';
       setError(message);
       return null;
     } finally {

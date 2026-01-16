@@ -51,8 +51,8 @@ export default function NotificationsScreen() {
       Alert.alert('הצלחה', 'ההגדרות נשמרו בהצלחה', [
         { text: 'אישור', onPress: () => router.back() },
       ]);
-    } catch (err: any) {
-      Alert.alert('שגיאה', err.message || 'לא ניתן לשמור את ההגדרות');
+    } catch (err: unknown) {
+      Alert.alert('שגיאה', err instanceof Error ? err.message : 'שגיאה בשמירת ההגדרות');
     } finally {
       setSaving(false);
     }

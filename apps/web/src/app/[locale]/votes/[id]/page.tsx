@@ -166,9 +166,9 @@ export default function VoteDetailPage() {
       } else {
         throw new Error('No payment URL received');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Payment error:', err);
-      alert(err.message || 'שגיאה בתשלום');
+      alert(err instanceof Error ? err.message : 'שגיאה בתשלום');
       setSubmitting(false);
     }
   };

@@ -83,11 +83,11 @@ export async function sendPushNotification(
         error: ticket.message || 'Unknown error',
       };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error sending push notification:', error);
     return {
       success: false,
-      error: error.message || 'Failed to send notification',
+      error: error instanceof Error ? error.message : 'Failed to send notification',
     };
   }
 }
@@ -149,10 +149,10 @@ export async function sendBatchNotifications(
           result.errors.push(ticket.message || 'Unknown error');
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending batch notifications:', error);
       result.failed += chunk.length;
-      result.errors.push(error.message || 'Batch send failed');
+      result.errors.push(error instanceof Error ? error.message : 'Batch send failed');
     }
   }
 
@@ -176,7 +176,7 @@ export async function getNotificationReceipts(
       for (const [id, receipt] of Object.entries(chunkReceipts)) {
         receipts.set(id, receipt);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error getting notification receipts:', error);
     }
   }
