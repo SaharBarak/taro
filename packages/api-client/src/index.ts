@@ -4,3 +4,5 @@ export type { ApiClientConfig } from './client';
 export { votesApi } from './votes';
 export { usersApi } from './users';
 export { paymentsApi } from './payments';
+export { authApi } from './auth';
+export { verificationApi } from './verification';
