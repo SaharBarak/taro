@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 18, 2026 (v82 - P1-17 Identity Score Fix)
-**Document Version:** 82.0
+**Last Audit:** January 18, 2026 (v83 - P2-14 Upstash Redis Rate Limiting)
+**Document Version:** 83.0
 
 ---
 
@@ -19,7 +19,7 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
 |------|--------|-------|
 | **P0 Critical Blockers** | 6/6 (100%) | All resolved: EAS config, push notifications, payment security, Bags.fm |
 | **P1 High Priority** | 8/8 (100%) | All resolved including P1-17 Identity Score |
-| **P2 Medium Priority** | 2/3 (67%) | P2-14 Redis rate limiting pending |
+| **P2 Medium Priority** | 3/3 (100%) | All complete including P2-14 Redis |
 | **Bags.fm Backend** | 18/18 (100%) | Service, types, DB, API routes all complete |
 | **Bags.fm UI** | 0/4 (0%) | Trophy Room, Victory Wall, Multiplier Dashboard, External Supporter |
 | **NFT System** | 1/6 (~5%) | DB schema partial, spec ready, logic pending |
@@ -40,7 +40,7 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
   - Previous audit was a FALSE POSITIVE - callback is complete and functional
 
 **P2 - MEDIUM (5 items):**
-- [ ] **P2-14:** Upstash Redis rate limiting (persistent across restarts)
+- [x] **P2-14:** Upstash Redis rate limiting with in-memory fallback - **RESOLVED v83**
 - [ ] **P2-B19:** Trophy Room (Mobile NFT gallery)
 - [ ] **P2-B20:** Victory Wall (Web vote archive)
 - [ ] **P2-B21:** Multiplier Dashboard (Web treasury display)
@@ -200,11 +200,11 @@ These issues affect user experience but have workarounds or affect secondary flo
 
 | # | Issue | File | Line | Impact | Fix Required | Status |
 |---|-------|------|------|--------|--------------|--------|
-| P2-14 | **In-memory rate limiting not production-ready** | `apps/web/src/app/api/newsletter/subscribe/route.ts` | 5-6 | Rate limits reset on server restart | **DECISION MADE v77:** Implement Upstash Redis for persistent rate limiting | [ ] **READY TO IMPLEMENT** |
+| P2-14 | **In-memory rate limiting not production-ready** | `apps/web/src/app/api/newsletter/subscribe/route.ts` | 5-6 | Rate limits reset on server restart | Upstash Redis with in-memory fallback | [x] **RESOLVED v83** |
 | P2-15 | **API Client missing notifications module** | `packages/api-client/src/` | - | Push token registration not exposed in typed client | Add `notifications.ts` with registerPushToken method | [x] **RESOLVED v76.4** |
 | P2-16 | **API Client missing newsletter module** | `packages/api-client/src/` | - | Newsletter subscription not in typed client | Add `newsletter.ts` with subscribe method | [x] **RESOLVED v76.4** |
 
-**P2 Total: 1 item (P2-14 Redis rate limiting)**
+**P2 Total: 0 items (all resolved)**
 
 ---
 
@@ -319,12 +319,12 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 |----------|-------|-------------|
 | **P0 Critical** | 0 | All blockers resolved (P0-7 through P0-12) |
 | **P1 High** | 0 | All resolved including P1-17 Identity Score (P1-19 was false positive) |
-| **P2 Medium** | 1 | P2-14 Upstash Redis rate limiting |
+| **P2 Medium** | 0 | All resolved including P2-14 Upstash Redis rate limiting |
 | **P0-BAGS** | 22 (18 done) | Backend 100% complete v76.3, 4 UI components remaining |
 | **P2-NFT** | 6 | Post-resolution NFT system - spec complete, ~5% implemented (DB schema partial) |
 | **P3 Low** | 8 | Branding (P3-3), SMS (P3-6), QR (P3-7), placeholders (P3-9/P3-10), Photo (P3-11), Tests (P3-12/P3-13) |
-| **Resolved** | 76 | All P0, all P1 (incl. P1-17, P1-19), P2-15/P2-16, P3-5, P3-14 |
-| **Total Active** | 19 | 0 P1 + 1 P2 + 4 BAGS-UI + 6 NFT + 8 P3 items |
+| **Resolved** | 77 | All P0, all P1 (incl. P1-17, P1-19), P2-14/P2-15/P2-16, P3-5, P3-14 |
+| **Total Active** | 18 | 0 P1 + 0 P2 + 4 BAGS-UI + 6 NFT + 8 P3 items |
 
 ---
 
@@ -489,7 +489,14 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 ---
 
 *Last Updated: January 18, 2026*
-*Document Version: 82.0*
+*Document Version: 83.0*
+
+**Audit v83.0 Changes (P2-14 Upstash Redis Rate Limiting - Jan 18, 2026):**
+- P2-14 RESOLVED: Upstash Redis rate limiting implemented
+- Uses @upstash/ratelimit and @upstash/redis packages
+- Falls back to in-memory for local development
+- Endpoints using rate limiting: newsletter, verification check-in, vote participation
+- All tests passing (261 web tests)
 
 **Audit v82.0 Changes (P1-17 Identity Score Fix - Jan 18, 2026):**
 - P1-17 RESOLVED: Identity Score updated to match auth-flow.md v77 spec

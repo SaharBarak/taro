@@ -11,23 +11,29 @@ import { NextRequest } from 'next/server';
 // Mock fetch globally
 global.fetch = vi.fn();
 
-// Each test gets a unique IP to avoid rate limiting
-let testCounter = 0;
-
-// Mock headers - each call gets a unique IP
+// Mock headers
 vi.mock('next/headers', () => ({
   headers: vi.fn().mockImplementation(() => {
-    testCounter++;
     return Promise.resolve({
       get: vi.fn((name: string) => {
         if (name === 'x-forwarded-for') {
-          return `192.168.${Math.floor(testCounter / 256)}.${testCounter % 256}`;
+          return '192.168.1.1';
         }
         return null;
       }),
     });
   }),
 }));
+
+// Mock rate limiter (async check method)
+vi.mock('@/lib/rate-limit', () => ({
+  newsletterLimiter: {
+    check: vi.fn(() => Promise.resolve({ limited: false })),
+  },
+  createRateLimitResponse: vi.fn(),
+}));
+
+import { newsletterLimiter, createRateLimitResponse } from '@/lib/rate-limit';
 
 describe('Newsletter API Routes', () => {
   const originalEnv = process.env;
@@ -214,6 +220,22 @@ describe('Newsletter API Routes', () => {
 
       expect(response.status).toBe(500);
       expect(data.message).toBe('שגיאה בהרשמה. נסו שוב מאוחר יותר.');
+    });
+
+    it('should return 429 when rate limited', async () => {
+      (newsletterLimiter.check as Mock).mockResolvedValueOnce({ limited: true, remaining: 0, resetIn: 60000 });
+      (createRateLimitResponse as Mock).mockReturnValue(
+        new Response(JSON.stringify({ error: 'Too many requests' }), { status: 429 })
+      );
+
+      const request = new NextRequest('http://localhost:3000/api/newsletter/subscribe', {
+        method: 'POST',
+        body: JSON.stringify({ email: 'test@example.com' }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(429);
+      expect(newsletterLimiter.check).toHaveBeenCalledWith('192.168.1.1');
     });
   });
 });

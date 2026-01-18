@@ -58,10 +58,10 @@ vi.mock('@/services/email', () => ({
   },
 }));
 
-// Mock rate limiter
+// Mock rate limiter (async check method)
 vi.mock('@/lib/rate-limit', () => ({
   voteParticipationLimiter: {
-    check: vi.fn(() => ({ limited: false })),
+    check: vi.fn(() => Promise.resolve({ limited: false })),
   },
   createRateLimitResponse: vi.fn(),
 }));
@@ -168,7 +168,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 429 when rate limited', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: true, remaining: 0 });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: true, remaining: 0 });
       (createRateLimitResponse as Mock).mockReturnValue(
         new Response(JSON.stringify({ error: 'Too many requests' }), { status: 429 })
       );
@@ -185,7 +185,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 400 when required fields are missing', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
 
       const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
         method: 'POST',
@@ -200,7 +200,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 404 when vote not found', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockResolvedValue(null);
 
       const request = new NextRequest('http://localhost:3000/api/votes/nonexistent/participate', {
@@ -216,7 +216,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 400 when vote is not active', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockResolvedValue({ ...mockVote, status: 'pending' });
 
       const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
@@ -232,7 +232,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 400 when vote has ended', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       const pastEndDate = new Date(Date.now() - 86400000).toISOString(); // 1 day ago
       (getVoteWithOptions as Mock).mockResolvedValue({
         ...mockVote,
@@ -252,7 +252,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 400 when user has already participated', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
       (hasUserParticipated as Mock).mockResolvedValue(true);
 
@@ -269,7 +269,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 400 when option is invalid', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
       (hasUserParticipated as Mock).mockResolvedValue(false);
 
@@ -286,7 +286,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 400 when user profile not found', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
       (hasUserParticipated as Mock).mockResolvedValue(false);
       (getUserByGoogleId as Mock).mockResolvedValue(null);
@@ -304,7 +304,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 403 when identity score is too low', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
       (hasUserParticipated as Mock).mockResolvedValue(false);
       (getUserByGoogleId as Mock).mockResolvedValue({ ...mockUser, identity_score: 30 });
@@ -322,7 +322,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 402 when payment verification fails', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
       (hasUserParticipated as Mock).mockResolvedValue(false);
       (getUserByGoogleId as Mock).mockResolvedValue(mockUser);
@@ -341,7 +341,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 400 when payment has already been used', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
       (hasUserParticipated as Mock).mockResolvedValue(false);
       (getUserByGoogleId as Mock).mockResolvedValue(mockUser);
@@ -361,7 +361,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should return 503 when blockchain service fails', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
       (hasUserParticipated as Mock).mockResolvedValue(false);
       (getUserByGoogleId as Mock).mockResolvedValue(mockUser);
@@ -382,7 +382,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should successfully record vote participation', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
       (hasUserParticipated as Mock).mockResolvedValue(false);
       (getUserByGoogleId as Mock).mockResolvedValue(mockUser);
@@ -424,7 +424,7 @@ describe('Vote Participation API Routes', () => {
 
     it('should handle database errors gracefully', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (voteParticipationLimiter.check as Mock).mockReturnValue({ limited: false });
+      (voteParticipationLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getVoteWithOptions as Mock).mockRejectedValue(new Error('Database error'));
 
       const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {

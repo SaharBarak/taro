@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Rate limiting: 10 requests per minute per user
-    const rateLimitResult = verificationCheckInLimiter.check(session.userId);
+    // Rate limiting: 10 requests per minute per user (uses Redis in production)
+    const rateLimitResult = await verificationCheckInLimiter.check(session.userId);
     if (rateLimitResult.limited) {
       return createRateLimitResponse(
         rateLimitResult,

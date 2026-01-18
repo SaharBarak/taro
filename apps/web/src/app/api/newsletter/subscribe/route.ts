@@ -1,33 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { newsletterLimiter, createRateLimitResponse } from '@/lib/rate-limit';
 
 const BEEHIIV_API_KEY = process.env.BEEHIIV_API_KEY;
 const BEEHIIV_PUBLICATION_ID = process.env.BEEHIIV_PUBLICATION_ID;
-
-// Rate limiting: store timestamps per IP (in production use Redis)
-const rateLimitMap = new Map<string, number[]>();
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 3;
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const timestamps = rateLimitMap.get(ip) || [];
-
-  // Filter out timestamps outside the window
-  const recentTimestamps = timestamps.filter(
-    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW
-  );
-
-  if (recentTimestamps.length >= MAX_REQUESTS_PER_WINDOW) {
-    return true;
-  }
-
-  // Add current timestamp
-  recentTimestamps.push(now);
-  rateLimitMap.set(ip, recentTimestamps);
-
-  return false;
-}
 
 function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,11 +21,12 @@ export async function POST(request: NextRequest) {
     const forwardedFor = headersList.get('x-forwarded-for');
     const clientIp = forwardedFor?.split(',')[0]?.trim() || 'unknown';
 
-    // Rate limiting check
-    if (isRateLimited(clientIp)) {
-      return NextResponse.json(
-        { message: 'יותר מדי בקשות. נסו שוב מאוחר יותר.' },
-        { status: 429 }
+    // Rate limiting check (uses Redis in production, in-memory in dev)
+    const rateLimitResult = await newsletterLimiter.check(clientIp);
+    if (rateLimitResult.limited) {
+      return createRateLimitResponse(
+        rateLimitResult,
+        'יותר מדי בקשות. נסו שוב מאוחר יותר.'
       );
     }
 

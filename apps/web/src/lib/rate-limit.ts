@@ -1,28 +1,45 @@
 /**
- * In-memory rate limiting utility.
+ * Rate limiting utility with Upstash Redis support.
  *
- * Provides per-user and per-IP rate limiting for API endpoints.
- * In production with multiple instances, this should be replaced
- * with Redis/Upstash for distributed rate limiting.
+ * Uses Upstash Redis for production (persistent across restarts).
+ * Falls back to in-memory storage for local development.
  *
  * Usage:
  * ```ts
- * import { createRateLimiter, checkUserRateLimit } from '@/lib/rate-limit';
- *
- * // Create a rate limiter for a specific endpoint
- * const voteLimiter = createRateLimiter({
- *   windowMs: 60 * 1000,  // 1 minute
- *   maxRequests: 3,        // 3 requests per window
- * });
+ * import { voteParticipationLimiter, createRateLimitResponse } from '@/lib/rate-limit';
  *
  * // Check if user is rate limited
- * const { limited, remaining, resetIn } = voteLimiter.check(userId);
+ * const result = await voteParticipationLimiter.check(userId);
+ * if (result.limited) {
+ *   return createRateLimitResponse(result);
+ * }
  * ```
  */
 
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 import { logger } from './logger';
 
 const rateLimitLogger = logger.child({ component: 'rate-limit' });
+
+// Check if Upstash Redis is configured
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const USE_REDIS = !!(UPSTASH_URL && UPSTASH_TOKEN);
+
+if (!USE_REDIS) {
+  rateLimitLogger.warn(
+    'Upstash Redis not configured - using in-memory rate limiting (not suitable for production)'
+  );
+}
+
+// Initialize Redis client if configured
+const redis = USE_REDIS
+  ? new Redis({
+      url: UPSTASH_URL!,
+      token: UPSTASH_TOKEN!,
+    })
+  : null;
 
 export interface RateLimitConfig {
   /**
@@ -51,12 +68,12 @@ export interface RateLimitResult {
   resetIn: number;
 }
 
+// In-memory fallback implementation
 interface RateLimitEntry {
   timestamps: number[];
   windowStart: number;
 }
 
-// Global rate limit stores - separate by endpoint to prevent interference
 const rateLimitStores = new Map<string, Map<string, RateLimitEntry>>();
 
 function getStore(storeName: string): Map<string, RateLimitEntry> {
@@ -68,23 +85,22 @@ function getStore(storeName: string): Map<string, RateLimitEntry> {
   return store;
 }
 
-// Periodic cleanup of expired entries (every 5 minutes)
+// Periodic cleanup of expired entries (every 5 minutes) - only for in-memory
 const CLEANUP_INTERVAL = 5 * 60 * 1000;
 let cleanupScheduled = false;
 
 function scheduleCleanup() {
-  if (cleanupScheduled) return;
+  if (cleanupScheduled || USE_REDIS) return;
   cleanupScheduled = true;
 
   setInterval(() => {
     const now = Date.now();
     let totalCleaned = 0;
 
-    for (const [storeName, store] of rateLimitStores) {
+    for (const [, store] of rateLimitStores) {
       const keysToDelete: string[] = [];
 
       for (const [key, entry] of store) {
-        // Clean entries older than 10 minutes
         if (now - entry.windowStart > 10 * 60 * 1000) {
           keysToDelete.push(key);
         }
@@ -106,16 +122,16 @@ export interface RateLimiter {
   /**
    * Check if a key (userId or IP) is rate limited
    */
-  check: (key: string) => RateLimitResult;
+  check: (key: string) => Promise<RateLimitResult>;
   /**
    * Reset rate limit for a key
    */
-  reset: (key: string) => void;
+  reset: (key: string) => Promise<void>;
 }
 
 /**
  * Create a rate limiter with the specified configuration.
- * Each limiter maintains its own store to prevent interference between endpoints.
+ * Uses Upstash Redis if configured, otherwise falls back to in-memory.
  *
  * @param storeName - Unique name for this rate limiter's store
  * @param config - Rate limit configuration
@@ -125,13 +141,51 @@ export function createRateLimiter(
   config: RateLimitConfig
 ): RateLimiter {
   const { windowMs, maxRequests } = config;
-  const store = getStore(storeName);
 
-  // Ensure cleanup is scheduled
+  // Use Upstash if configured
+  if (redis) {
+    const windowSeconds = Math.ceil(windowMs / 1000);
+    const upstashLimiter = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(maxRequests, `${windowSeconds} s`),
+      prefix: `@sync/ratelimit:${storeName}`,
+      analytics: true,
+    });
+
+    return {
+      async check(key: string): Promise<RateLimitResult> {
+        const { success, remaining, reset } = await upstashLimiter.limit(key);
+        const now = Date.now();
+        const resetIn = Math.max(0, reset - now);
+
+        if (!success) {
+          rateLimitLogger.debug('Rate limit exceeded (Redis)', {
+            key,
+            storeName,
+            remaining,
+            resetIn,
+          });
+        }
+
+        return {
+          limited: !success,
+          remaining,
+          resetIn,
+        };
+      },
+
+      async reset(key: string): Promise<void> {
+        await upstashLimiter.resetUsedTokens(key);
+      },
+    };
+  }
+
+  // In-memory fallback
+  const store = getStore(storeName);
   scheduleCleanup();
 
   return {
-    check(key: string): RateLimitResult {
+    async check(key: string): Promise<RateLimitResult> {
       const now = Date.now();
       const entry = store.get(key);
 
@@ -158,7 +212,7 @@ export function createRateLimiter(
         const oldestTimestamp = Math.min(...recentTimestamps);
         const resetIn = windowMs - (now - oldestTimestamp);
 
-        rateLimitLogger.debug('Rate limit exceeded', {
+        rateLimitLogger.debug('Rate limit exceeded (in-memory)', {
           key,
           storeName,
           requests: recentTimestamps.length,
@@ -187,7 +241,7 @@ export function createRateLimiter(
       };
     },
 
-    reset(key: string): void {
+    async reset(key: string): Promise<void> {
       store.delete(key);
     },
   };
@@ -213,6 +267,16 @@ export const voteParticipationLimiter = createRateLimiter('vote-participation', 
 export const verificationCheckInLimiter = createRateLimiter('verification-check-in', {
   windowMs: 60 * 1000, // 1 minute
   maxRequests: 10,
+});
+
+/**
+ * Rate limiter for newsletter subscription endpoint.
+ * 3 requests per minute per IP.
+ * Prevents spam signups.
+ */
+export const newsletterLimiter = createRateLimiter('newsletter', {
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 3,
 });
 
 /**

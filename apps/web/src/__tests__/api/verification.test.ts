@@ -42,10 +42,10 @@ vi.mock('@/services/verification/municipality', () => ({
   verifyCheckIn: vi.fn(),
 }));
 
-// Mock rate limiter
+// Mock rate limiter (async check method)
 vi.mock('@/lib/rate-limit', () => ({
   verificationCheckInLimiter: {
-    check: vi.fn(() => ({ limited: false })),
+    check: vi.fn(() => Promise.resolve({ limited: false })),
   },
   createRateLimitResponse: vi.fn(),
 }));
@@ -450,7 +450,7 @@ describe('Verification API Routes', () => {
 
     it('should return 429 when rate limited', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (verificationCheckInLimiter.check as Mock).mockReturnValue({ limited: true, remaining: 0 });
+      (verificationCheckInLimiter.check as Mock).mockResolvedValue({ limited: true, remaining: 0 });
       (createRateLimitResponse as Mock).mockReturnValue(
         new Response(JSON.stringify({ error: 'Too many requests' }), { status: 429 })
       );
@@ -466,7 +466,7 @@ describe('Verification API Routes', () => {
 
     it('should return 400 when coordinates are invalid', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (verificationCheckInLimiter.check as Mock).mockReturnValue({ limited: false });
+      (verificationCheckInLimiter.check as Mock).mockResolvedValue({ limited: false });
 
       const request = new NextRequest('http://localhost:3000/api/verification/check-in', {
         method: 'POST',
@@ -481,7 +481,7 @@ describe('Verification API Routes', () => {
 
     it('should return 404 when user not found', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (verificationCheckInLimiter.check as Mock).mockReturnValue({ limited: false });
+      (verificationCheckInLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getUserById as Mock).mockResolvedValue(null);
 
       const request = new NextRequest('http://localhost:3000/api/verification/check-in', {
@@ -497,7 +497,7 @@ describe('Verification API Routes', () => {
 
     it('should return 400 when no verification in progress', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (verificationCheckInLimiter.check as Mock).mockReturnValue({ limited: false });
+      (verificationCheckInLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getUserById as Mock).mockResolvedValue(mockUser);
       (getActiveVerificationRun as Mock).mockResolvedValue(null);
 
@@ -514,7 +514,7 @@ describe('Verification API Routes', () => {
 
     it('should return 400 when no pending check-in found', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (verificationCheckInLimiter.check as Mock).mockReturnValue({ limited: false });
+      (verificationCheckInLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getUserById as Mock).mockResolvedValue(mockUser);
       (getActiveVerificationRun as Mock).mockResolvedValue(mockVerificationRun);
       (getNextPendingCheckIn as Mock).mockResolvedValue(null);
@@ -537,7 +537,7 @@ describe('Verification API Routes', () => {
         window_end: new Date(Date.now() + 86400000 + 1800000).toISOString(),
       };
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (verificationCheckInLimiter.check as Mock).mockReturnValue({ limited: false });
+      (verificationCheckInLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getUserById as Mock).mockResolvedValue(mockUser);
       (getActiveVerificationRun as Mock).mockResolvedValue(mockVerificationRun);
       (getNextPendingCheckIn as Mock).mockResolvedValue(futureWindow);
@@ -561,7 +561,7 @@ describe('Verification API Routes', () => {
         window_end: new Date(Date.now() - 86400000 + 1800000).toISOString(),
       };
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (verificationCheckInLimiter.check as Mock).mockReturnValue({ limited: false });
+      (verificationCheckInLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getUserById as Mock).mockResolvedValue(mockUser);
       (getActiveVerificationRun as Mock).mockResolvedValue(mockVerificationRun);
       (getNextPendingCheckIn as Mock).mockResolvedValue(expiredWindow);
@@ -580,7 +580,7 @@ describe('Verification API Routes', () => {
 
     it('should return 400 when GPS location fails verification', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (verificationCheckInLimiter.check as Mock).mockReturnValue({ limited: false });
+      (verificationCheckInLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getUserById as Mock).mockResolvedValue(mockUser);
       (getActiveVerificationRun as Mock).mockResolvedValue(mockVerificationRun);
       (getNextPendingCheckIn as Mock).mockResolvedValue(mockScheduleItem);
@@ -608,7 +608,7 @@ describe('Verification API Routes', () => {
 
     it('should successfully record check-in', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (verificationCheckInLimiter.check as Mock).mockReturnValue({ limited: false });
+      (verificationCheckInLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getUserById as Mock).mockResolvedValue(mockUser);
       (getActiveVerificationRun as Mock).mockResolvedValue(mockVerificationRun);
       (getNextPendingCheckIn as Mock).mockResolvedValue(mockScheduleItem);
@@ -648,7 +648,7 @@ describe('Verification API Routes', () => {
 
     it('should handle database errors gracefully', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
-      (verificationCheckInLimiter.check as Mock).mockReturnValue({ limited: false });
+      (verificationCheckInLimiter.check as Mock).mockResolvedValue({ limited: false });
       (getUserById as Mock).mockRejectedValue(new Error('Database error'));
 
       const request = new NextRequest('http://localhost:3000/api/verification/check-in', {

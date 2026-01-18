@@ -34,8 +34,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Rate limiting: 3 requests per minute per user
-    const rateLimitResult = voteParticipationLimiter.check(session.userId);
+    // Rate limiting: 3 requests per minute per user (uses Redis in production)
+    const rateLimitResult = await voteParticipationLimiter.check(session.userId);
     if (rateLimitResult.limited) {
       return createRateLimitResponse(
         rateLimitResult,
