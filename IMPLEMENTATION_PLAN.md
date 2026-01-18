@@ -311,8 +311,9 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | P3-12 | **API route tests complete** | `apps/web/src/app/api/` | - | 447/447 tests done (100% coverage) | All API routes have tests | [x] **COMPLETE v91** |
 | P3-13 | **Mobile app tests** | `apps/mobile/` | - | 118 tests added (full coverage) | Jest with babel-jest configured | [x] **COMPLETE v93** |
 | P3-14 | **No tests for API client** | `packages/api-client/` | - | 44 methods with test coverage | Add API client tests | [x] **COMPLETE v76.7** |
+| P3-15 | **Console to Logger migration** | Multiple files | - | Code quality - using console.error instead of structured logger | Migrate ~60 console.error calls to use apps/web/src/lib/logger.ts | [ ] |
 
-**P3 Total: 2 items remaining (8 completed)**
+**P3 Total: 3 items remaining (8 completed)**
 
 ---
 
