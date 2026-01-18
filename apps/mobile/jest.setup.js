@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 // Jest setup file for mobile app testing (node environment)
 
 // Mock React Native modules

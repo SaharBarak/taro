@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
       // Try insert first, then update if it fails (upsert pattern)
       const { error: insertError } = await supabaseAdmin
         .from('phone_verifications' as 'users') // Type assertion workaround
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         .insert({
           user_id: user.id,
           phone: phone,
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
       if (insertError?.code === '23505') { // Unique violation - record exists
         await supabaseAdmin
           .from('phone_verifications' as 'users')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           .update({
             phone: phone,
             send_attempts: newSendAttempts,

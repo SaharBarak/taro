@@ -53,6 +53,29 @@ export default [
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
   },
+  // Jest test files configuration
+  {
+    files: ['**/*.test.{ts,tsx,js,jsx}', '**/jest.setup.{ts,js}', '**/__tests__/**/*.{ts,tsx,js,jsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        jest: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        test: 'readonly',
+      },
+    },
+    rules: {
+      // Allow unused vars in tests (common for imports used in mocks)
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-unused-vars': 'off',
+    },
+  },
   {
     ignores: [
       'node_modules/**',

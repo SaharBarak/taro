@@ -407,7 +407,7 @@ export default function TrophyRoomScreen() {
             entering={FadeInDown.duration(400).delay(200)}
             className="flex-row flex-wrap justify-between"
           >
-            {filteredNfts.map((nft, index) => (
+            {filteredNfts.map((nft) => (
               <View key={nft.id} className="mb-4">
                 <NftCard
                   nft={nft}

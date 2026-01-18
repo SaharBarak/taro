@@ -10,7 +10,6 @@ import {
   getIdentityLevelLabel,
   calculateIdentityScore,
   IDENTITY_SCORE_WEIGHTS,
-  type IdentityScore,
   type SocialProof,
 } from '@sync/shared';
 

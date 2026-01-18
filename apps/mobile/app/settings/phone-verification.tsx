@@ -31,7 +31,7 @@ export default function PhoneVerificationScreen() {
           setStep('success');
           setPhone(status.phone || '');
         }
-      } catch (err) {
+      } catch {
         // Not verified yet, continue with phone entry
         console.log('No existing phone verification');
       }

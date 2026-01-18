@@ -22,11 +22,11 @@ vi.mock('@/lib/supabase/db', () => ({
 // Mock Supabase admin client - using explicit any for flexible mocking
 const mockRange = vi.fn();
 const mockOrder = vi.fn(() => ({ range: mockRange }));
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const mockEq: any = vi.fn(() => ({ eq: mockEq, order: mockOrder }));
 const mockSelect = vi.fn(() => ({ eq: mockEq }));
 const mockIn = vi.fn(() => Promise.resolve({ data: [], error: null }));
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const mockFrom = vi.fn((_table: string): any => ({ select: mockSelect, in: mockIn }));
 
 vi.mock('@/lib/supabase/server', () => ({
