@@ -536,6 +536,10 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
   - `phone-verification.test.ts`: Fixed mock function parameter signature
   - `user-nfts.test.ts`: Added type assertions for flexible Supabase mock implementations
   - `vote-resolution.test.ts`: Added type assertions for flexible Supabase mock implementations
+- Fixed reserved word 'module' variable name in 11 web test files (renamed to 'routeModule')
+- Fixed unused eslint-disable directives in test mocks
+- Restored required type assertions in phone verification routes for Supabase table type workarounds
+- Build now succeeds with all lint checks passing
 - All tests passing: 822 tests (shared: 117, api-client: 125, web: 462, mobile: 118)
 - Typecheck now passes cleanly across all packages
 
