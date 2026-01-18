@@ -62,8 +62,8 @@ describe('User Verify Location API Routes', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.resetModules();
-    const module = await import('@/app/api/user/verify-location/route');
-    POST = module.POST;
+    const routeModule = await import('@/app/api/user/verify-location/route');
+    POST = routeModule.POST;
   });
 
   describe('POST /api/user/verify-location', () => {

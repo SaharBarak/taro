@@ -76,8 +76,8 @@ describe('Auth Callback API Routes', () => {
       GOOGLE_CLIENT_SECRET: 'google-secret',
     };
     vi.resetModules();
-    const module = await import('@/app/api/auth/callback/route');
-    POST = module.POST;
+    const routeModule = await import('@/app/api/auth/callback/route');
+    POST = routeModule.POST;
   });
 
   afterAll(() => {

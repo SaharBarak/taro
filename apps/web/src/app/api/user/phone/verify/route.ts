@@ -168,10 +168,10 @@ export async function POST(request: NextRequest) {
 
     await supabaseAdmin
       .from('phone_verifications' as 'users') // Type assertion workaround
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .update({
         attempts: newAttempts,
         last_attempt_at: new Date().toISOString(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
       .eq('user_id' as never, user.id as never);
 
@@ -193,10 +193,10 @@ export async function POST(request: NextRequest) {
     // Mark phone as verified in phone_verifications table
     const { error: verificationUpdateError } = await supabaseAdmin
       .from('phone_verifications' as 'users') // Type assertion workaround
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .update({
         verified: true,
         verified_at: new Date().toISOString(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
       .eq('user_id' as never, user.id as never);
 
@@ -211,8 +211,7 @@ export async function POST(request: NextRequest) {
         phone: phone,
         phone_verified: true,
         phone_verified_at: new Date().toISOString(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
+      })
       .eq('id', user.id);
 
     if (userError) {

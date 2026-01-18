@@ -20,18 +20,12 @@ vi.mock('@/lib/supabase/db', () => ({
 }));
 
 // Mock Supabase admin client - using explicit any for flexible mocking
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockRange = vi.fn() as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockOrder = vi.fn(() => ({ range: mockRange })) as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockEq = vi.fn(() => ({ eq: mockEq, order: mockOrder })) as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockSelect = vi.fn(() => ({ eq: mockEq })) as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockIn = vi.fn(() => Promise.resolve({ data: [], error: null })) as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockFrom = vi.fn((_table: string) => ({ select: mockSelect, in: mockIn })) as any;
+const mockRange = vi.fn();
+const mockOrder = vi.fn(() => ({ range: mockRange }));
+const mockEq: ReturnType<typeof vi.fn> = vi.fn(() => ({ eq: mockEq, order: mockOrder }));
+const mockSelect = vi.fn(() => ({ eq: mockEq }));
+const mockIn = vi.fn(() => Promise.resolve({ data: [], error: null }));
+const mockFrom = vi.fn((_table: string) => ({ select: mockSelect, in: mockIn }));
 
 vi.mock('@/lib/supabase/server', () => ({
   supabaseAdmin: {

@@ -118,8 +118,8 @@ describe('Social Callback API Routes', () => {
 
     beforeEach(async () => {
       vi.resetModules();
-      const module = await import('@/app/api/social/callback/facebook/route');
-      GET = module.GET;
+      const routeModule = await import('@/app/api/social/callback/facebook/route');
+      GET = routeModule.GET;
     });
 
     it('should redirect to error when code is missing', async () => {
@@ -282,8 +282,8 @@ describe('Social Callback API Routes', () => {
 
     beforeEach(async () => {
       vi.resetModules();
-      const module = await import('@/app/api/social/callback/instagram/route');
-      GET = module.GET;
+      const routeModule = await import('@/app/api/social/callback/instagram/route');
+      GET = routeModule.GET;
     });
 
     it('should redirect to error when code is missing', async () => {

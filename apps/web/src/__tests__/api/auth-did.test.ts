@@ -60,9 +60,9 @@ describe('Auth DID API Routes', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.resetModules();
-    const module = await import('@/app/api/auth/did/route');
-    GET = module.GET;
-    POST = module.POST;
+    const routeModule = await import('@/app/api/auth/did/route');
+    GET = routeModule.GET;
+    POST = routeModule.POST;
   });
 
   describe('GET /api/auth/did', () => {

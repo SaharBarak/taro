@@ -39,9 +39,9 @@ describe('Cron Resolve Votes API Routes', () => {
       CRON_SECRET: 'test-cron-secret',
     };
     vi.resetModules();
-    const module = await import('@/app/api/cron/resolve-votes/route');
-    POST = module.POST;
-    GET = module.GET;
+    const routeModule = await import('@/app/api/cron/resolve-votes/route');
+    POST = routeModule.POST;
+    GET = routeModule.GET;
   });
 
   afterAll(() => {

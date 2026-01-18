@@ -36,8 +36,8 @@ describe('Vote Participated API Routes', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.resetModules();
-    const module = await import('@/app/api/votes/[id]/participated/route');
-    GET = module.GET;
+    const routeModule = await import('@/app/api/votes/[id]/participated/route');
+    GET = routeModule.GET;
   });
 
   describe('GET /api/votes/[id]/participated', () => {

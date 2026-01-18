@@ -10,14 +10,10 @@ import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/votes/[id]/resolution/route';
 
 // Mock Supabase admin client - using explicit any for flexible mocking
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockSingle = vi.fn() as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockEq = vi.fn(() => ({ single: mockSingle })) as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockSelect = vi.fn(() => ({ eq: mockEq })) as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockFrom = vi.fn((_table: string) => ({ select: mockSelect })) as any;
+const mockSingle = vi.fn();
+const mockEq = vi.fn(() => ({ single: mockSingle }));
+const mockSelect = vi.fn(() => ({ eq: mockEq }));
+const mockFrom = vi.fn((_table: string) => ({ select: mockSelect }));
 
 vi.mock('@/lib/supabase/server', () => ({
   supabaseAdmin: {

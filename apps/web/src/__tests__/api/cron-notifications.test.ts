@@ -56,9 +56,9 @@ describe('Cron Verification Notifications API Routes', () => {
     };
     // Re-import module to pick up fresh env and mocks
     vi.resetModules();
-    const module = await import('@/app/api/cron/verification-notifications/route');
-    POST = module.POST;
-    GET = module.GET;
+    const routeModule = await import('@/app/api/cron/verification-notifications/route');
+    POST = routeModule.POST;
+    GET = routeModule.GET;
   });
 
   afterAll(() => {

@@ -68,8 +68,8 @@ describe('Social Connect API Routes', () => {
 
     beforeEach(async () => {
       vi.resetModules();
-      const module = await import('@/app/api/social/connect/facebook/route');
-      GET = module.GET;
+      const routeModule = await import('@/app/api/social/connect/facebook/route');
+      GET = routeModule.GET;
     });
 
     it('should redirect to sign-in when not authenticated', async () => {
@@ -126,8 +126,8 @@ describe('Social Connect API Routes', () => {
 
     beforeEach(async () => {
       vi.resetModules();
-      const module = await import('@/app/api/social/connect/instagram/route');
-      GET = module.GET;
+      const routeModule = await import('@/app/api/social/connect/instagram/route');
+      GET = routeModule.GET;
     });
 
     it('should redirect to sign-in when not authenticated', async () => {

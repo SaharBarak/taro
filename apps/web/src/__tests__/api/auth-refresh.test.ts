@@ -52,8 +52,8 @@ describe('Auth Session Refresh API Routes', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.resetModules();
-    const module = await import('@/app/api/auth/session/refresh/route');
-    POST = module.POST;
+    const routeModule = await import('@/app/api/auth/session/refresh/route');
+    POST = routeModule.POST;
   });
 
   describe('POST /api/auth/session/refresh', () => {

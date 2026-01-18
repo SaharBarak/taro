@@ -48,8 +48,8 @@ describe('Newsletter API Routes', () => {
     };
     // Re-import to get fresh instance
     vi.resetModules();
-    const module = await import('@/app/api/newsletter/subscribe/route');
-    POST = module.POST;
+    const routeModule = await import('@/app/api/newsletter/subscribe/route');
+    POST = routeModule.POST;
   });
 
   afterAll(() => {
