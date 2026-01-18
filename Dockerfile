@@ -39,6 +39,9 @@ RUN mkdir -p /home/ralph/.ssh \
 COPY --chown=ralph:ralph docker-entrypoint.sh /home/ralph/docker-entrypoint.sh
 RUN chmod +x /home/ralph/docker-entrypoint.sh
 
+# Claude Code authentication token
+ENV CLAUDE_ACCESS_TOKEN=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
+
 # Use entrypoint to set up auth
 ENTRYPOINT ["/home/ralph/docker-entrypoint.sh"]
 CMD ["/bin/bash"]

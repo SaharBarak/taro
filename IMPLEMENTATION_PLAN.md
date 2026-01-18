@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 18, 2026 (v84 - P2-NFT System Implementation)
-**Document Version:** 84.0
+**Last Audit:** January 18, 2026 (v85 - P3-6 SMS Phone Verification)
+**Document Version:** 85.0
 
 ---
 
@@ -23,8 +23,8 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
 | **Bags.fm Backend** | 18/18 (100%) | Service, types, DB, API routes all complete |
 | **Bags.fm UI** | 0/4 (0%) | Trophy Room, Victory Wall, Multiplier Dashboard, External Supporter |
 | **NFT System** | 6/6 (100%) | **COMPLETE v84**: DB, types, contracts, service, API routes |
-| **P3 Low Priority** | 3/11 (27%) | Tests partial, branding/SMS/placeholders pending |
-| **Test Coverage** | 487 tests | shared: 117, api-client: 110, web: 260, mobile: 0 |
+| **P3 Low Priority** | 4/11 (36%) | Tests partial, branding/placeholders pending |
+| **Test Coverage** | 503 tests | shared: 117, api-client: 125, web: 261, mobile: 0 |
 
 ### Remaining Work by Priority
 
@@ -54,9 +54,9 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
 - [x] **P2-N5:** Civic Patron NFT minting - **COMPLETE v84**
 - [x] **P2-N6:** NFT metadata structure - **COMPLETE v84**
 
-**P3 - LOW (8 items):**
+**P3 - LOW (7 items):**
 - [ ] **P3-3:** Branding Update (Sync to Taruu, ~32 files)
-- [ ] **P3-6:** SMS Phone Verification (Twilio) - 0% implemented
+- [x] **P3-6:** SMS Phone Verification (Twilio) - **COMPLETE v85**
 - [ ] **P3-7:** QR Code generation (App Store/Play Store)
 - [ ] **P3-9:** Google verification placeholder
 - [ ] **P3-10:** WhatsApp link placeholder
@@ -69,11 +69,11 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
 | Table/Column | Purpose | Blocking |
 |--------------|---------|----------|
 | ~~`vote_nfts` table~~ | ~~NFT minting records~~ | ~~P2-NFT system~~ **COMPLETE v84** |
-| `phone_verifications` table | SMS OTP tracking | P3-6 SMS verification |
+| ~~`phone_verifications` table~~ | ~~SMS OTP tracking~~ | ~~P3-6 SMS verification~~ **COMPLETE v85** |
 | ~~`votes.resolved_at` column~~ | ~~Vote resolution timestamp~~ | ~~P2-N1 resolution trigger~~ **COMPLETE v84** |
 | ~~`votes.resolution_status` column~~ | ~~Resolution state machine~~ | ~~P2-N1 resolution trigger~~ **COMPLETE v84** |
-| `users.phone_verified` column | Phone verification status | P3-6 SMS verification |
-| `users.phone_verified_at` column | Phone verification timestamp | P3-6 SMS verification |
+| ~~`users.phone_verified` column~~ | ~~Phone verification status~~ | ~~P3-6 SMS verification~~ **COMPLETE v85** |
+| ~~`users.phone_verified_at` column~~ | ~~Phone verification timestamp~~ | ~~P3-6 SMS verification~~ **COMPLETE v85** |
 
 ### Missing Type/Contract Files (for SMS features)
 
@@ -81,10 +81,10 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
 |------|---------|----------|
 | ~~`packages/shared/src/types/nft.ts`~~ | ~~NFT TypeScript interfaces~~ | ~~P2-NFT system~~ **COMPLETE v84** |
 | ~~`packages/shared/src/contracts/nft.ts`~~ | ~~NFT Zod validation schemas~~ | ~~P2-NFT system~~ **COMPLETE v84** |
-| `packages/shared/src/types/phone.ts` | Phone verification types | P3-6 SMS verification |
-| `packages/shared/src/contracts/phone.ts` | Phone verification schemas | P3-6 SMS verification |
+| ~~`packages/shared/src/types/phone.ts`~~ | ~~Phone verification types~~ | ~~P3-6 SMS verification~~ **COMPLETE v85** |
+| ~~`packages/shared/src/contracts/phone.ts`~~ | ~~Phone verification schemas~~ | ~~P3-6 SMS verification~~ **COMPLETE v85** |
 
-### API Gaps Found (v84 audit)
+### API Gaps Found (v85 audit)
 
 | Route | Status | Impact |
 |-------|--------|--------|
@@ -92,9 +92,9 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
 | `/api/cron/resolve-votes` | **IMPLEMENTED** (88 lines) | ~~P2-N1~~ **COMPLETE v84** |
 | `/api/votes/[id]/resolution` | **IMPLEMENTED** (82 lines) | ~~P2-NFT~~ **COMPLETE v84** |
 | `/api/user/nfts` | **IMPLEMENTED** (164 lines) | ~~P2-NFT~~ **COMPLETE v84** |
-| `/api/user/phone/send-code` | NOT IMPLEMENTED | P3-6 SMS verification |
-| `/api/user/phone/verify` | NOT IMPLEMENTED | P3-6 SMS verification |
-| `/api/user/phone/status` | NOT IMPLEMENTED | P3-6 SMS verification |
+| `/api/user/phone/send-code` | **IMPLEMENTED** (176 lines) | ~~P3-6 SMS verification~~ **COMPLETE v85** |
+| `/api/user/phone/verify` | **IMPLEMENTED** (240 lines) | ~~P3-6 SMS verification~~ **COMPLETE v85** |
+| `/api/user/phone/status` | **IMPLEMENTED** (50 lines) | ~~P3-6 SMS verification~~ **COMPLETE v85** |
 
 ### Spec Inconsistencies to Fix
 
@@ -135,7 +135,7 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
 | `specs/api-contracts.md` | COMPLETE | 100% implemented | None |
 | `specs/push-notifications.md` | COMPLETE | 100% complete | None (P0-8 RESOLVED v75) |
 | `specs/bags-integration.md` | STALE | 100% backend complete | Spec says "NOT STARTED" but IS implemented |
-| `specs/sms-verification.md` | NEW v77 | 0% - Ready to implement | Twilio SMS phone verification |
+| `specs/sms-verification.md` | **COMPLETE v85** | 100% implemented | ~~Twilio SMS phone verification~~ **COMPLETE** |
 | `specs/nft-system.md` | NEW v77 | 0% - Ready to implement | Post-resolution NFT minting system |
 
 ---
@@ -291,7 +291,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 |---|-------|------|------|--------|--------------|--------|
 | P3-3 | **Branding inconsistency** | Multiple files | Various | Uses "Sync" and "Taruu" inconsistently | **DECISION MADE v77:** Rebrand to "Taruu" everywhere (~32 files) | [ ] **READY TO IMPLEMENT** |
 | P3-5 | **Weak error typing** | Mobile + Web | 10 locations | Uses `catch (err: any)` instead of proper error types | Convert to `catch (err: unknown)` with type guards | [x] **COMPLETE v76.6** |
-| P3-6 | **Phone verification stub** | `apps/mobile/app/settings/verification.tsx` | 40 | Returns false with "Coming Soon" message | **DECISION MADE v77:** Implement Twilio SMS verification (0% complete) | [ ] **READY TO IMPLEMENT** |
+| P3-6 | **Phone verification stub** | `apps/mobile/app/settings/verification.tsx` | 40 | ~~Returns false with "Coming Soon" message~~ | **DECISION MADE v77:** Implement Twilio SMS verification | [x] **COMPLETE v85** |
 | P3-7 | **QR code placeholders** | `apps/web/src/app/[locale]/download/` | 80,84 | Shows "QR" text instead of actual codes | Generate App Store/Play Store QR codes | [ ] |
 | P3-9 | **Google verification placeholder** | `apps/web/src/app/[locale]/layout.tsx` | 121 | SEO verification not configured | Replace with actual Google Search Console code | [ ] |
 | P3-10 | **WhatsApp link placeholder** | `apps/web/src/app/[locale]/layout.tsx` | 150 | Schema.org references placeholder | Update with actual WhatsApp group link | [ ] |
@@ -300,15 +300,16 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | P3-13 | **No tests for mobile app** | `apps/mobile/` | - | 28 screens with 0% test coverage | **DECISION MADE v77:** Full test coverage required | [ ] **READY TO IMPLEMENT** |
 | P3-14 | **No tests for API client** | `packages/api-client/` | - | 44 methods with test coverage | Add API client tests | [x] **COMPLETE v76.7** |
 
-**P3 Total: 8 items remaining (2 completed)**
+**P3 Total: 7 items remaining (3 completed)**
 
 ---
 
 ## RESOLVED BLOCKERS
 
-**Total Resolved: 76 items** - See git history for details
+**Total Resolved: 77 items** - See git history for details
 
-**Recent Resolutions (v50-v82):**
+**Recent Resolutions (v50-v85):**
+- **P3-6:** SMS Phone Verification (Twilio) - RESOLVED (v85)
 - **P1-17:** Identity Score point discrepancy fixed (GPS=40, Google=40, FB=10, IG=10) - RESOLVED (v82)
 - **P1-13:** API Client missing verification module - RESOLVED (v75)
 - **P1-14:** API Client missing auth module - RESOLVED (v75)
@@ -333,15 +334,15 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | **P2 Medium** | 0 | All resolved including P2-14 Upstash Redis rate limiting |
 | **P0-BAGS** | 22 (18 done) | Backend 100% complete v76.3, 4 UI components remaining |
 | **P2-NFT** | 6 (6 done) | **100% COMPLETE v84** - DB, types, contracts, service, API routes |
-| **P3 Low** | 8 | Branding (P3-3), SMS (P3-6), QR (P3-7), placeholders (P3-9/P3-10), Photo (P3-11), Tests (P3-12/P3-13) |
-| **Resolved** | 83 | All P0, all P1, P2-14/P2-15/P2-16, P2-NFT (6 items), P3-5, P3-14 |
-| **Total Active** | 12 | 0 P1 + 0 P2 + 4 BAGS-UI + 0 NFT + 8 P3 items |
+| **P3 Low** | 7 | Branding (P3-3), QR (P3-7), placeholders (P3-9/P3-10), Photo (P3-11), Tests (P3-12/P3-13) |
+| **Resolved** | 84 | All P0, all P1, P2-14/P2-15/P2-16, P2-NFT (6 items), P3-5, P3-6, P3-14 |
+| **Total Active** | 11 | 0 P1 + 0 P2 + 4 BAGS-UI + 0 NFT + 7 P3 items |
 
 ---
 
 ## Completed Components
 
-### Services (15/15 Production-Ready)
+### Services (16/16 Production-Ready)
 - [x] Google OAuth - `apps/web/src/services/auth/google.ts` (222 lines)
 - [x] Facebook OAuth - `apps/web/src/services/auth/facebook.ts` (168 lines)
 - [x] Instagram OAuth - `apps/web/src/services/auth/instagram.ts` (189 lines)
@@ -357,10 +358,11 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] Rate Limit Utility - `apps/web/src/lib/rate-limit.ts` (~50 lines)
 - [x] Bags.fm Service - `apps/web/src/services/bags/index.ts` (381 lines) - **COMPLETE v76.3**
 - [x] NFT Minting Service - `apps/web/src/services/nft/index.ts` (~400 lines) - **COMPLETE v84**
+- [x] Twilio SMS Service - `apps/web/src/services/sms/twilio.ts` (280 lines) - **COMPLETE v85**
 
-**Total Service Code: ~3,770 lines (production-ready)**
+**Total Service Code: ~4,050 lines (production-ready)**
 
-### API Routes (42 Files, All Categories Complete)
+### API Routes (45 Files, All Categories Complete)
 
 **Authentication (6 routes):**
 - [x] POST /api/auth/session - Validate session
@@ -379,7 +381,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] GET /api/votes/[id]/results - Vote results
 - [x] GET /api/votes/[id]/resolution - Vote resolution status - **COMPLETE v84**
 
-**User (12 routes):**
+**User (15 routes):**
 - [x] GET /api/user/profile - Get profile
 - [x] POST /api/user/profile - Create profile
 - [x] PATCH /api/user/profile - Update profile
@@ -392,6 +394,9 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] GET/POST /api/user/push-token - Push token registration
 - [x] DELETE /api/user/push-token - Push token removal
 - [x] GET /api/user/nfts - User's NFT collection - **COMPLETE v84**
+- [x] POST /api/user/phone/send-code - Send SMS verification code - **COMPLETE v85**
+- [x] POST /api/user/phone/verify - Verify SMS code - **COMPLETE v85**
+- [x] GET /api/user/phone/status - Get phone verification status - **COMPLETE v85**
 
 **Social (6 routes):**
 - [x] GET /api/social/proofs - Get social proofs
@@ -445,23 +450,23 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] Landing, About, FAQ, Auth (sign-in, sign-up), Onboarding, Create Vote, Votes, Download, Dashboard
 - [x] Vote Detail, Verification, Settings Social, Connect Social (all complete)
 
-### Database (16/16 Tables Complete + 4 Bags.fm Tables + 1 NFT Table)
+### Database (17/17 Tables Complete + 4 Bags.fm Tables + 1 NFT Table + 1 Phone Table)
 - [x] users, social_proofs, verification_runs, verification_schedule, verification_attempts, payments, entitlements, votes, vote_options, user_votes, push_tokens, webhook_events
 - [x] treasury, treasury_transactions, issue_coins, issue_coin_holdings (Bags.fm - COMPLETE v76.3)
 - [x] vote_nfts (P2-NFT - **COMPLETE v84**)
+- [x] phone_verifications (P3-6 - **COMPLETE v85**)
 - [x] 22+ indexes for query performance
 - [x] 7 triggers for automation
-- [x] 9 functions for business logic
-- [x] 17 RLS policies for security
-- [ ] phone_verifications (P3-6 - NOT CREATED)
+- [x] 11 functions for business logic (added 2 phone verification functions)
+- [x] 18 RLS policies for security (added phone_verifications policy)
 
 ### Shared Package (@sync/shared)
-- [x] Types: 35+ types/interfaces (user, vote, payment, signup, verification, bags, nft)
-- [x] Constants: 25+ constants (municipalities, vote limits, costs)
+- [x] Types: 40+ types/interfaces (user, vote, payment, signup, verification, bags, nft, phone)
+- [x] Constants: 30+ constants (municipalities, vote limits, costs, phone error messages)
 - [x] Utilities: 50+ functions (formatting, DID crypto, identity scoring, retry logic)
-- [x] Contracts: 70+ Zod schemas (auth, social, verification, payment, vote, bags, nft)
-- [x] Error Messages: 72+ Hebrew messages (55 error, 12 success, 5 info)
-- [x] Tests: 106 test cases (100% coverage for utilities)
+- [x] Contracts: 80+ Zod schemas (auth, social, verification, payment, vote, bags, nft, phone)
+- [x] Error Messages: 80+ Hebrew messages (60 error, 14 success, 6 info)
+- [x] Tests: 117 test cases (100% coverage for utilities)
 
 ### API Client Package (@sync/api-client)
 - [x] Base Client: `client.ts` with auth, error handling, retries
@@ -474,14 +479,15 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] Newsletter API: `newsletter.ts` (1 method) - RESOLVED v76.4
 - [x] Bags API: `bags.ts` (6 methods) - RESOLVED v76.3
 - [x] NFT API: `nft.ts` (7 methods) - **COMPLETE v84**
+- [x] Phone API: `phone.ts` (3 methods) - **COMPLETE v85**
 
 ### Test Coverage
 - [x] Shared Utils: 117 tests (formatters, retry, DID, identity score)
-- [x] API Client: 110 tests (all 8 modules covered)
-- [~] API Routes: 260/391 tests (66% coverage - P3-12 partial)
+- [x] API Client: 125 tests (all 11 modules covered, +15 phone tests v85)
+- [~] API Routes: 261/391 tests (67% coverage - P3-12 partial)
 - [ ] Mobile App: 0 tests (P3-13 pending)
 
-**Total Tests: 487 passing**
+**Total Tests: 503 passing**
 
 ---
 
@@ -500,11 +506,35 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | Resend | Email | [x] Complete | 6 HTML templates, Hebrew RTL |
 | Beehiiv | Newsletter | [x] Complete | Subscriber management |
 | **Bags.fm** | SocialFi | [x] **COMPLETE v76.3** | Issue Coins, treasury - backend complete, UI post-pilot |
+| **Twilio** | SMS | [x] **COMPLETE v85** | Phone verification via Verify API, Hebrew locale |
 
 ---
 
 *Last Updated: January 18, 2026*
-*Document Version: 84.0*
+*Document Version: 85.0*
+
+**Audit v85.0 Changes (P3-6 SMS Phone Verification - Jan 18, 2026):**
+- P3-6 RESOLVED: Complete Twilio SMS verification system implemented
+- New database migration: `20250119000001_phone_verifications.sql`
+  - `phone_verifications` table with rate limiting columns
+  - `users.phone_verified` and `users.phone_verified_at` columns
+  - 5 helper functions for rate limiting and verification
+  - RLS policy for phone_verifications
+- New types file: `packages/shared/src/types/phone.ts` - 10+ interfaces and constants
+- New contracts file: `packages/shared/src/contracts/phone.ts` - 8+ Zod schemas
+- New service: `apps/web/src/services/sms/twilio.ts` (280 lines)
+  - sendVerificationCode(), checkVerificationCode()
+  - Hebrew locale for SMS content
+  - Error code handling for Twilio-specific errors
+- New API routes:
+  - `POST /api/user/phone/send-code` - Send OTP (176 lines)
+  - `POST /api/user/phone/verify` - Verify OTP (240 lines)
+  - `GET /api/user/phone/status` - Get verification status (50 lines)
+- New API client module: `packages/api-client/src/phone.ts` (3 methods)
+- New tests: `packages/api-client/src/__tests__/phone.test.ts` (15 tests)
+- Environment variables added: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_VERIFY_SERVICE_SID
+- Total tests increased from 488 to 503 (+15 phone tests)
+- Total active items reduced from 12 to 11
 
 **Audit v84.0 Changes (P2-NFT System Implementation - Jan 18, 2026):**
 - P2-N1 through P2-N6 ALL RESOLVED: NFT system fully implemented

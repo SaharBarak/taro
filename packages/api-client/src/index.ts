@@ -10,3 +10,4 @@ export { bagsApi } from './bags';
 export { notificationsApi } from './notifications';
 export { newsletterApi } from './newsletter';
 export { nftApi } from './nft';
+export { phoneApi } from './phone';
