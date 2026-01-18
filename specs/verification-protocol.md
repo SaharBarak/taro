@@ -15,10 +15,10 @@ The GPS Verification Protocol establishes residency by requiring users to prove 
 |---------------------|--------|
 | Not started | 0 |
 | In progress | 0 |
-| Completed (verified) | +20 |
+| Completed (verified) | +40 |
 | Failed | 0 |
 
-**Note:** GPS verification contributes 20 points to identity score, bringing max to 100 with all social proofs.
+**Note:** GPS verification contributes 40 points to identity score (equal to Google OAuth). See `specs/auth-flow.md` for full score breakdown: GPS=40, Google=40, Facebook=10, Instagram=10 (max 100).
 
 ## Verification Rules
 

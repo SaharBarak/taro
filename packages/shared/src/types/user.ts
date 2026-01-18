@@ -19,17 +19,18 @@ export interface SocialProof {
   profileImage?: string;
   email?: string;
   connectedAt: Date;
-  stampWeight: number; // Points contribution (Google: 40, Facebook: 30, Instagram: 30)
+  stampWeight: number; // Points contribution (Google: 40, Facebook: 10, Instagram: 10)
 }
 
 export interface IdentityScore {
   total: number; // 0-100
   breakdown: {
-    google: number;
-    facebook: number;
-    instagram: number;
+    gps: number; // 40 points (location proof, highest weight with Google)
+    google: number; // 40 points (primary auth, required)
+    facebook: number; // 10 points (social proof)
+    instagram: number; // 10 points (social proof)
   };
-  level: 'basic' | 'verified' | 'trusted'; // basic: 40-69, verified: 70-99, trusted: 100
+  level: 'basic' | 'verified' | 'trusted'; // basic: 40-59, verified: 60-79, trusted: 80-100
   lastCalculated?: Date; // When the score was last calculated
 }
 

@@ -1,25 +1,33 @@
 # Authentication Flow Specification
 
 **Status:** IMPLEMENTED
-**Last Updated:** January 2025
+**Last Updated:** January 18, 2025 (v77 - Identity score updated)
 
 ---
 
 ## Overview
 
-Taru uses Google OAuth as the primary authentication method, with Facebook and Instagram as secondary social proof providers. Authentication creates a DID (Decentralized Identifier) for each user and manages JWT-based sessions.
+Taruu uses Google OAuth as the primary authentication method, with Facebook and Instagram as secondary social proof providers. Authentication creates a DID (Decentralized Identifier) for each user and manages JWT-based sessions.
 
 ## Identity Score System
 
-Users earn identity points from connected social accounts:
+Users earn identity points from connected accounts and verification:
 
 | Provider | Points | Purpose |
 |----------|--------|---------|
+| GPS Verification | 40 | Location proof (highest weight) |
 | Google | 40 | Primary auth (required) |
-| Facebook | 20 | Social proof |
-| Instagram | 20 | Social proof |
-| GPS Verification | 20 | Location proof |
+| Instagram | 10 | Social proof |
+| Facebook | 10 | Social proof |
 | **Maximum** | **100** | Full verification |
+
+**Score Levels:**
+- **basic** (40-59): Google only
+- **verified** (60-79): Google + GPS or Google + both socials
+- **trusted** (80-100): Google + GPS + at least one social
+
+**Minimum to vote:** 40 points (Google verification required)
+**Recommended:** 80+ points (trusted status with GPS verification)
 
 ## Authentication Flow
 
@@ -76,7 +84,7 @@ POST /api/social/connect/instagram
 1. User already authenticated via Google
 2. Initiate OAuth with Facebook/Instagram
 3. Callback creates `social_proof` record
-4. Identity score increases by 20 points
+4. Identity score increases by 10 points per platform
 
 **Callback Routes:**
 ```

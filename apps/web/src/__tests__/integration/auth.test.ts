@@ -196,8 +196,14 @@ describe('Auth Flow Integration', () => {
   });
 
   describe('Identity Score', () => {
-    it('should calculate correct identity score', async () => {
-      const { calculateIdentityScore, IDENTITY_SCORE_WEIGHTS } = await import('@sync/shared');
+    it('should calculate correct identity score per auth-flow.md v77', async () => {
+      const { calculateIdentityScore, IDENTITY_SCORE_WEIGHTS, GPS_SCORE_WEIGHT } = await import('@sync/shared');
+
+      // Verify weights match spec: GPS=40, Google=40, Facebook=10, Instagram=10
+      expect(GPS_SCORE_WEIGHT).toBe(40);
+      expect(IDENTITY_SCORE_WEIGHTS.google).toBe(40);
+      expect(IDENTITY_SCORE_WEIGHTS.facebook).toBe(10);
+      expect(IDENTITY_SCORE_WEIGHTS.instagram).toBe(10);
 
       // Google only = 40 points (basic)
       const googleOnly = calculateIdentityScore([
@@ -206,22 +212,38 @@ describe('Auth Flow Integration', () => {
       expect(googleOnly.total).toBe(40);
       expect(googleOnly.level).toBe('basic');
 
-      // Google + Facebook = 70 points (verified)
+      // Google + Facebook = 50 points (still basic, not verified)
       const withFacebook = calculateIdentityScore([
         { platform: 'google', providerId: '123', displayName: 'Test', connectedAt: new Date(), stampWeight: 40 },
-        { platform: 'facebook', providerId: '456', displayName: 'Test', connectedAt: new Date(), stampWeight: 30 },
+        { platform: 'facebook', providerId: '456', displayName: 'Test', connectedAt: new Date(), stampWeight: 10 },
       ]);
-      expect(withFacebook.total).toBe(70);
-      expect(withFacebook.level).toBe('verified');
+      expect(withFacebook.total).toBe(50);
+      expect(withFacebook.level).toBe('basic');
 
-      // All platforms = 100 points (trusted)
-      const allPlatforms = calculateIdentityScore([
+      // All social platforms (no GPS) = 60 points (verified)
+      const allSocial = calculateIdentityScore([
         { platform: 'google', providerId: '123', displayName: 'Test', connectedAt: new Date(), stampWeight: 40 },
-        { platform: 'facebook', providerId: '456', displayName: 'Test', connectedAt: new Date(), stampWeight: 30 },
-        { platform: 'instagram', providerId: '789', displayName: 'Test', connectedAt: new Date(), stampWeight: 30 },
+        { platform: 'facebook', providerId: '456', displayName: 'Test', connectedAt: new Date(), stampWeight: 10 },
+        { platform: 'instagram', providerId: '789', displayName: 'Test', connectedAt: new Date(), stampWeight: 10 },
       ]);
-      expect(allPlatforms.total).toBe(100);
-      expect(allPlatforms.level).toBe('trusted');
+      expect(allSocial.total).toBe(60);
+      expect(allSocial.level).toBe('verified');
+
+      // Google + GPS = 80 points (trusted) - GPS is the key differentiator
+      const googlePlusGps = calculateIdentityScore([
+        { platform: 'google', providerId: '123', displayName: 'Test', connectedAt: new Date(), stampWeight: 40 },
+      ], true);
+      expect(googlePlusGps.total).toBe(80);
+      expect(googlePlusGps.level).toBe('trusted');
+
+      // All verifications = 100 points (max trusted)
+      const allVerified = calculateIdentityScore([
+        { platform: 'google', providerId: '123', displayName: 'Test', connectedAt: new Date(), stampWeight: 40 },
+        { platform: 'facebook', providerId: '456', displayName: 'Test', connectedAt: new Date(), stampWeight: 10 },
+        { platform: 'instagram', providerId: '789', displayName: 'Test', connectedAt: new Date(), stampWeight: 10 },
+      ], true);
+      expect(allVerified.total).toBe(100);
+      expect(allVerified.level).toBe('trusted');
     });
   });
 });

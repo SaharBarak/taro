@@ -6,7 +6,13 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore, useUser } from '@/stores/authStore';
 import { connectFacebook, connectInstagram } from '@/lib/auth';
-import { getIdentityLevelLabel, type IdentityScore } from '@sync/shared';
+import {
+  getIdentityLevelLabel,
+  calculateIdentityScore,
+  IDENTITY_SCORE_WEIGHTS,
+  type IdentityScore,
+  type SocialProof,
+} from '@sync/shared';
 
 export default function ConnectSocialScreen() {
   const router = useRouter();
@@ -23,17 +29,37 @@ export default function ConnectSocialScreen() {
       const result = await connectFacebook(user.id);
       if (result.success) {
         setConnectedPlatforms([...connectedPlatforms, 'facebook']);
-        // Update user identity score
-        const newTotal = (user.identityScore?.total || 40) + 30;
-        const newScore: IdentityScore = {
-          total: newTotal,
-          level: newTotal >= 100 ? 'trusted' : 'verified',
-          breakdown: {
-            google: user.identityScore?.breakdown?.google || 40,
-            facebook: 30,
-            instagram: user.identityScore?.breakdown?.instagram || 0,
-          },
-        };
+        // Build updated social proofs array
+        const currentProofs: SocialProof[] = [];
+        if (user.identityScore?.breakdown?.google) {
+          currentProofs.push({
+            platform: 'google',
+            providerId: user.googleId || '',
+            displayName: '',
+            connectedAt: new Date(),
+            stampWeight: IDENTITY_SCORE_WEIGHTS.google,
+          });
+        }
+        // Add Facebook proof
+        currentProofs.push({
+          platform: 'facebook',
+          providerId: '',
+          displayName: '',
+          connectedAt: new Date(),
+          stampWeight: IDENTITY_SCORE_WEIGHTS.facebook,
+        });
+        if (user.identityScore?.breakdown?.instagram) {
+          currentProofs.push({
+            platform: 'instagram',
+            providerId: '',
+            displayName: '',
+            connectedAt: new Date(),
+            stampWeight: IDENTITY_SCORE_WEIGHTS.instagram,
+          });
+        }
+        // Calculate new score using GPS status from user verification
+        const gpsVerified = user.verificationStatus?.phase === 'completed';
+        const newScore = calculateIdentityScore(currentProofs, gpsVerified);
         updateUser({ identityScore: newScore });
       } else {
         Alert.alert('שגיאה', result.error || 'לא ניתן לחבר את פייסבוק');
@@ -52,17 +78,37 @@ export default function ConnectSocialScreen() {
       const result = await connectInstagram(user.id);
       if (result.success) {
         setConnectedPlatforms([...connectedPlatforms, 'instagram']);
-        // Update user identity score
-        const newTotal = (user.identityScore?.total || 40) + 30;
-        const newScore: IdentityScore = {
-          total: newTotal,
-          level: newTotal >= 100 ? 'trusted' : 'verified',
-          breakdown: {
-            google: user.identityScore?.breakdown?.google || 40,
-            facebook: user.identityScore?.breakdown?.facebook || 0,
-            instagram: 30,
-          },
-        };
+        // Build updated social proofs array
+        const currentProofs: SocialProof[] = [];
+        if (user.identityScore?.breakdown?.google) {
+          currentProofs.push({
+            platform: 'google',
+            providerId: user.googleId || '',
+            displayName: '',
+            connectedAt: new Date(),
+            stampWeight: IDENTITY_SCORE_WEIGHTS.google,
+          });
+        }
+        if (user.identityScore?.breakdown?.facebook) {
+          currentProofs.push({
+            platform: 'facebook',
+            providerId: '',
+            displayName: '',
+            connectedAt: new Date(),
+            stampWeight: IDENTITY_SCORE_WEIGHTS.facebook,
+          });
+        }
+        // Add Instagram proof
+        currentProofs.push({
+          platform: 'instagram',
+          providerId: '',
+          displayName: '',
+          connectedAt: new Date(),
+          stampWeight: IDENTITY_SCORE_WEIGHTS.instagram,
+        });
+        // Calculate new score using GPS status from user verification
+        const gpsVerified = user.verificationStatus?.phase === 'completed';
+        const newScore = calculateIdentityScore(currentProofs, gpsVerified);
         updateUser({ identityScore: newScore });
       } else {
         Alert.alert('שגיאה', result.error || 'לא ניתן לחבר את אינסטגרם');
@@ -187,7 +233,7 @@ export default function ConnectSocialScreen() {
                   Facebook
                 </Text>
                 <Text className="text-sm font-assistant text-neutral-500 text-right">
-                  {facebookConnected ? 'מחובר' : 'הוסיפו 30 נקודות לציון'}
+                  {facebookConnected ? 'מחובר' : 'הוסיפו 10 נקודות לציון'}
                 </Text>
               </View>
             </View>
@@ -196,7 +242,7 @@ export default function ConnectSocialScreen() {
                 <>
                   <Ionicons name="checkmark-circle" size={24} color="#10B981" />
                   <Text className="text-sm font-heebo text-secondary-600 mt-1">
-                    +30 נקודות
+                    +10 נקודות
                   </Text>
                 </>
               ) : (
@@ -252,7 +298,7 @@ export default function ConnectSocialScreen() {
                   Instagram
                 </Text>
                 <Text className="text-sm font-assistant text-neutral-500 text-right">
-                  {instagramConnected ? 'מחובר' : 'הוסיפו 30 נקודות לציון'}
+                  {instagramConnected ? 'מחובר' : 'הוסיפו 10 נקודות לציון'}
                 </Text>
               </View>
             </View>
@@ -261,7 +307,7 @@ export default function ConnectSocialScreen() {
                 <>
                   <Ionicons name="checkmark-circle" size={24} color="#10B981" />
                   <Text className="text-sm font-heebo text-secondary-600 mt-1">
-                    +30 נקודות
+                    +10 נקודות
                   </Text>
                 </>
               ) : (

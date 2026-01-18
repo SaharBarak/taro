@@ -1,44 +1,53 @@
 /**
  * Identity Score Calculator
  *
- * Calculates user's identity verification score based on connected social accounts.
+ * Calculates user's identity verification score based on GPS verification and connected social accounts.
  * Higher scores indicate higher confidence in user's authentic identity (Sybil-resistance).
  *
- * Score Breakdown:
- * - Google: 40 points (REQUIRED)
- * - Facebook: 30 points (optional)
- * - Instagram: 30 points (optional)
+ * Score Breakdown (per specs/auth-flow.md v77):
+ * - GPS Verification: 40 points (location proof, highest weight)
+ * - Google: 40 points (primary auth, REQUIRED)
+ * - Facebook: 10 points (social proof)
+ * - Instagram: 10 points (social proof)
  *
  * Levels:
- * - basic: 40-69 points (Google only)
- * - verified: 70-99 points (Google + one other)
- * - trusted: 100 points (all three)
+ * - basic: 40-59 points (Google only)
+ * - verified: 60-79 points (Google + GPS or Google + both socials)
+ * - trusted: 80-100 points (Google + GPS + at least one social)
  *
  * Minimum to vote: 40 points (Google verification required)
- * Recommended: 70+ points (verified status)
+ * Recommended: 80+ points (trusted status with GPS verification)
  */
 
 import type { SocialProof, IdentityScore, SocialPlatform } from '../types/user';
 
 // === Score Constants ===
 
+export const GPS_SCORE_WEIGHT = 40;
+
 export const IDENTITY_SCORE_WEIGHTS: Record<SocialPlatform, number> = {
   google: 40,
-  facebook: 30,
-  instagram: 30,
+  facebook: 10,
+  instagram: 10,
 };
 
 export const MINIMUM_VOTING_SCORE = 40;
-export const VERIFIED_THRESHOLD = 70;
-export const TRUSTED_THRESHOLD = 100;
+export const VERIFIED_THRESHOLD = 60;
+export const TRUSTED_THRESHOLD = 80;
 
 // === Score Calculation ===
 
 /**
- * Calculate identity score from social proofs
+ * Calculate identity score from social proofs and GPS verification status
+ * @param socialProofs - Array of connected social proof objects
+ * @param gpsVerified - Whether GPS verification is completed (21-day verification passed)
  */
-export function calculateIdentityScore(socialProofs: SocialProof[]): IdentityScore {
+export function calculateIdentityScore(
+  socialProofs: SocialProof[],
+  gpsVerified: boolean = false
+): IdentityScore {
   const breakdown = {
+    gps: gpsVerified ? GPS_SCORE_WEIGHT : 0,
     google: 0,
     facebook: 0,
     instagram: 0,
@@ -53,9 +62,11 @@ export function calculateIdentityScore(socialProofs: SocialProof[]): IdentitySco
   }
 
   // Calculate total score
-  const total = breakdown.google + breakdown.facebook + breakdown.instagram;
+  const total =
+    breakdown.gps + breakdown.google + breakdown.facebook + breakdown.instagram;
 
-  // Determine level
+  // Determine level based on new thresholds (per specs/auth-flow.md v77)
+  // basic: 40-59, verified: 60-79, trusted: 80-100
   let level: IdentityScore['level'];
   if (total >= TRUSTED_THRESHOLD) {
     level = 'trusted';
@@ -138,6 +149,7 @@ export function createInitialIdentityScore(): IdentityScore {
   return {
     total: 0,
     breakdown: {
+      gps: 0,
       google: 0,
       facebook: 0,
       instagram: 0,
@@ -202,9 +214,31 @@ export function getIdentityLevelDescription(
   level: IdentityScore['level']
 ): string {
   const descriptions: Record<IdentityScore['level'], string> = {
-    basic: 'אימות Google בלבד - מומלץ להוסיף חשבונות נוספים',
-    verified: 'אימות עם מספר חשבונות - רמת אמון גבוהה',
-    trusted: 'אימות מלא - רמת אמון מקסימלית',
+    basic: 'אימות Google בלבד - מומלץ להוסיף אימות GPS',
+    verified: 'אימות עם GPS או רשתות חברתיות - רמת אמון גבוהה',
+    trusted: 'אימות מלא עם GPS - רמת אמון מקסימלית',
   };
   return descriptions[level];
+}
+
+/**
+ * Check if GPS verification contributes to identity score
+ */
+export function hasGpsVerification(identityScore: IdentityScore): boolean {
+  return identityScore.breakdown.gps > 0;
+}
+
+/**
+ * Get Hebrew label for verification type (GPS or social platform)
+ */
+export function getVerificationTypeLabel(
+  type: SocialPlatform | 'gps'
+): string {
+  const labels: Record<SocialPlatform | 'gps', string> = {
+    gps: 'אימות מיקום',
+    google: 'גוגל',
+    facebook: 'פייסבוק',
+    instagram: 'אינסטגרם',
+  };
+  return labels[type];
 }
