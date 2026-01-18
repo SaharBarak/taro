@@ -1,7 +1,7 @@
 # SMS Phone Verification Specification
 
-**Status:** NOT IMPLEMENTED
-**Last Updated:** January 18, 2025 (v77)
+**Status:** COMPLETE (v85 backend, v96 mobile UI)
+**Last Updated:** January 18, 2026 (v96)
 **Provider:** Twilio
 
 ---

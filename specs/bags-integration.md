@@ -1,8 +1,8 @@
 # Bags.fm SocialFi Integration Specification
 
-**Status:** BACKEND COMPLETE (v76.3) - UI Components Pending
+**Status:** COMPLETE (v86) - Backend and UI
 **Priority:** 2 (Post-pilot UI components)
-**Last Updated:** January 18, 2025
+**Last Updated:** January 18, 2026 (v86)
 
 ---
 
@@ -34,12 +34,6 @@ Users never touch crypto directly. The platform abstracts all blockchain complex
 - Environment variables (BAGS_API_KEY, BAGS_MASTER_WALLET_*, BAGS_WEBHOOK_SECRET)
 - Database tables: treasury, treasury_transactions, issue_coins, issue_coin_holdings
 - API routes: /api/bags/quote, /api/bags/swap, /api/treasury/[municipality], /api/votes/[id]/issue-coin
-
-### What's Pending (UI Components)
-- **P2-B19:** Trophy Room (Mobile NFT gallery)
-- **P2-B20:** Victory Wall (Web vote archive)
-- **P2-B21:** Multiplier Dashboard (Web treasury display)
-- **P2-B22:** External Supporter Flow (Web wallet connect)
 
 ---
 
