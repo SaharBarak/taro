@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 18, 2026 (v95 - Test File Type Annotations)
-**Document Version:** 95.0
+**Last Audit:** January 18, 2026 (v96 - Mobile Phone Verification UI)
+**Document Version:** 96.0
 
 ---
 
@@ -67,7 +67,7 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. **Ba
 
 **P3 - LOW (7 items):**
 - [ ] **P3-3:** Branding Update (Sync to Taruu, ~32 files)
-- [x] **P3-6:** SMS Phone Verification (Twilio) - **COMPLETE v85**
+- [x] **P3-6:** SMS Phone Verification (Twilio + Mobile UI) - **COMPLETE v85 (backend), v96 (mobile UI)**
 - [ ] **P3-7:** QR Code generation (App Store/Play Store)
 - [ ] **P3-9:** Google verification placeholder
 - [ ] **P3-10:** WhatsApp link placeholder
@@ -124,7 +124,7 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. **Ba
 - **Database:** 6 migrations (19 tables including treasury/issue_coins, 22+ indexes, 17 RLS policies)
 - **Security:** Webhook HMAC + timestamp + event deduplication, rate limiting on 3 endpoints (in-memory)
 - **Environment:** All required variables documented in .env.example
-- **Technical Debt:** 1 TODO comment (phone verification), 0 weak type annotations (all converted to unknown), 2 QR code placeholders, 28+ hardcoded colors in email templates
+- **Technical Debt:** 0 TODO comments (phone verification complete), 0 weak type annotations (all converted to unknown), 2 QR code placeholders, 28+ hardcoded colors in email templates
 - **Total Tests:** 689 passing (shared: 117, api-client: 125, web: 447, mobile: 0)
 
 **Legend:**
@@ -303,7 +303,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 |---|-------|------|------|--------|--------------|--------|
 | P3-3 | **Branding inconsistency** | Multiple files | Various | ~~Uses "Sync" and "Taruu" inconsistently~~ | **DECISION MADE v77:** Rebrand to "Taruu" everywhere (~32 files) | [x] **COMPLETE v87** |
 | P3-5 | **Weak error typing** | Mobile + Web | 10 locations | Uses `catch (err: any)` instead of proper error types | Convert to `catch (err: unknown)` with type guards | [x] **COMPLETE v76.6** |
-| P3-6 | **Phone verification stub** | `apps/mobile/app/settings/verification.tsx` | 40 | ~~Returns false with "Coming Soon" message~~ | **DECISION MADE v77:** Implement Twilio SMS verification | [x] **COMPLETE v85** |
+| P3-6 | **Phone verification stub** | `apps/mobile/app/settings/verification.tsx` | 40 | ~~Returns false with "Coming Soon" message~~ | **DECISION MADE v77:** Implement Twilio SMS verification | [x] **COMPLETE v85 (backend), v96 (mobile UI)** |
 | P3-7 | **QR code placeholders** | `apps/web/src/app/[locale]/download/` | 80,84 | Shows "QR" text instead of actual codes | Generate App Store/Play Store QR codes | [x] **COMPLETE v89** |
 | P3-9 | **Google verification placeholder** | `apps/web/src/app/[locale]/layout.tsx` | 121 | SEO verification not configured | Replace with actual Google Search Console code (requires project owner) | [ ] |
 | P3-10 | **WhatsApp link placeholder** | `apps/web/src/app/[locale]/layout.tsx` | 150 | Schema.org references placeholder | Update with actual WhatsApp group link (requires project owner) | [ ] |
@@ -440,13 +440,13 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] GET/POST /api/cron/verification-notifications - Push reminder cron
 - [x] GET/POST /api/cron/resolve-votes - Vote resolution trigger (P2-N1) - **COMPLETE v84**
 
-### Mobile Screens (28 Files, All Registered)
+### Mobile Screens (29 Files, All Registered)
 - [x] Auth: index, sign-in, sign-up, onboarding, connect-social (5 complete)
 - [x] Tabs: index, votes, create, history, profile (5 complete)
 - [x] Vote: [id].tsx (complete with GPS + share)
 - [x] Verification: index, check-in, complete (3 complete)
 - [x] Payment: checkout, success, failed (3 complete)
-- [x] Settings: profile, notifications, verification, municipality, social-connections (5 complete)
+- [x] Settings: profile, notifications, verification, municipality, social-connections, phone-verification (6 complete)
 - [x] Layouts: 7 _layout.tsx files (all complete)
 
 ### Mobile Push Notifications (100% Complete)
@@ -525,7 +525,29 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 ---
 
 *Last Updated: January 18, 2026*
-*Document Version: 95.0*
+*Document Version: 96.0*
+
+**Audit v96.0 Changes (Mobile Phone Verification UI - Jan 18, 2026):**
+- P3-6 Mobile UI COMPLETE: Phone verification UI connected to backend APIs
+- New screen: `apps/mobile/app/settings/phone-verification.tsx` (~280 lines)
+  - Phone number input with Israeli format validation (+972)
+  - SMS code sending via phoneApi.sendCode()
+  - 6-digit code verification via phoneApi.verify()
+  - Countdown timer for resend cooldown
+  - Resend capability after timer expires
+  - Success state with automatic navigation back
+- Screen registered in `apps/mobile/app/settings/_layout.tsx`
+- Updated `apps/mobile/app/settings/verification.tsx`:
+  - Imports phoneApi from @sync/api-client
+  - Fetches phone verification status using phoneApi.getStatus() in parallel with profile fetch
+  - Navigates to phone-verification screen when tapping phone verification item
+- Removed TODO comment `phone: false, // TODO: Add phone verification`
+- Remaining external TODOs (not blocking, depend on external services):
+  - NFT metadata upload to IPFS/Arweave (nft/index.ts:188) - requires external infrastructure
+  - Bags.fm trading freeze API call (nft/index.ts:297) - depends on Bags.fm API support
+  - Fee tracking (vote-resolution route.ts:81) - depends on Bags.fm fee claiming feature
+- All tests passing: 822 tests (shared: 117, api-client: 125, web: 462, mobile: 118)
+- Mobile screens increased from 28 to 29 (phone-verification added)
 
 **Audit v95.0 Changes (Test File Type Annotations - Jan 18, 2026):**
 - Fixed TypeScript type errors in test files:

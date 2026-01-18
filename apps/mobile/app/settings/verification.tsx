@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { usersApi } from '@sync/api-client';
+import { usersApi, phoneApi } from '@sync/api-client';
 
 type VerificationStep = 'email' | 'phone' | 'location' | 'identity';
 
@@ -29,7 +29,12 @@ export default function VerificationScreen() {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const profile = await usersApi.getProfile();
+        // Fetch profile and phone status in parallel
+        const [profile, phoneStatus] = await Promise.all([
+          usersApi.getProfile(),
+          phoneApi.getStatus().catch(() => ({ verified: false })),
+        ]);
+
         // Transform shared VerificationStatus to local status format
         // The shared type tracks the 21-day GPS verification phase
         // while local status tracks individual verification steps
@@ -37,10 +42,16 @@ export default function VerificationScreen() {
           const vs = profile.verificationStatus;
           setStatus({
             email: profile.emailVerified || false,
-            phone: false, // TODO: Add phone verification
+            phone: phoneStatus.verified,
             location: vs.phase === 'completed' || (vs.checkInsCompleted || 0) > 0,
             identity: (profile.identityScore?.total || 0) >= 40,
           });
+        } else {
+          // If no verification status, still update phone status
+          setStatus((prev) => ({
+            ...prev,
+            phone: phoneStatus.verified,
+          }));
         }
       } catch (err) {
         console.error('Error fetching verification status:', err);
@@ -51,6 +62,11 @@ export default function VerificationScreen() {
 
     fetchStatus();
   }, []);
+
+  const handleVerifyPhone = () => {
+    // Type assertion needed until Expo Router types are regenerated
+    router.push('/settings/phone-verification' as '/settings/verification');
+  };
 
   const handleVerifyLocation = async () => {
     setVerifying('location');
@@ -154,7 +170,7 @@ export default function VerificationScreen() {
             className={`bg-neutral-50 rounded-xl p-4 flex-row-reverse items-center ${
               !status.phone ? 'active:bg-neutral-100' : ''
             }`}
-            disabled={status.phone}
+            onPress={handleVerifyPhone}
           >
             <View
               className={`w-10 h-10 rounded-full items-center justify-center ${
