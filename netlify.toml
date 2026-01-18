@@ -1,4 +1,4 @@
-# Netlify configuration for Sync monorepo
+# Netlify configuration for Taruu monorepo
 [build]
   command = "pnpm install && pnpm build:web"
   publish = "apps/web/.next"

@@ -7,16 +7,16 @@
 
 ## Overview
 
-Sync uses Green Invoice, an Israeli payment gateway, to process payments for vote participation and vote creation. Successful payments trigger SYNC token minting on the Qubik blockchain and send receipt emails via Resend.
+Taruu uses Green Invoice, an Israeli payment gateway, to process payments for vote participation and vote creation. Successful payments trigger TARO token minting on the Qubik blockchain and send receipt emails via Resend.
 
 ## Payment Types
 
 | Type | Cost | Tokens Earned | Description |
 |------|------|---------------|-------------|
-| `vote_participation` | ₪3 | 3 SYNC | Cast a vote on an issue |
-| `vote_creation` | ₪200 | 200 SYNC | Create a new vote topic |
+| `vote_participation` | ₪3 | 3 TARO | Cast a vote on an issue |
+| `vote_creation` | ₪200 | 200 TARO | Create a new vote topic |
 
-**Token Rate:** 1 ILS = 1 SYNC token
+**Token Rate:** 1 ILS = 1 TARO token
 
 ## Payment Flow
 

@@ -1,5 +1,5 @@
 /**
- * Sync Design System - Spacing Tokens
+ * Taruu Design System - Spacing Tokens
  * Base: 4px
  */
 

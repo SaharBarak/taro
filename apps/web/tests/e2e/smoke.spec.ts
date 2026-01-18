@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Journey 1: Authentication', () => {
   test('homepage loads and shows login option', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveTitle(/Sync|סינק/i);
+    await expect(page).toHaveTitle(/Taruu|תרו/i);
   });
 
   test('login page renders with Google OAuth button', async ({ page }) => {

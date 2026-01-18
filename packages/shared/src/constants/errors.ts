@@ -1,7 +1,7 @@
 /**
  * Hebrew Error Messages
  *
- * Centralized error messages for the Sync platform
+ * Centralized error messages for the Taruu platform
  * All user-facing errors should use these constants
  */
 

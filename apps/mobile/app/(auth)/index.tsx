@@ -13,7 +13,7 @@ export default function WelcomeScreen() {
           className="mb-8"
         >
           <Text className="text-6xl font-bold text-primary-600 font-heebo">
-            סינק
+            תרו
           </Text>
         </Animated.View>
 

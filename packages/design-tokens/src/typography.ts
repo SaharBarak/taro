@@ -1,5 +1,5 @@
 /**
- * Sync Design System - Typography Tokens
+ * Taruu Design System - Typography Tokens
  * Scale: 1.2 (Minor Third)
  * Base: 16px
  */

@@ -1,5 +1,5 @@
 /**
- * Sync Design System - Animation Tokens
+ * Taruu Design System - Animation Tokens
  */
 
 export const durations = {

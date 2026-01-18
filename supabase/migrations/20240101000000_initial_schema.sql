@@ -1,4 +1,4 @@
--- Sync Platform Database Schema
+-- Taruu Platform Database Schema
 -- Initial migration: Core tables for users, social proofs, verification, and payments
 
 -- Enable necessary extensions

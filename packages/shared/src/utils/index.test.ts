@@ -1,7 +1,7 @@
 /**
  * Tests for shared utility functions
  *
- * These utilities are used throughout the Sync platform for formatting,
+ * These utilities are used throughout the Taruu platform for formatting,
  * validation, and common operations. Testing ensures consistent behavior
  * across web and mobile apps.
  */

@@ -7,12 +7,12 @@
 
 ## Overview
 
-This document defines all REST API endpoints for the Sync platform. All endpoints use JSON for request/response bodies and require HTTPS in production.
+This document defines all REST API endpoints for the Taruu platform. All endpoints use JSON for request/response bodies and require HTTPS in production.
 
 ## Base URL
 
 ```
-Production: https://sync.co.il/api
+Production: https://taruu.co.il/api
 Development: http://localhost:3000/api
 ```
 

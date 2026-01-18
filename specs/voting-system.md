@@ -85,7 +85,7 @@ The voting system enables verified residents to create and participate in munici
 
 ### Cost
 - **Participation fee:** ₪1 (via Green Invoice)
-- **Tokens earned:** 3 Sync tokens
+- **Tokens earned:** 3 Taruu tokens
 
 ### Requirements
 - Authenticated user
@@ -170,7 +170,7 @@ const locationHash = Buffer.from(JSON.stringify({
 
 ### Token Minting
 
-After successful vote, mint Sync tokens:
+After successful vote, mint Taruu tokens:
 
 ```typescript
 await qubikService.mintTokens({

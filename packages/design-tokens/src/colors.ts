@@ -1,5 +1,5 @@
 /**
- * Sync Design System - Color Tokens
+ * Taruu Design System - Color Tokens
  * Shared across web and mobile platforms
  */
 

@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 18, 2026 (v86 - Bags.fm UI Components)
-**Document Version:** 86.0
+**Last Audit:** January 18, 2026 (v87 - P3-3 Branding Update)
+**Document Version:** 87.0
 
 ---
 
@@ -23,7 +23,7 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. **Ba
 | **Bags.fm Backend** | 18/18 (100%) | Service, types, DB, API routes all complete |
 | **Bags.fm UI** | 4/4 (100%) | **COMPLETE v86**: Trophy Room, Victory Wall, Multiplier Dashboard, External Supporter |
 | **NFT System** | 6/6 (100%) | **COMPLETE v84**: DB, types, contracts, service, API routes |
-| **P3 Low Priority** | 4/11 (36%) | Tests partial, branding/placeholders pending |
+| **P3 Low Priority** | 5/11 (45%) | Tests partial, placeholders pending, branding COMPLETE v87 |
 | **Test Coverage** | 503 tests | shared: 117, api-client: 125, web: 261, mobile: 0 |
 
 ### Remaining Work by Priority
@@ -289,7 +289,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 
 | # | Issue | File | Line | Impact | Fix Required | Status |
 |---|-------|------|------|--------|--------------|--------|
-| P3-3 | **Branding inconsistency** | Multiple files | Various | Uses "Sync" and "Taruu" inconsistently | **DECISION MADE v77:** Rebrand to "Taruu" everywhere (~32 files) | [ ] **READY TO IMPLEMENT** |
+| P3-3 | **Branding inconsistency** | Multiple files | Various | ~~Uses "Sync" and "Taruu" inconsistently~~ | **DECISION MADE v77:** Rebrand to "Taruu" everywhere (~32 files) | [x] **COMPLETE v87** |
 | P3-5 | **Weak error typing** | Mobile + Web | 10 locations | Uses `catch (err: any)` instead of proper error types | Convert to `catch (err: unknown)` with type guards | [x] **COMPLETE v76.6** |
 | P3-6 | **Phone verification stub** | `apps/mobile/app/settings/verification.tsx` | 40 | ~~Returns false with "Coming Soon" message~~ | **DECISION MADE v77:** Implement Twilio SMS verification | [x] **COMPLETE v85** |
 | P3-7 | **QR code placeholders** | `apps/web/src/app/[locale]/download/` | 80,84 | Shows "QR" text instead of actual codes | Generate App Store/Play Store QR codes | [ ] |
@@ -300,15 +300,16 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | P3-13 | **No tests for mobile app** | `apps/mobile/` | - | 28 screens with 0% test coverage | **DECISION MADE v77:** Full test coverage required | [ ] **READY TO IMPLEMENT** |
 | P3-14 | **No tests for API client** | `packages/api-client/` | - | 44 methods with test coverage | Add API client tests | [x] **COMPLETE v76.7** |
 
-**P3 Total: 7 items remaining (3 completed)**
+**P3 Total: 6 items remaining (4 completed)**
 
 ---
 
 ## RESOLVED BLOCKERS
 
-**Total Resolved: 77 items** - See git history for details
+**Total Resolved: 78 items** - See git history for details
 
-**Recent Resolutions (v50-v85):**
+**Recent Resolutions (v50-v87):**
+- **P3-3:** Branding Update (Sync → Taruu, ~20 files) - RESOLVED (v87)
 - **P3-6:** SMS Phone Verification (Twilio) - RESOLVED (v85)
 - **P1-17:** Identity Score point discrepancy fixed (GPS=40, Google=40, FB=10, IG=10) - RESOLVED (v82)
 - **P1-13:** API Client missing verification module - RESOLVED (v75)
@@ -334,9 +335,9 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | **P2 Medium** | 0 | All resolved including P2-14 Upstash Redis rate limiting |
 | **P0-BAGS** | 22 (22 done) | **100% COMPLETE v86** - Backend and UI all complete |
 | **P2-NFT** | 6 (6 done) | **100% COMPLETE v84** - DB, types, contracts, service, API routes |
-| **P3 Low** | 7 | Branding (P3-3), QR (P3-7), placeholders (P3-9/P3-10), Photo (P3-11), Tests (P3-12/P3-13) |
-| **Resolved** | 88 | All P0, all P1, P2-14/P2-15/P2-16, P2-NFT (6 items), P2-B19/B20/B21/B22 (4 items), P3-5, P3-6, P3-14 |
-| **Total Active** | 7 | 0 P1 + 0 P2 + 0 BAGS-UI + 0 NFT + 7 P3 items |
+| **P3 Low** | 6 | QR (P3-7), placeholders (P3-9/P3-10), Photo (P3-11), Tests (P3-12/P3-13) |
+| **Resolved** | 89 | All P0, all P1, P2-14/P2-15/P2-16, P2-NFT (6 items), P2-B19/B20/B21/B22 (4 items), P3-3, P3-5, P3-6, P3-14 |
+| **Total Active** | 6 | 0 P1 + 0 P2 + 0 BAGS-UI + 0 NFT + 6 P3 items |
 
 ---
 
@@ -511,7 +512,24 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 ---
 
 *Last Updated: January 18, 2026*
-*Document Version: 86.0*
+*Document Version: 87.0*
+
+**Audit v87.0 Changes (P3-3 Branding Update - Jan 18, 2026):**
+- P3-3 RESOLVED: Branding updated from "Sync/סינק" to "Taruu/תרו" across ~20 files
+- Mobile app updated:
+  - `apps/mobile/app.json` - App name changed to "תרו"
+  - `apps/mobile/app/(auth)/index.tsx` - Welcome screen branding
+  - `apps/mobile/app/(tabs)/profile.tsx` - Token balance label (SYNC → TARO), APP_URL
+  - `apps/mobile/src/lib/share.ts` - Share text and URLs (sync.co.il → taruu.co.il)
+- Design tokens updated: All 4 files (colors.ts, typography.ts, spacing.ts, animations.ts)
+- Services updated: qubik/index.ts, lib/animations.ts
+- Specs updated: api-contracts.md, payment-flow.md, voting-system.md
+- Database migration: Comment updated to "Taruu Platform"
+- Config files: package.json description, netlify.toml
+- Tests: E2E smoke test regex updated, shared utils test comment
+- Constants: errors.ts platform reference
+- All tests passing: 503 tests (unchanged)
+- Total active items reduced from 7 to 6 (P3-3 Branding now complete)
 
 **Audit v86.0 Changes (Bags.fm UI Components - Jan 18, 2026):**
 - P2-B19 through P2-B22 ALL RESOLVED: Bags.fm UI components fully implemented

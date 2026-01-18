@@ -8,7 +8,7 @@ export interface ShareContent {
 }
 
 export async function shareVote(voteId: string, voteTitle: string): Promise<boolean> {
-  const url = `https://sync.co.il/votes/${voteId}`;
+  const url = `https://taruu.co.il/votes/${voteId}`;
   const message = `בואו להצביע על: ${voteTitle}`;
 
   try {
@@ -42,12 +42,12 @@ export async function shareVote(voteId: string, voteTitle: string): Promise<bool
 }
 
 export async function shareApp(): Promise<boolean> {
-  const message = 'הצטרפו לסינק - פלטפורמה להצבעות קהילתיות מקומיות';
-  const url = 'https://sync.co.il/download';
+  const message = 'הצטרפו לתרו - פלטפורמה להצבעות קהילתיות מקומיות';
+  const url = 'https://taruu.co.il/download';
 
   try {
     const result = await Share.share({
-      title: 'סינק - הצבעות קהילתיות',
+      title: 'תרו - הצבעות קהילתיות',
       message: `${message}\n${url}`,
       url: Platform.OS === 'ios' ? url : undefined,
     });

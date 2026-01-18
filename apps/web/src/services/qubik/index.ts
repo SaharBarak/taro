@@ -3,7 +3,7 @@
  *
  * Handles all interactions with the Qubik blockchain for:
  * - Recording votes
- * - Minting Sync tokens
+ * - Minting Taruu tokens
  * - Verifying transactions
  * - Querying vote history
  */

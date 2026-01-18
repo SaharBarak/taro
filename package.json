@@ -2,7 +2,7 @@
   "name": "sync-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "Sync - Civic consensus platform for Israeli municipalities",
+  "description": "Taruu - Civic consensus platform for Israeli municipalities",
   "scripts": {
     "dev": "turbo dev",
     "dev:web": "turbo dev --filter=@sync/web",

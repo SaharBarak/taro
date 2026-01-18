@@ -1,7 +1,7 @@
 import type { Variants, Transition } from 'framer-motion';
 
 /**
- * Sync Animation Library
+ * Taruu Animation Library
  * Framer Motion variants and transitions using design tokens
  */
 

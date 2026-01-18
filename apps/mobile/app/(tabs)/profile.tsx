@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getIdentityLevelLabel } from '@sync/shared';
 import { usersApi } from '@sync/api-client';
 
-const APP_URL = process.env.EXPO_PUBLIC_APP_URL || 'https://sync.co.il';
+const APP_URL = process.env.EXPO_PUBLIC_APP_URL || 'https://taruu.co.il';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
@@ -188,7 +188,7 @@ export default function ProfileScreen() {
             <View className="bg-primary-600 rounded-2xl p-5">
               <View className="flex-row-reverse justify-between items-center">
                 <View>
-                  <Text className="text-primary-200 font-assistant text-right">יתרת טוקנים SYNC</Text>
+                  <Text className="text-primary-200 font-assistant text-right">יתרת טוקנים TARO</Text>
                   <Text className="text-3xl font-heebo font-bold text-white text-right">
                     {syncTokenBalance}
                   </Text>
