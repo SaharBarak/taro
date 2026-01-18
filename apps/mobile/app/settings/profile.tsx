@@ -2,21 +2,31 @@ import { useState } from 'react';
 import { View, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore, useUser } from '@/stores/authStore';
+import { useAuthStore, useUser, useAvatarUrl } from '@/stores/authStore';
 import { getAuthToken } from '@/lib/auth';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sync.co.il';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://taruu.co.il';
 
 export default function EditProfileScreen() {
   const router = useRouter();
   const user = useUser();
+  const avatarUrl = useAvatarUrl();
   const updateUser = useAuthStore((state) => state.updateUser);
   const isLoading = useAuthStore((state) => state.isLoading);
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [saving, setSaving] = useState(false);
+
+  const handlePhotoInfo = () => {
+    Alert.alert(
+      'תמונת פרופיל',
+      'תמונת הפרופיל שלך מסונכרנת אוטומטית מחשבון Google שלך. כדי לשנות את התמונה, עדכנו את תמונת הפרופיל בחשבון Google.',
+      [{ text: 'הבנתי', style: 'default' }]
+    );
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -78,12 +88,22 @@ export default function EditProfileScreen() {
       <View className="px-5 pt-6">
         {/* Avatar */}
         <View className="items-center mb-6">
-          <View className="w-24 h-24 rounded-full bg-primary-100 items-center justify-center">
-            <Text className="text-3xl font-heebo font-bold text-primary-600">
-              {firstName?.[0] || user?.email?.[0] || '?'}
-            </Text>
+          <View className="w-24 h-24 rounded-full bg-primary-100 items-center justify-center overflow-hidden">
+            {avatarUrl ? (
+              <Image
+                source={{ uri: avatarUrl }}
+                style={{ width: 96, height: 96 }}
+                contentFit="cover"
+                transition={200}
+                cachePolicy="memory-disk"
+              />
+            ) : (
+              <Text className="text-3xl font-heebo font-bold text-primary-600">
+                {firstName?.[0] || user?.email?.[0] || '?'}
+              </Text>
+            )}
           </View>
-          <Pressable className="mt-3">
+          <Pressable className="mt-3" onPress={handlePhotoInfo}>
             <Text className="text-primary-600 font-heebo">שינוי תמונה</Text>
           </Pressable>
         </View>

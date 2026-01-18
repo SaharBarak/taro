@@ -3,7 +3,8 @@ import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useAuthStore, useUser, useSyncTokenBalance, useIdentityScore } from '@/stores/authStore';
+import { Image } from 'expo-image';
+import { useAuthStore, useUser, useSyncTokenBalance, useIdentityScore, useAvatarUrl } from '@/stores/authStore';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { getIdentityLevelLabel } from '@sync/shared';
@@ -56,6 +57,7 @@ export default function ProfileScreen() {
   const user = useUser();
   const syncTokenBalance = useSyncTokenBalance();
   const identityScore = useIdentityScore();
+  const avatarUrl = useAvatarUrl();
   const [loading, setLoading] = useState(false);
   const [voteStats, setVoteStats] = useState({ votesParticipated: 0, votesCreated: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
@@ -112,10 +114,20 @@ export default function ProfileScreen() {
         <View className="bg-primary-600 pt-6 pb-16 px-5">
           <Animated.View entering={FadeInDown.duration(400)}>
             <View className="flex-row-reverse items-center">
-              <View className="w-16 h-16 rounded-full bg-white items-center justify-center">
-                <Text className="text-2xl font-heebo font-bold text-primary-600">
-                  {user?.firstName?.[0] || user?.email?.[0] || '?'}
-                </Text>
+              <View className="w-16 h-16 rounded-full bg-white items-center justify-center overflow-hidden">
+                {avatarUrl ? (
+                  <Image
+                    source={{ uri: avatarUrl }}
+                    style={{ width: 64, height: 64 }}
+                    contentFit="cover"
+                    transition={200}
+                    cachePolicy="memory-disk"
+                  />
+                ) : (
+                  <Text className="text-2xl font-heebo font-bold text-primary-600">
+                    {user?.firstName?.[0] || user?.email?.[0] || '?'}
+                  </Text>
+                )}
               </View>
               <View className="flex-1 mr-4">
                 <Text className="text-xl font-heebo font-bold text-white text-right">

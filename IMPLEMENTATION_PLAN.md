@@ -2,14 +2,14 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 18, 2026 (v87 - P3-3 Branding Update)
-**Document Version:** 87.0
+**Last Audit:** January 18, 2026 (v88 - P3-11 Profile Photo Sync)
+**Document Version:** 88.0
 
 ---
 
 ## Executive Summary
 
-### Current Status: ~93% Complete
+### Current Status: ~94% Complete
 
 All P0 critical blockers resolved. Backend infrastructure production-ready. **Bags.fm integration 100% COMPLETE** (22/22 items). Post-pilot P3 features remain. **P1-19 Instagram OAuth VERIFIED WORKING** (false positive corrected). **P1-17 Identity Score RESOLVED** - GPS scoring now implemented with correct weights.
 
@@ -295,12 +295,12 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | P3-7 | **QR code placeholders** | `apps/web/src/app/[locale]/download/` | 80,84 | Shows "QR" text instead of actual codes | Generate App Store/Play Store QR codes | [ ] |
 | P3-9 | **Google verification placeholder** | `apps/web/src/app/[locale]/layout.tsx` | 121 | SEO verification not configured | Replace with actual Google Search Console code | [ ] |
 | P3-10 | **WhatsApp link placeholder** | `apps/web/src/app/[locale]/layout.tsx` | 150 | Schema.org references placeholder | Update with actual WhatsApp group link | [ ] |
-| P3-11 | **Profile photo from Google** | `apps/mobile/app/settings/profile.tsx` | 87 | "Change photo" button does nothing | **DECISION MADE v77:** Sync profile photo from Google OAuth account | [ ] **READY TO IMPLEMENT** |
+| P3-11 | **Profile photo from Google** | `apps/mobile/app/settings/profile.tsx` | 87 | "Change photo" button does nothing | **DECISION MADE v77:** Sync profile photo from Google OAuth account | [x] **COMPLETE v88** |
 | P3-12 | **API route tests partial** | `apps/web/src/app/api/` | - | 260/391 tests done (66% coverage) | Add remaining API route tests | [~] |
 | P3-13 | **No tests for mobile app** | `apps/mobile/` | - | 28 screens with 0% test coverage | **DECISION MADE v77:** Full test coverage required | [ ] **READY TO IMPLEMENT** |
 | P3-14 | **No tests for API client** | `packages/api-client/` | - | 44 methods with test coverage | Add API client tests | [x] **COMPLETE v76.7** |
 
-**P3 Total: 6 items remaining (4 completed)**
+**P3 Total: 5 items remaining (5 completed)**
 
 ---
 
@@ -335,9 +335,9 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | **P2 Medium** | 0 | All resolved including P2-14 Upstash Redis rate limiting |
 | **P0-BAGS** | 22 (22 done) | **100% COMPLETE v86** - Backend and UI all complete |
 | **P2-NFT** | 6 (6 done) | **100% COMPLETE v84** - DB, types, contracts, service, API routes |
-| **P3 Low** | 6 | QR (P3-7), placeholders (P3-9/P3-10), Photo (P3-11), Tests (P3-12/P3-13) |
+| **P3 Low** | 5 | QR (P3-7), placeholders (P3-9/P3-10), Tests (P3-12/P3-13) |
 | **Resolved** | 89 | All P0, all P1, P2-14/P2-15/P2-16, P2-NFT (6 items), P2-B19/B20/B21/B22 (4 items), P3-3, P3-5, P3-6, P3-14 |
-| **Total Active** | 6 | 0 P1 + 0 P2 + 0 BAGS-UI + 0 NFT + 6 P3 items |
+| **Total Active** | 5 | 0 P1 + 0 P2 + 0 BAGS-UI + 0 NFT + 5 P3 items |
 
 ---
 
@@ -512,7 +512,16 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 ---
 
 *Last Updated: January 18, 2026*
-*Document Version: 87.0*
+*Document Version: 88.0*
+
+**Audit v88.0 Changes (P3-11 Profile Photo Sync - Jan 18, 2026):**
+- P3-11 RESOLVED: Profile photo display implemented in mobile app
+- Added `avatarUrl` to UserProfile type and AuthUser interface
+- Installed expo-image for optimized image loading with caching
+- Updated profile tab screen to display Google profile photo
+- Updated settings profile screen with photo display and info dialog
+- All tests passing: 503 tests (unchanged)
+- Total active items reduced from 6 to 5
 
 **Audit v87.0 Changes (P3-3 Branding Update - Jan 18, 2026):**
 - P3-3 RESOLVED: Branding updated from "Sync/סינק" to "Taruu/תרו" across ~20 files

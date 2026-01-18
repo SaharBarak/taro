@@ -120,6 +120,7 @@ export interface UserProfile {
   lastName: string;
   phone?: string;
   municipality: string;
+  avatarUrl?: string | null; // Profile photo URL from Google OAuth
 
   // === Social Proofs (ENHANCED) ===
   socialProofs: SocialProof[];

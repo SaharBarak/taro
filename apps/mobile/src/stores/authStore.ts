@@ -17,6 +17,7 @@ interface AuthUser extends Partial<UserProfile> {
   firstName?: string;
   lastName?: string;
   municipality?: string;
+  avatarUrl?: string | null;
   socialProofs?: SocialProof[];
   identityScore?: IdentityScore;
   verificationStatus?: VerificationStatus;
@@ -206,6 +207,10 @@ export const useIsVerified = () =>
 // Token balance selector
 export const useSyncTokenBalance = () =>
   useAuthStore((state) => state.user?.syncTokenBalance || 0);
+
+// Avatar URL selector
+export const useAvatarUrl = () =>
+  useAuthStore((state) => state.user?.avatarUrl);
 
 // Export getAuthToken for API client
 export { getAuthToken };
