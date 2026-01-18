@@ -38,7 +38,7 @@ const mockSelect = vi.fn(() => ({ eq: mockEq }));
 const mockUpdateEq = vi.fn(() => Promise.resolve({ error: null }));
 const mockUpdate = vi.fn(() => ({ eq: mockUpdateEq }));
 const mockInsert = vi.fn(() => Promise.resolve({ error: null }));
-const mockFrom = vi.fn(() => ({ select: mockSelect, update: mockUpdate, insert: mockInsert }));
+const mockFrom = vi.fn((_table: string) => ({ select: mockSelect, update: mockUpdate, insert: mockInsert }));
 
 vi.mock('@/lib/supabase/server', () => ({
   supabaseAdmin: {

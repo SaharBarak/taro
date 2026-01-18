@@ -10,22 +10,44 @@ jest.mock('@sync/api-client', () => ({
 }));
 
 describe('Votes Store', () => {
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
   const mockVotes = [
     {
       id: 'vote-1',
       title: 'Test Vote 1',
       description: 'Description 1',
-      status: 'active',
+      status: 'active' as const,
       municipality: 'kiryat-tivon',
-      createdAt: new Date().toISOString(),
+      creatorId: 'user-1',
+      options: [
+        { id: 'opt-1', label: 'Option 1', voteCount: 0 },
+        { id: 'opt-2', label: 'Option 2', voteCount: 0 },
+      ],
+      startDate: now,
+      endDate: tomorrow,
+      participantCount: 0,
+      createdAt: now,
+      updatedAt: now,
     },
     {
       id: 'vote-2',
       title: 'Test Vote 2',
       description: 'Description 2',
-      status: 'ended',
+      status: 'ended' as const,
       municipality: 'kiryat-tivon',
-      createdAt: new Date().toISOString(),
+      creatorId: 'user-2',
+      options: [
+        { id: 'opt-3', label: 'Option A', voteCount: 5 },
+        { id: 'opt-4', label: 'Option B', voteCount: 3 },
+      ],
+      startDate: lastWeek,
+      endDate: now,
+      participantCount: 8,
+      createdAt: lastWeek,
+      updatedAt: now,
     },
   ];
 

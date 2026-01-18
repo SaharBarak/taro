@@ -14,9 +14,8 @@ describe('usePayment Hook Logic', () => {
     id: 'pi_123',
     paymentUrl: 'https://payment.greeninvoice.com/checkout/123',
     amount: 300,
-    type: 'vote_participation' as const,
+    currency: 'ILS' as const,
     status: 'pending' as const,
-    createdAt: new Date().toISOString(),
   };
 
   beforeEach(() => {
@@ -59,7 +58,6 @@ describe('usePayment Hook Logic', () => {
       const voteCreationIntent = {
         ...mockPaymentIntent,
         amount: 5000,
-        type: 'vote_creation' as const,
       };
 
       (paymentsApi.createPaymentIntent as jest.Mock).mockResolvedValue(voteCreationIntent);
@@ -71,7 +69,10 @@ describe('usePayment Hook Logic', () => {
       });
 
       expect(result.amount).toBe(5000);
-      expect(result.type).toBe('vote_creation');
+      // Type is passed as input, PaymentIntent response contains payment details
+      expect(paymentsApi.createPaymentIntent).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'vote_creation' })
+      );
     });
   });
 

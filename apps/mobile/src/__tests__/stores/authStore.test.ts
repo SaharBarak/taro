@@ -260,7 +260,7 @@ describe('Auth Store', () => {
           googleId: 'g123',
           did: 'did',
           email: 'test@test.com',
-          identityScore: { total: 40, level: 'basic', breakdown: { google: 40 } },
+          identityScore: { total: 40, level: 'basic', breakdown: { gps: 0, google: 40, facebook: 0, instagram: 0 } },
         },
         isAuthenticated: true,
       });
@@ -278,7 +278,7 @@ describe('Auth Store', () => {
           googleId: 'g123',
           did: 'did',
           email: 'test@test.com',
-          identityScore: { total: 20, level: 'basic', breakdown: { google: 20 } },
+          identityScore: { total: 20, level: 'basic', breakdown: { gps: 0, google: 20, facebook: 0, instagram: 0 } },
         },
         isAuthenticated: true,
       });
@@ -295,7 +295,7 @@ describe('Auth Store', () => {
           googleId: 'g123',
           did: 'did',
           email: 'test@test.com',
-          identityScore: { total: 80, level: 'trusted', breakdown: { google: 40, gps: 40 } },
+          identityScore: { total: 80, level: 'trusted', breakdown: { gps: 40, google: 40, facebook: 0, instagram: 0 } },
         },
         isAuthenticated: true,
       });
@@ -312,7 +312,7 @@ describe('Auth Store', () => {
           googleId: 'g123',
           did: 'did',
           email: 'test@test.com',
-          verificationStatus: { phase: 'completed', startedAt: new Date().toISOString() },
+          verificationStatus: { phase: 'completed', startedAt: new Date() },
         },
         isAuthenticated: true,
       });
