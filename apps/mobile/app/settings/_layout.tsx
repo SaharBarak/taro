@@ -13,6 +13,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="notifications" />
       <Stack.Screen name="verification" />
       <Stack.Screen name="social-connections" />
+      <Stack.Screen name="trophy-room" />
     </Stack>
   );
 }

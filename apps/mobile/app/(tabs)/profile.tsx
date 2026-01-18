@@ -236,6 +236,11 @@ export default function ProfileScreen() {
                 label="חיבור רשתות חברתיות"
                 onPress={() => router.push('/settings/social-connections')}
               />
+              <MenuItem
+                icon="trophy"
+                label="חדר הגביעים"
+                onPress={() => router.push('/settings/trophy-room')}
+              />
             </View>
           </Animated.View>
         </View>
