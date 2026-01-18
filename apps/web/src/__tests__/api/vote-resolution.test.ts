@@ -13,7 +13,8 @@ import { GET } from '@/app/api/votes/[id]/resolution/route';
 const mockSingle = vi.fn();
 const mockEq = vi.fn(() => ({ single: mockSingle }));
 const mockSelect = vi.fn(() => ({ eq: mockEq }));
-const mockFrom = vi.fn((_table: string) => ({ select: mockSelect }));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockFrom = vi.fn((_table: string): any => ({ select: mockSelect }));
 
 vi.mock('@/lib/supabase/server', () => ({
   supabaseAdmin: {
