@@ -1,16 +1,16 @@
 # Bags.fm SocialFi Integration Specification
 
-**Status:** NOT STARTED (Priority 2 - Post-Pilot MVP)
-**Priority:** 2 (Post-pilot)
-**Last Updated:** January 15, 2025
+**Status:** BACKEND COMPLETE (v76.3) - UI Components Pending
+**Priority:** 2 (Post-pilot UI components)
+**Last Updated:** January 18, 2025
 
 ---
 
 ## Overview
 
-Bags.fm integration enables the SocialFi economics of the Taru platform. Each vote topic gets an "Issue Coin" that allows external supporters to financially back local civic issues, creating a Social Multiplier effect.
+Bags.fm integration enables the SocialFi economics of the Taruu platform. Each vote topic gets an "Issue Coin" that allows external supporters to financially back local civic issues, creating a Social Multiplier effect.
 
-## The Taru Proxy Strategy
+## The Taruu Proxy Strategy
 
 Users never touch crypto directly. The platform abstracts all blockchain complexity:
 
@@ -24,19 +24,22 @@ Users never touch crypto directly. The platform abstracts all blockchain complex
 
 ## Current State
 
-**Status: NOT STARTED** - Zero implementation exists in the codebase.
+**Status: BACKEND 100% COMPLETE (v76.3)** - All backend infrastructure implemented.
 
-### What Exists
-- Planning documentation in IMPLEMENTATION_PLAN.md
-- References in PROMPT_plan.md and AGENTS.md
+### What's Implemented ✅
+- `apps/web/src/services/bags/index.ts` - Full service (381 lines) with all Bags.fm API methods
+- `packages/api-client/src/bags.ts` - API client module (189 lines, 3 methods)
+- `packages/shared/src/types/bags.ts` - TypeScript types (305 lines)
+- `packages/shared/src/contracts/bags.ts` - Zod schemas (244 lines)
+- Environment variables (BAGS_API_KEY, BAGS_MASTER_WALLET_*, BAGS_WEBHOOK_SECRET)
+- Database tables: treasury, treasury_transactions, issue_coins, issue_coin_holdings
+- API routes: /api/bags/quote, /api/bags/swap, /api/treasury/[municipality], /api/votes/[id]/issue-coin
 
-### What's Missing
-- `apps/web/src/services/bags/index.ts` - Service doesn't exist
-- `packages/api-client/src/bags.ts` - API client module doesn't exist
-- `packages/shared/src/types/bags.ts` - Types don't exist
-- `packages/shared/src/contracts/bags.ts` - Zod schemas don't exist
-- Environment variables (BAGS_API_KEY, etc.)
-- Treasury database tables
+### What's Pending (UI Components)
+- **P2-B19:** Trophy Room (Mobile NFT gallery)
+- **P2-B20:** Victory Wall (Web vote archive)
+- **P2-B21:** Multiplier Dashboard (Web treasury display)
+- **P2-B22:** External Supporter Flow (Web wallet connect)
 
 ---
 
@@ -477,9 +480,15 @@ async function mintVoterNFTs(voteId: string) {
 
 | File | Status | Purpose |
 |------|--------|---------|
-| `apps/web/src/services/bags/index.ts` | NOT STARTED | Bags.fm service |
-| `packages/api-client/src/bags.ts` | NOT STARTED | API client module |
-| `packages/shared/src/types/bags.ts` | NOT STARTED | Type definitions |
-| `supabase/migrations/XXX_treasury.sql` | NOT STARTED | Treasury tables |
-| `supabase/migrations/XXX_issue_coins.sql` | NOT STARTED | Issue coin tables |
+| `apps/web/src/services/bags/index.ts` | COMPLETE (380 lines) | Bags.fm service |
+| `packages/api-client/src/bags.ts` | COMPLETE (188 lines) | API client module |
+| `packages/shared/src/types/bags.ts` | COMPLETE (304 lines) | Type definitions |
+| `packages/shared/src/contracts/bags.ts` | COMPLETE (243 lines) | Zod validation schemas |
+| `supabase/migrations/20250116000001_treasury_and_issue_coins.sql` | COMPLETE (312 lines) | Treasury & Issue Coin tables |
+| `apps/web/src/app/api/bags/quote/route.ts` | COMPLETE | Swap quote endpoint |
+| `apps/web/src/app/api/bags/swap/route.ts` | COMPLETE | Swap execution endpoint |
+| `apps/web/src/app/api/treasury/[municipality]/route.ts` | COMPLETE | Treasury balance endpoint |
+| `apps/web/src/app/api/treasury/[municipality]/transactions/route.ts` | COMPLETE | Treasury transactions endpoint |
+| `apps/web/src/app/api/votes/[id]/issue-coin/route.ts` | COMPLETE | Issue Coin details endpoint |
+| `apps/web/src/app/api/votes/[id]/issue-coin/holders/route.ts` | COMPLETE | Issue Coin holders endpoint |
 | `apps/web/src/services/qubik/index.ts` | COMPLETE | NFT minting (use this) |

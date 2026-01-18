@@ -6,6 +6,7 @@
 import { supabaseAdmin } from './server';
 import type { TreasuryTransactionType } from '@sync/shared';
 import type {
+  Json,
   User,
   SocialProof,
   VerificationRun,
@@ -18,6 +19,7 @@ import type {
   UserVote,
   PushToken,
   WebhookEvent,
+  VoteNft,
   InsertTables,
   UpdateTables,
 } from './types';
@@ -1306,4 +1308,337 @@ export async function countIssueCoinHolders(issueCoinId: string): Promise<number
     return 0;
   }
   return count || 0;
+}
+
+// === Vote NFT Functions ===
+
+/**
+ * Get votes that need resolution (ended but not resolved)
+ */
+export async function getVotesNeedingResolution() {
+  const { data, error } = await supabaseAdmin
+    .from('votes')
+    .select('*')
+    .in('status', ['active', 'ended'])
+    .lte('end_date', new Date().toISOString())
+    .is('resolution_status', null);
+
+  if (error) {
+    console.error('Failed to get votes needing resolution:', error);
+    throw error;
+  }
+  return data || [];
+}
+
+/**
+ * Update vote resolution status
+ */
+export async function updateVoteResolutionStatus(
+  voteId: string,
+  status: 'pending' | 'resolving' | 'resolved' | 'failed',
+  resolvedAt?: Date
+) {
+  const updateData: Record<string, unknown> = {
+    resolution_status: status,
+  };
+
+  if (status === 'resolved' && resolvedAt) {
+    updateData.resolved_at = resolvedAt.toISOString();
+    updateData.status = 'resolved';
+  } else if (status === 'resolving') {
+    updateData.status = 'resolving';
+  } else if (status === 'failed') {
+    updateData.status = 'failed';
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('votes')
+    .update(updateData)
+    .eq('id', voteId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to update vote resolution status:', error);
+    throw error;
+  }
+  return data;
+}
+
+/**
+ * Create a vote NFT record
+ */
+export async function createVoteNft(data: {
+  voteId: string;
+  userId?: string;
+  walletAddress?: string;
+  type: 'verified_voter' | 'civic_patron';
+  metadata?: Record<string, unknown>;
+}) {
+  const { data: nft, error } = await supabaseAdmin
+    .from('vote_nfts')
+    .insert({
+      vote_id: data.voteId,
+      user_id: data.userId || null,
+      wallet_address: data.walletAddress || null,
+      type: data.type,
+      metadata: data.metadata as Json | null,
+      status: 'pending',
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to create vote NFT:', error);
+    throw error;
+  }
+  return nft;
+}
+
+/**
+ * Update vote NFT status
+ */
+export async function updateVoteNft(
+  nftId: string,
+  updates: {
+    status?: 'pending' | 'minting' | 'minted' | 'failed';
+    mintAddress?: string;
+    metadataUri?: string;
+    mintTxHash?: string;
+    errorMessage?: string;
+    retryCount?: number;
+  }
+) {
+  const updateData: Record<string, unknown> = {};
+
+  if (updates.status !== undefined) {
+    updateData.status = updates.status;
+    if (updates.status === 'minted') {
+      updateData.minted_at = new Date().toISOString();
+    }
+  }
+  if (updates.mintAddress !== undefined) updateData.mint_address = updates.mintAddress;
+  if (updates.metadataUri !== undefined) updateData.metadata_uri = updates.metadataUri;
+  if (updates.mintTxHash !== undefined) updateData.mint_tx_hash = updates.mintTxHash;
+  if (updates.errorMessage !== undefined) updateData.error_message = updates.errorMessage;
+  if (updates.retryCount !== undefined) updateData.retry_count = updates.retryCount;
+
+  const { data, error } = await supabaseAdmin
+    .from('vote_nfts')
+    .update(updateData)
+    .eq('id', nftId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to update vote NFT:', error);
+    throw error;
+  }
+  return data;
+}
+
+/**
+ * Get vote NFTs by vote ID
+ */
+export async function getVoteNftsByVoteId(
+  voteId: string,
+  options: { status?: 'pending' | 'minting' | 'minted' | 'failed'; limit?: number; offset?: number } = {}
+) {
+  const { status, limit = 100, offset = 0 } = options;
+
+  let query = supabaseAdmin
+    .from('vote_nfts')
+    .select('*')
+    .eq('vote_id', voteId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Failed to get vote NFTs:', error);
+    throw error;
+  }
+  return data || [];
+}
+
+/**
+ * Get vote NFTs by user ID
+ * Returns NFTs without vote joins - caller should fetch vote details separately if needed
+ */
+export async function getVoteNftsByUserId(
+  userId: string,
+  options: { type?: 'verified_voter' | 'civic_patron'; limit?: number; offset?: number } = {}
+) {
+  const { type, limit = 50, offset = 0 } = options;
+
+  let query = supabaseAdmin
+    .from('vote_nfts')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('status', 'minted')
+    .order('minted_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (type) {
+    query = query.eq('type', type);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Failed to get user vote NFTs:', error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+/**
+ * Count user's NFTs
+ */
+export async function countUserNfts(userId: string): Promise<number> {
+  const { count, error } = await supabaseAdmin
+    .from('vote_nfts')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('status', 'minted');
+
+  if (error) {
+    console.error('Failed to count user NFTs:', error);
+    return 0;
+  }
+  return count || 0;
+}
+
+/**
+ * Get NFT stats for a vote
+ */
+export async function getVoteNftStats(voteId: string): Promise<{
+  total: number;
+  verified_voters: number;
+  civic_patrons: number;
+  minted: number;
+  pending: number;
+  failed: number;
+}> {
+  const { data, error } = await supabaseAdmin
+    .from('vote_nfts')
+    .select('type, status')
+    .eq('vote_id', voteId);
+
+  if (error) {
+    console.error('Failed to get vote NFT stats:', error);
+    return {
+      total: 0,
+      verified_voters: 0,
+      civic_patrons: 0,
+      minted: 0,
+      pending: 0,
+      failed: 0,
+    };
+  }
+
+  const nfts = data || [];
+  return {
+    total: nfts.length,
+    verified_voters: nfts.filter((n) => n.type === 'verified_voter').length,
+    civic_patrons: nfts.filter((n) => n.type === 'civic_patron').length,
+    minted: nfts.filter((n) => n.status === 'minted').length,
+    pending: nfts.filter((n) => n.status === 'pending').length,
+    failed: nfts.filter((n) => n.status === 'failed').length,
+  };
+}
+
+/**
+ * Get pending NFTs for minting (for batch processing)
+ */
+export async function getPendingNftsForVote(voteId: string, limit = 100) {
+  const { data, error } = await supabaseAdmin
+    .from('vote_nfts')
+    .select('*')
+    .eq('vote_id', voteId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    console.error('Failed to get pending NFTs:', error);
+    throw error;
+  }
+  return data || [];
+}
+
+/**
+ * Get failed NFTs for retry (with retry count check)
+ */
+export async function getFailedNftsForRetry(voteId: string, maxRetries = 3, limit = 50) {
+  const { data, error } = await supabaseAdmin
+    .from('vote_nfts')
+    .select('*')
+    .eq('vote_id', voteId)
+    .eq('status', 'failed')
+    .lt('retry_count', maxRetries)
+    .order('created_at', { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    console.error('Failed to get failed NFTs for retry:', error);
+    throw error;
+  }
+  return data || [];
+}
+
+/**
+ * Check if NFT exists for user/vote combination
+ */
+export async function hasVoteNft(voteId: string, userId: string): Promise<boolean> {
+  const { count, error } = await supabaseAdmin
+    .from('vote_nfts')
+    .select('*', { count: 'exact', head: true })
+    .eq('vote_id', voteId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Failed to check vote NFT existence:', error);
+    return false;
+  }
+  return (count || 0) > 0;
+}
+
+/**
+ * Bulk create vote NFT records
+ */
+export async function bulkCreateVoteNfts(
+  records: Array<{
+    voteId: string;
+    userId?: string;
+    walletAddress?: string;
+    type: 'verified_voter' | 'civic_patron';
+    metadata?: Record<string, unknown>;
+  }>
+) {
+  const insertData = records.map((record) => ({
+    vote_id: record.voteId,
+    user_id: record.userId || null,
+    wallet_address: record.walletAddress || null,
+    type: record.type,
+    metadata: (record.metadata || null) as Json | null,
+    status: 'pending' as const,
+  }));
+
+  const { data, error } = await supabaseAdmin
+    .from('vote_nfts')
+    .insert(insertData)
+    .select();
+
+  if (error) {
+    console.error('Failed to bulk create vote NFTs:', error);
+    throw error;
+  }
+  return data || [];
 }

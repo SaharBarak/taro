@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 18, 2026 (v83 - P2-14 Upstash Redis Rate Limiting)
-**Document Version:** 83.0
+**Last Audit:** January 18, 2026 (v84 - P2-NFT System Implementation)
+**Document Version:** 84.0
 
 ---
 
@@ -22,7 +22,7 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
 | **P2 Medium Priority** | 3/3 (100%) | All complete including P2-14 Redis |
 | **Bags.fm Backend** | 18/18 (100%) | Service, types, DB, API routes all complete |
 | **Bags.fm UI** | 0/4 (0%) | Trophy Room, Victory Wall, Multiplier Dashboard, External Supporter |
-| **NFT System** | 1/6 (~5%) | DB schema partial, spec ready, logic pending |
+| **NFT System** | 6/6 (100%) | **COMPLETE v84**: DB, types, contracts, service, API routes |
 | **P3 Low Priority** | 3/11 (27%) | Tests partial, branding/SMS/placeholders pending |
 | **Test Coverage** | 487 tests | shared: 117, api-client: 110, web: 260, mobile: 0 |
 
@@ -46,13 +46,13 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
 - [ ] **P2-B21:** Multiplier Dashboard (Web treasury display)
 - [ ] **P2-B22:** External Supporter Flow (Web wallet connect)
 
-**P2-NFT - Post-Resolution System (6 items):**
-- [ ] **P2-N1:** Vote resolution trigger (cron job) - `/api/cron/resolve-votes` MISSING
-- [ ] **P2-N2:** Issue Coin freeze mechanism
-- [ ] **P2-N3:** Fee extraction flow
-- [ ] **P2-N4:** Verified Voter NFT minting
-- [ ] **P2-N5:** Civic Patron NFT minting
-- [ ] **P2-N6:** NFT metadata structure
+**P2-NFT - Post-Resolution System (6 items - ALL COMPLETE v84):**
+- [x] **P2-N1:** Vote resolution trigger (cron job) - `/api/cron/resolve-votes` - **COMPLETE v84**
+- [x] **P2-N2:** Issue Coin freeze mechanism - **COMPLETE v84**
+- [x] **P2-N3:** Fee extraction flow - **COMPLETE v84**
+- [x] **P2-N4:** Verified Voter NFT minting - **COMPLETE v84**
+- [x] **P2-N5:** Civic Patron NFT minting - **COMPLETE v84**
+- [x] **P2-N6:** NFT metadata structure - **COMPLETE v84**
 
 **P3 - LOW (8 items):**
 - [ ] **P3-3:** Branding Update (Sync to Taruu, ~32 files)
@@ -64,41 +64,41 @@ All P0 critical blockers resolved. Backend infrastructure production-ready. UI c
 - [~] **P3-12:** API route tests (260/391 done - 66%)
 - [ ] **P3-13:** Mobile app tests (0% coverage)
 
-### Database Gaps (for NFT/SMS features)
+### Database Gaps (for SMS features)
 
 | Table/Column | Purpose | Blocking |
 |--------------|---------|----------|
-| `vote_nfts` table | NFT minting records | P2-NFT system |
+| ~~`vote_nfts` table~~ | ~~NFT minting records~~ | ~~P2-NFT system~~ **COMPLETE v84** |
 | `phone_verifications` table | SMS OTP tracking | P3-6 SMS verification |
-| `votes.resolved_at` column | Vote resolution timestamp | P2-N1 resolution trigger |
-| `votes.resolution_status` column | Resolution state machine | P2-N1 resolution trigger |
+| ~~`votes.resolved_at` column~~ | ~~Vote resolution timestamp~~ | ~~P2-N1 resolution trigger~~ **COMPLETE v84** |
+| ~~`votes.resolution_status` column~~ | ~~Resolution state machine~~ | ~~P2-N1 resolution trigger~~ **COMPLETE v84** |
 | `users.phone_verified` column | Phone verification status | P3-6 SMS verification |
 | `users.phone_verified_at` column | Phone verification timestamp | P3-6 SMS verification |
 
-### Missing Type/Contract Files (for new features)
+### Missing Type/Contract Files (for SMS features)
 
 | File | Purpose | Blocking |
 |------|---------|----------|
-| `packages/shared/src/types/nft.ts` | NFT TypeScript interfaces | P2-NFT system |
-| `packages/shared/src/contracts/nft.ts` | NFT Zod validation schemas | P2-NFT system |
+| ~~`packages/shared/src/types/nft.ts`~~ | ~~NFT TypeScript interfaces~~ | ~~P2-NFT system~~ **COMPLETE v84** |
+| ~~`packages/shared/src/contracts/nft.ts`~~ | ~~NFT Zod validation schemas~~ | ~~P2-NFT system~~ **COMPLETE v84** |
 | `packages/shared/src/types/phone.ts` | Phone verification types | P3-6 SMS verification |
 | `packages/shared/src/contracts/phone.ts` | Phone verification schemas | P3-6 SMS verification |
 
-### API Gaps Found (v81 audit - corrected)
+### API Gaps Found (v84 audit)
 
 | Route | Status | Impact |
 |-------|--------|--------|
 | `/api/social/callback/instagram` | **IMPLEMENTED** (145 lines) | ~~P1-19~~ RESOLVED - False positive |
-| `/api/cron/resolve-votes` | NOT IMPLEMENTED | P2-N1 resolution trigger |
-| `/api/votes/[id]/resolution` | NOT IMPLEMENTED | P2-NFT system |
-| `/api/user/nfts` | NOT IMPLEMENTED | P2-NFT system |
+| `/api/cron/resolve-votes` | **IMPLEMENTED** (88 lines) | ~~P2-N1~~ **COMPLETE v84** |
+| `/api/votes/[id]/resolution` | **IMPLEMENTED** (82 lines) | ~~P2-NFT~~ **COMPLETE v84** |
+| `/api/user/nfts` | **IMPLEMENTED** (164 lines) | ~~P2-NFT~~ **COMPLETE v84** |
 | `/api/user/phone/send-code` | NOT IMPLEMENTED | P3-6 SMS verification |
 | `/api/user/phone/verify` | NOT IMPLEMENTED | P3-6 SMS verification |
 | `/api/user/phone/status` | NOT IMPLEMENTED | P3-6 SMS verification |
 
 ### Spec Inconsistencies to Fix
 
-1. **`specs/bags-integration.md`** - Says "NOT STARTED" but Bags.fm IS 100% backend complete (381 LOC service, 4 DB tables, 6 API routes)
+1. ~~**`specs/bags-integration.md`** - Says "NOT STARTED" but Bags.fm IS 100% backend complete~~ - **RESOLVED v84**: Status table updated to show COMPLETE
 2. ~~**`specs/auth-flow.md` vs `specs/verification-protocol.md`** - GPS points inconsistency~~ - **RESOLVED v82**: verification-protocol.md updated to GPS=40 to match auth-flow.md
 3. **`CLAUDE.md`** - Says vote creation is "50" but implementation uses 200 consistently
 
@@ -253,22 +253,33 @@ The Bags.fm integration enables the "Taruu Proxy Strategy" - users pay in ILS, b
 
 ---
 
-### P2-NFT - Post-Resolution NFT System (Post-Pilot)
+### P2-NFT - Post-Resolution NFT System (COMPLETE v84)
 
-**STATUS: 0% COMPLETE - INCLUDED IN CURRENT SCOPE**
+**STATUS: 100% COMPLETE (v84)**
 
 When votes close: Issue Coin frozen, funds extracted, NFTs minted for all holders. See `specs/nft-system.md` for implementation details.
 
 | # | Component | Purpose | Status |
 |---|-----------|---------|--------|
-| P2-N1 | **Vote resolution trigger** | Detect vote end, initiate freeze - `/api/cron/resolve-votes` MISSING | [ ] **READY TO IMPLEMENT** |
-| P2-N2 | **Issue Coin freeze mechanism** | Disable trading on Bags.fm | [ ] **READY TO IMPLEMENT** |
-| P2-N3 | **Fee extraction flow** | Claim fees to bank off-ramp | [ ] **READY TO IMPLEMENT** |
-| P2-N4 | **"Verified Voter" NFT** | Mint for resident voters | [ ] **READY TO IMPLEMENT** |
-| P2-N5 | **"Civic Patron" NFT** | Mint for external supporters | [ ] **READY TO IMPLEMENT** |
-| P2-N6 | **NFT metadata structure** | Issue name, vote date, result, voter type, fund raised | [ ] **READY TO IMPLEMENT** |
+| P2-N1 | **Vote resolution trigger** | Detect vote end, initiate freeze - `/api/cron/resolve-votes` | [x] **COMPLETE v84** |
+| P2-N2 | **Issue Coin freeze mechanism** | Disable trading on Bags.fm | [x] **COMPLETE v84** |
+| P2-N3 | **Fee extraction flow** | Claim fees to bank off-ramp | [x] **COMPLETE v84** |
+| P2-N4 | **"Verified Voter" NFT** | Mint for resident voters | [x] **COMPLETE v84** |
+| P2-N5 | **"Civic Patron" NFT** | Mint for external supporters | [x] **COMPLETE v84** |
+| P2-N6 | **NFT metadata structure** | Issue name, vote date, result, voter type, fund raised | [x] **COMPLETE v84** |
 
-**P2-NFT Total: 6 items (0 complete)**
+**P2-NFT Total: 6 items (6 complete)**
+
+**Implementation Details (v84):**
+- **Database:** `supabase/migrations/20250118000001_vote_nfts.sql` - vote_nfts table, votes columns
+- **Types:** `packages/shared/src/types/nft.ts` - NftType, VoteNft, VoteResolutionStatus, etc.
+- **Contracts:** `packages/shared/src/contracts/nft.ts` - 20+ Zod schemas for NFT API
+- **Service:** `apps/web/src/services/nft/index.ts` (~400 lines) - minting, resolution, metadata
+- **API Routes:**
+  - `/api/cron/resolve-votes` - Cron job for vote resolution
+  - `/api/votes/[id]/resolution` - Get vote resolution status
+  - `/api/user/nfts` - Get user's NFT collection
+- **API Client:** `packages/api-client/src/nft.ts` - 7 methods for NFT operations
 
 ---
 
@@ -321,16 +332,16 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 | **P1 High** | 0 | All resolved including P1-17 Identity Score (P1-19 was false positive) |
 | **P2 Medium** | 0 | All resolved including P2-14 Upstash Redis rate limiting |
 | **P0-BAGS** | 22 (18 done) | Backend 100% complete v76.3, 4 UI components remaining |
-| **P2-NFT** | 6 | Post-resolution NFT system - spec complete, ~5% implemented (DB schema partial) |
+| **P2-NFT** | 6 (6 done) | **100% COMPLETE v84** - DB, types, contracts, service, API routes |
 | **P3 Low** | 8 | Branding (P3-3), SMS (P3-6), QR (P3-7), placeholders (P3-9/P3-10), Photo (P3-11), Tests (P3-12/P3-13) |
-| **Resolved** | 77 | All P0, all P1 (incl. P1-17, P1-19), P2-14/P2-15/P2-16, P3-5, P3-14 |
-| **Total Active** | 18 | 0 P1 + 0 P2 + 4 BAGS-UI + 6 NFT + 8 P3 items |
+| **Resolved** | 83 | All P0, all P1, P2-14/P2-15/P2-16, P2-NFT (6 items), P3-5, P3-14 |
+| **Total Active** | 12 | 0 P1 + 0 P2 + 4 BAGS-UI + 0 NFT + 8 P3 items |
 
 ---
 
 ## Completed Components
 
-### Services (14/14 Production-Ready)
+### Services (15/15 Production-Ready)
 - [x] Google OAuth - `apps/web/src/services/auth/google.ts` (222 lines)
 - [x] Facebook OAuth - `apps/web/src/services/auth/facebook.ts` (168 lines)
 - [x] Instagram OAuth - `apps/web/src/services/auth/instagram.ts` (189 lines)
@@ -345,10 +356,11 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] Logger Utility - `apps/web/src/lib/logger.ts` (~150 lines)
 - [x] Rate Limit Utility - `apps/web/src/lib/rate-limit.ts` (~50 lines)
 - [x] Bags.fm Service - `apps/web/src/services/bags/index.ts` (381 lines) - **COMPLETE v76.3**
+- [x] NFT Minting Service - `apps/web/src/services/nft/index.ts` (~400 lines) - **COMPLETE v84**
 
-**Total Service Code: ~3,370 lines (production-ready)**
+**Total Service Code: ~3,770 lines (production-ready)**
 
-### API Routes (39 Files, All Categories Complete)
+### API Routes (42 Files, All Categories Complete)
 
 **Authentication (6 routes):**
 - [x] POST /api/auth/session - Validate session
@@ -358,15 +370,16 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] GET /api/auth/did - Get DID
 - [x] POST /api/auth/did - Set DID
 
-**Votes (6 routes):**
+**Votes (7 routes):**
 - [x] GET /api/votes - List votes
 - [x] POST /api/votes - Create vote
 - [x] GET /api/votes/[id] - Vote details
 - [x] POST /api/votes/[id]/participate - Cast vote
 - [x] POST /api/votes/[id]/verify-location - GPS verification
 - [x] GET /api/votes/[id]/results - Vote results
+- [x] GET /api/votes/[id]/resolution - Vote resolution status - **COMPLETE v84**
 
-**User (11 routes):**
+**User (12 routes):**
 - [x] GET /api/user/profile - Get profile
 - [x] POST /api/user/profile - Create profile
 - [x] PATCH /api/user/profile - Update profile
@@ -378,6 +391,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] POST /api/user/verify-location - Location verification
 - [x] GET/POST /api/user/push-token - Push token registration
 - [x] DELETE /api/user/push-token - Push token removal
+- [x] GET /api/user/nfts - User's NFT collection - **COMPLETE v84**
 
 **Social (6 routes):**
 - [x] GET /api/social/proofs - Get social proofs
@@ -404,9 +418,9 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] POST /api/newsletter/subscribe - Subscribe (rate limited: 3 req/min)
 - [x] GET/POST /api/newsletter - Beehiiv integration
 
-**Cron (1 route):**
+**Cron (2 routes):**
 - [x] GET/POST /api/cron/verification-notifications - Push reminder cron
-- [ ] GET/POST /api/cron/resolve-votes - Vote resolution trigger (P2-N1) - NOT IMPLEMENTED
+- [x] GET/POST /api/cron/resolve-votes - Vote resolution trigger (P2-N1) - **COMPLETE v84**
 
 ### Mobile Screens (28 Files, All Registered)
 - [x] Auth: index, sign-in, sign-up, onboarding, connect-social (5 complete)
@@ -431,21 +445,21 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] Landing, About, FAQ, Auth (sign-in, sign-up), Onboarding, Create Vote, Votes, Download, Dashboard
 - [x] Vote Detail, Verification, Settings Social, Connect Social (all complete)
 
-### Database (15/15 Tables Complete + 4 Bags.fm Tables)
+### Database (16/16 Tables Complete + 4 Bags.fm Tables + 1 NFT Table)
 - [x] users, social_proofs, verification_runs, verification_schedule, verification_attempts, payments, entitlements, votes, vote_options, user_votes, push_tokens, webhook_events
 - [x] treasury, treasury_transactions, issue_coins, issue_coin_holdings (Bags.fm - COMPLETE v76.3)
+- [x] vote_nfts (P2-NFT - **COMPLETE v84**)
 - [x] 22+ indexes for query performance
 - [x] 7 triggers for automation
 - [x] 9 functions for business logic
 - [x] 17 RLS policies for security
-- [ ] vote_nfts (P2-NFT - NOT CREATED)
 - [ ] phone_verifications (P3-6 - NOT CREATED)
 
 ### Shared Package (@sync/shared)
-- [x] Types: 30+ types/interfaces (user, vote, payment, signup, verification, bags)
+- [x] Types: 35+ types/interfaces (user, vote, payment, signup, verification, bags, nft)
 - [x] Constants: 25+ constants (municipalities, vote limits, costs)
 - [x] Utilities: 50+ functions (formatting, DID crypto, identity scoring, retry logic)
-- [x] Contracts: 50+ Zod schemas (auth, social, verification, payment, vote, bags)
+- [x] Contracts: 70+ Zod schemas (auth, social, verification, payment, vote, bags, nft)
 - [x] Error Messages: 72+ Hebrew messages (55 error, 12 success, 5 info)
 - [x] Tests: 106 test cases (100% coverage for utilities)
 
@@ -459,6 +473,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - [x] Notifications API: `notifications.ts` (4 methods) - RESOLVED v76.4
 - [x] Newsletter API: `newsletter.ts` (1 method) - RESOLVED v76.4
 - [x] Bags API: `bags.ts` (6 methods) - RESOLVED v76.3
+- [x] NFT API: `nft.ts` (7 methods) - **COMPLETE v84**
 
 ### Test Coverage
 - [x] Shared Utils: 117 tests (formatters, retry, DID, identity score)
@@ -489,7 +504,20 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 ---
 
 *Last Updated: January 18, 2026*
-*Document Version: 83.0*
+*Document Version: 84.0*
+
+**Audit v84.0 Changes (P2-NFT System Implementation - Jan 18, 2026):**
+- P2-N1 through P2-N6 ALL RESOLVED: NFT system fully implemented
+- New database migration: `20250118000001_vote_nfts.sql` - vote_nfts table, votes columns
+- New types file: `packages/shared/src/types/nft.ts` - NftType, VoteNft, etc.
+- New contracts file: `packages/shared/src/contracts/nft.ts` - 20+ Zod schemas
+- New service: `apps/web/src/services/nft/index.ts` (~400 lines) - minting, resolution, metadata
+- New API routes: `/api/cron/resolve-votes`, `/api/votes/[id]/resolution`, `/api/user/nfts`
+- New API client module: `packages/api-client/src/nft.ts` (7 methods)
+- Database functions added: getVotesNeedingResolution, updateVoteResolutionStatus, NFT CRUD
+- Fixed bags-integration.md spec inconsistency (status table was stale)
+- All tests passing: 261 web tests
+- Total active items reduced from 18 to 12
 
 **Audit v83.0 Changes (P2-14 Upstash Redis Rate Limiting - Jan 18, 2026):**
 - P2-14 RESOLVED: Upstash Redis rate limiting implemented

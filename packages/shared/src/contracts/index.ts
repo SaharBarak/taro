@@ -9,3 +9,4 @@ export * from './verification';
 export * from './payment';
 export * from './vote';
 export * from './bags';
+export * from './nft';
