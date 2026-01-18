@@ -2,8 +2,8 @@
 
 **Target:** Late January 2025 Pilot Launch (Kiryat Tivon)
 **First Vote Date:** January 23, 2025
-**Last Audit:** January 18, 2026 (v97 - ESLint Configuration Fix)
-**Document Version:** 97.0
+**Last Audit:** January 18, 2026 (v98 - ES Module Support for Mobile Package)
+**Document Version:** 98.0
 
 ---
 
@@ -525,7 +525,7 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 ---
 
 *Last Updated: January 18, 2026*
-*Document Version: 97.0*
+*Document Version: 98.0*
 
 **Audit v97.0 Changes (ESLint Configuration Fix - Jan 18, 2026):**
 - Fixed ESLint configuration for mobile test files
@@ -756,3 +756,17 @@ Technical debt items that don't affect pilot functionality. **Address after Janu
 - P1-19 incorrectly identified (now corrected in v81)
 - API gaps documented
 - Database gaps documented
+
+**Audit v98.0 Changes (ES Module Support for Mobile Package - Jan 18, 2026):**
+- Added ES module support to mobile package to eliminate lint warnings
+- Added "type": "module" to apps/mobile/package.json
+- Renamed CommonJS config files to use .cjs extension:
+  - babel.config.js → babel.config.cjs
+  - jest.config.js → jest.config.cjs
+  - jest.setup.js → jest.setup.cjs
+- Updated eslint.config.js with new section to handle .cjs files with proper globals
+- Updated jest.config.cjs to reference jest.setup.cjs
+- This eliminates the "[MODULE_TYPELESS_PACKAGE_JSON] Warning" during lint
+- All tests passing: 822 tests (shared: 117, api-client: 125, web: 462, mobile: 118)
+- All lint checks passing with no warnings
+- Typecheck passing cleanly across all packages
