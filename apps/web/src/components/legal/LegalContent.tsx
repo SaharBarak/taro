@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
 import { useReducedMotion } from '@/hooks';
 import type { LegalSection } from './LegalPage';
 import styles from './LegalPage.module.css';
@@ -12,9 +11,6 @@ interface LegalContentProps {
   updated?: string;
   sections: LegalSection[];
 }
-
-/** Mechanical hard-out ease — editorial, no bounce. */
-const NP_EASE = [0.2, 0, 0, 1] as const;
 
 /** Stable, locale-agnostic anchor id for a section. */
 function sectionId(index: number): string {
@@ -67,12 +63,6 @@ export function LegalContent({ title, intro, updated, sections }: LegalContentPr
     });
     el.focus({ preventScroll: true });
   };
-
-  // Hard clip reveal (inset wipe), not fade-up. Jumps to final under RM.
-  const sectionInitial = reducedMotion
-    ? { opacity: 1, clipPath: 'inset(0 0 0 0)' }
-    : { opacity: 0, clipPath: 'inset(0 0 100% 0)' };
-  const sectionAnimate = { opacity: 1, clipPath: 'inset(0 0 0 0)' };
 
   return (
     <div className={styles.layout}>
@@ -132,16 +122,12 @@ export function LegalContent({ title, intro, updated, sections }: LegalContentPr
           {sections.map((section, i) => {
             const id = ids[i];
             return (
-              <motion.section
+              <section
                 key={id}
                 id={id}
                 tabIndex={-1}
                 className={styles.section}
                 aria-labelledby={`${id}-heading`}
-                initial={sectionInitial}
-                whileInView={sectionAnimate}
-                viewport={{ once: true, amount: 0.15 }}
-                transition={{ duration: reducedMotion ? 0 : 0.32, ease: NP_EASE }}
               >
                 <h2 id={`${id}-heading`} className={styles.heading}>
                   {section.heading}
@@ -162,7 +148,7 @@ export function LegalContent({ title, intro, updated, sections }: LegalContentPr
                     ))}
                   </ul>
                 )}
-              </motion.section>
+              </section>
             );
           })}
         </article>
