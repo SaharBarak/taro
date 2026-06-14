@@ -14,9 +14,9 @@ export const metadata: Metadata = {
   description:
     'גלה איך תַּרְאוּ הופכת כל הצבעה להזדמנות לגייס כסף לקהילה שלך. שקיפות מלאה, תמיכה גלובלית, השפעה מקומית.',
   openGraph: {
-    title: 'הכלכלה של תַּרְאוּ - Local Votes, Global Support',
+    title: 'הכלכלה האזרחית של תַּרְאוּ',
     description:
-      'Every vote is a micro-fundraiser. See how Taruu multiplies community impact.',
+      'כל הצבעה מזרימה כסף לקרן קהילתית ייעודית (Issue Coin) שמשרתת את הנושא עצמו. שקיפות מלאה, כל עסקה גלויה.',
     type: 'website',
   },
 };

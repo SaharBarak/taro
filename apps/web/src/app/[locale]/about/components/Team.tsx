@@ -1,104 +1,107 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Heading, Text } from '@/components/ui/Typography';
-import { AnimatedFadeInUp, AnimatedWords } from '@/components/animations';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { Eyebrow } from '@/components/ui/Eyebrow';
+import { Heading } from '@/components/ui/Typography';
+import { AnimatedFadeInUp } from '@/components/animations';
+import { useReducedMotion } from '@/hooks';
 import styles from './Team.module.css';
 
-const team = [
+type Accent = 'blue' | 'green' | 'purple' | 'amber';
+
+interface Member {
+  name: string;
+  role: string;
+  bio: string;
+  accent: Accent;
+}
+
+const TEAM: Member[] = [
   {
     name: 'דנה כהן',
     role: 'מייסדת ומנכ״לית',
-    bio: 'יזמית טכנולוגיה עם רקע בממשל מקומי. מאמינה שהטכנולוגיה יכולה לשנות את הדרך שבה אזרחים משתתפים בקהילה.',
+    bio: 'יזמית טכנולוגיה עם רקע בממשל מקומי. מאמינה שהדרך לשנות את הדמוקרטיה מתחילה ברשות אחת.',
+    accent: 'blue',
   },
   {
     name: 'יוסי לוי',
     role: 'מנהל טכנולוגיות',
-    bio: 'מומחה בלוקצ׳יין ואבטחת מידע. הוביל פרויקטים גלובליים בחברות טכנולוגיה מובילות.',
+    bio: 'מומחה בלוקצ׳יין ואבטחת מידע. בנה מערכות מאומתות שמשרתות מיליוני משתמשים.',
+    accent: 'green',
   },
   {
     name: 'מיכל אברהם',
     role: 'מנהלת מוצר',
-    bio: 'עשר שנות ניסיון בפיתוח מוצרים דיגיטליים. מתמחה בחוויית משתמש ונגישות.',
+    bio: 'עשור של פיתוח מוצרים דיגיטליים, עם דגש על חוויית משתמש ונגישות אמיתית לכולם.',
+    accent: 'purple',
   },
   {
     name: 'אורי שמעוני',
-    role: 'מנהל פיתוח עסקי',
-    bio: 'רקע בעבודה עם רשויות מקומיות וממשלה. מגשר בין הטכנולוגיה לצרכי הקהילה.',
+    role: 'פיתוח עסקי',
+    bio: 'רקע בעבודה מול רשויות מקומיות וממשלה. מגשר בין הטכנולוגיה לצרכים של הקהילה.',
+    accent: 'amber',
   },
 ];
 
-export function Team() {
-  return (
-    <section className={styles.team}>
-      <div className={styles.container}>
-        {/* Header */}
-        <div className={styles.header}>
-          <AnimatedFadeInUp>
-            <Text size="lg" color="accent" weight="semibold" align="center">
-              הצוות
-            </Text>
-          </AnimatedFadeInUp>
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join('');
+}
 
-          <AnimatedFadeInUp delay={0.1}>
-            <Heading level={2} align="center">
-              <AnimatedWords text="האנשים מאחורי תַּרְאוּ" delay={0.2} />
+export function Team() {
+  const reducedMotion = useReducedMotion();
+
+  return (
+    <section className={`${styles.team} lc-band-tint`} aria-label="הצוות">
+      <div className={styles.inner}>
+        <div className={styles.header}>
+          <Eyebrow>הצוות</Eyebrow>
+
+          <AnimatedFadeInUp>
+            <Heading level={2} weight="extrabold" className={styles.headline}>
+              האנשים מאחורי תַּרְאוּ.
             </Heading>
           </AnimatedFadeInUp>
 
-          <AnimatedFadeInUp delay={0.2}>
-            <Text size="xl" color="secondary" align="center" className={styles.description}>
-              צוות מגוון של מומחים בטכנולוגיה, ממשל מקומי וחוויית משתמש,
-              מאוחדים תחת חזון משותף.
-            </Text>
+          <AnimatedFadeInUp delay={0.1}>
+            <p className={styles.sub}>
+              צוות קטן של מומחים בטכנולוגיה, ממשל מקומי וחוויית משתמש — מאוחדים תחת
+              חזון אחד: להחזיר את הקול לתושבים.
+            </p>
           </AnimatedFadeInUp>
         </div>
 
-        {/* Team Grid */}
-        <motion.div
-          className={styles.grid}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
-          variants={{
-            hidden: {},
-            visible: {
-              transition: {
-                staggerChildren: 0.15,
-              },
-            },
-          }}
-        >
-          {team.map((member) => (
+        <div className={styles.grid}>
+          {TEAM.map((member, i) => (
             <motion.div
               key={member.name}
-              className={styles.memberCard}
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: {
-                    duration: 0.5,
-                    ease: [0.25, 0.1, 0.25, 1],
-                  },
-                },
-              }}
-              whileHover={{ y: -4 }}
+              initial={reducedMotion ? false : { opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-10%' }}
+              transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className={styles.avatar}>
-                {member.name.charAt(0)}
-              </div>
-              <h3 className={styles.memberName}>{member.name}</h3>
-              <Text size="sm" color="accent" weight="medium">
-                {member.role}
-              </Text>
-              <Text size="sm" color="secondary" className={styles.memberBio}>
-                {member.bio}
-              </Text>
+              <GlassCard
+                variant="interactive"
+                glow={member.accent}
+                className={styles.memberCard}
+              >
+                <span
+                  className={`${styles.avatar} ${styles[`avatar_${member.accent}`]}`}
+                  aria-hidden="true"
+                >
+                  {getInitials(member.name)}
+                </span>
+                <h3 className={styles.memberName}>{member.name}</h3>
+                <span className={styles.memberRole}>{member.role}</span>
+                <p className={styles.memberBio}>{member.bio}</p>
+              </GlassCard>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

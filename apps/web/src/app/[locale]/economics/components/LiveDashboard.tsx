@@ -3,7 +3,13 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { Eyebrow } from '@/components/ui/Eyebrow';
+import { Heading, Text } from '@/components/ui/Typography';
+import { AnimatedFadeInUp } from '@/components/animations';
+import { useReducedMotion } from '@/hooks';
 import styles from './LiveDashboard.module.css';
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 interface NetworkStats {
   totalRaised: number;
@@ -25,6 +31,7 @@ interface TrendingCoin {
 }
 
 export function LiveDashboard() {
+  const reduced = useReducedMotion();
   const [stats, setStats] = useState<NetworkStats | null>(null);
   const [coins, setCoins] = useState<TrendingCoin[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +56,7 @@ export function LiveDashboard() {
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
-        setError('Failed to load data');
+        setError('לא הצלחנו לטעון את הנתונים כרגע.');
       } finally {
         setLoading(false);
       }
@@ -61,106 +68,125 @@ export function LiveDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('he-IL', {
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('he-IL', {
       style: 'currency',
       currency: 'ILS',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
-  };
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('he-IL').format(num);
-  };
+  const formatNumber = (num: number) => new Intl.NumberFormat('he-IL').format(num);
 
   const formatPercent = (num: number) => {
     const sign = num >= 0 ? '+' : '';
     return `${sign}${(num * 100).toFixed(0)}%`;
   };
 
+  // Pilot honesty: treat "no real activity yet" as a composed pre-launch state.
+  const hasActivity = Boolean(stats && stats.totalVoters > 0) || coins.length > 0;
+
+  const statCards = [
+    { label: 'סה״כ גויס לקרנות', value: stats ? formatCurrency(stats.totalRaised) : '₪0' },
+    { label: 'הצבעות פעילות', value: stats ? formatNumber(stats.activeVotes) : '0' },
+    { label: 'תושבים שהצביעו', value: stats ? formatNumber(stats.totalVoters) : '0' },
+    { label: 'רשויות מקומיות', value: stats ? formatNumber(stats.municipalities) : '0' },
+  ];
+
   return (
-    <section className={styles.dashboard}>
+    <section className={styles.dashboard} aria-labelledby="dashboard-title">
       <div className={styles.container}>
-        <motion.div
-          className={styles.header}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className={styles.titleRow}>
-            <h2 className={styles.title}>רשת תַּרְאוּ - חי</h2>
-            <div className={styles.liveIndicator}>
-              <span className={styles.liveDot} />
-              <span>Live</span>
-            </div>
-          </div>
-          <p className={styles.subtitle}>נתונים בזמן אמת מכל הרשויות המקומיות</p>
-        </motion.div>
+        <header className={styles.header}>
+          <AnimatedFadeInUp>
+            <Eyebrow live>הדשבורד החי</Eyebrow>
+          </AnimatedFadeInUp>
+          <Heading level={2} id="dashboard-title" className={styles.title}>
+            כל שקל בקרן — גלוי בזמן אמת
+          </Heading>
+          <AnimatedFadeInUp delay={0.1}>
+            <Text as="p" size="lg" color="secondary" className={styles.subtitle}>
+              נתונים חיים מכל הרשויות המקומיות ברשת. שקיפות מלאה, בלי חדרים סגורים.
+            </Text>
+          </AnimatedFadeInUp>
+        </header>
 
         {loading ? (
-          <div className={styles.loading}>
-            <div className={styles.spinner} />
-            <span>טוען נתונים...</span>
+          <div className={styles.skeletonGrid} aria-hidden>
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className={styles.skeletonCard} />
+            ))}
           </div>
         ) : error ? (
-          <div className={styles.error}>{error}</div>
+          <div className={styles.notice} role="status">
+            <span className={styles.noticeIcon} aria-hidden>
+              <svg viewBox="0 0 24 24" width="22" height="22">
+                <path
+                  d="M12 8v5m0 3h.01M12 3 2 20h20L12 3Z"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <Text as="p" size="base" weight="medium" className={styles.noticeText}>
+              {error}
+            </Text>
+          </div>
+        ) : !hasActivity ? (
+          <AnimatedFadeInUp className={styles.notice}>
+            <span className={`${styles.noticeIcon} ${styles.noticeIconLive}`} aria-hidden>
+              <svg viewBox="0 0 24 24" width="22" height="22">
+                <path
+                  d="M3 13h4l2 5 4-12 2 5h6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <div className={styles.noticeBody}>
+              <Text as="p" size="lg" weight="bold" className={styles.noticeTitle}>
+                הדשבורד החי ייפתח עם ההצבעה הראשונה
+              </Text>
+              <Text as="p" size="base" color="secondary" className={styles.noticeText}>
+                ברגע שהקרן הקהילתית הראשונה תיפתח — כל גיוס, כל עסקה וכל מגמה יופיעו כאן בזמן אמת.
+              </Text>
+            </div>
+          </AnimatedFadeInUp>
         ) : (
           <>
-            {/* Network Stats */}
-            <motion.div
-              className={styles.statsGrid}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <div className={styles.statCard}>
-                <span className={styles.statValue}>
-                  {stats ? formatCurrency(stats.totalRaised) : '₪0'}
-                </span>
-                <span className={styles.statLabel}>סה״כ גויס</span>
-              </div>
-              <div className={styles.statCard}>
-                <span className={styles.statValue}>
-                  {stats ? formatNumber(stats.activeVotes) : '0'}
-                </span>
-                <span className={styles.statLabel}>הצבעות פעילות</span>
-              </div>
-              <div className={styles.statCard}>
-                <span className={styles.statValue}>
-                  {stats ? formatNumber(stats.totalVoters) : '0'}
-                </span>
-                <span className={styles.statLabel}>מצביעים</span>
-              </div>
-              <div className={styles.statCard}>
-                <span className={styles.statValue}>
-                  {stats ? formatNumber(stats.municipalities) : '0'}
-                </span>
-                <span className={styles.statLabel}>רשויות מקומיות</span>
-              </div>
-            </motion.div>
+            <div className={styles.statsGrid}>
+              {statCards.map((card, index) => (
+                <motion.div
+                  key={card.label}
+                  className={styles.statCard}
+                  initial={reduced ? false : { opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.4, ease: EASE, delay: 0.06 * index }}
+                >
+                  <span className={styles.statValue}>{card.value}</span>
+                  <span className={styles.statLabel}>{card.label}</span>
+                </motion.div>
+              ))}
+            </div>
 
-            {/* Trending Issue Coins */}
             {coins.length > 0 && (
-              <motion.div
-                className={styles.trendingSection}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
+              <AnimatedFadeInUp delay={0.1} className={styles.trendingSection}>
                 <h3 className={styles.sectionTitle}>Issue Coins מובילים</h3>
                 <div className={styles.coinsList}>
                   {coins.map((coin, index) => (
                     <motion.div
                       key={coin.voteId}
                       className={styles.coinCard}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.3, delay: 0.1 * index }}
+                      initial={reduced ? false : { opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-30px' }}
+                      transition={{ duration: 0.32, ease: EASE, delay: 0.06 * index }}
                     >
                       <div className={styles.coinIcon}>
                         {coin.imageUrl ? (
@@ -172,21 +198,26 @@ export function LiveDashboard() {
                             unoptimized
                           />
                         ) : (
-                          <span>🏛️</span>
+                          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+                            <path
+                              d="M4 21h16M6 21V9l6-4 6 4v12M10 21v-5h4v5"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.7"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
                         )}
                       </div>
                       <div className={styles.coinInfo}>
                         <span className={styles.coinTitle}>{coin.voteTitle}</span>
-                        <span className={styles.coinMunicipality}>
-                          {coin.municipality}
-                        </span>
+                        <span className={styles.coinMunicipality}>{coin.municipality}</span>
                       </div>
                       <div className={styles.coinStats}>
                         <span
                           className={`${styles.coinChange} ${
-                            coin.priceChange24h >= 0
-                              ? styles.positive
-                              : styles.negative
+                            coin.priceChange24h >= 0 ? styles.positive : styles.negative
                           }`}
                         >
                           {formatPercent(coin.priceChange24h)}
@@ -198,7 +229,7 @@ export function LiveDashboard() {
                     </motion.div>
                   ))}
                 </div>
-              </motion.div>
+              </AnimatedFadeInUp>
             )}
           </>
         )}

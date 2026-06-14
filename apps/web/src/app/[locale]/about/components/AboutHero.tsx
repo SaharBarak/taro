@@ -1,47 +1,50 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Heading, Text } from '@/components/ui/Typography';
-import { AnimatedLetters, AnimatedFadeInUp } from '@/components/animations';
+import { GradientText } from '@/components/ui/GradientText';
+import { Eyebrow } from '@/components/ui/Eyebrow';
+import { AnimatedLetters } from '@/components/animations';
+import { useReducedMotion } from '@/hooks';
 import styles from './AboutHero.module.css';
 
 export function AboutHero() {
+  const reducedMotion = useReducedMotion();
+
   return (
-    <section className={styles.hero}>
+    <section className={styles.hero} aria-label="אודות תַּרְאוּ">
+      <div className={styles.mesh} aria-hidden />
+
       <div className={styles.container}>
-        {/* Background Typography */}
         <motion.div
-          className={styles.backgroundText}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.03 }}
-          transition={{ duration: 1, delay: 0.5 }}
+          initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
-          החזון
+          <Eyebrow>אודות תַּרְאוּ</Eyebrow>
         </motion.div>
 
-        <div className={styles.content}>
-          <AnimatedFadeInUp>
-            <Text size="lg" color="accent" weight="semibold" align="center">
-              אודות תַּרְאוּ
-            </Text>
-          </AnimatedFadeInUp>
+        <h1 className={styles.heading}>
+          <AnimatedLetters text="מקולה של עיר," delay={0.15} />
+          <span className={styles.accentLine}>
+            <motion.span
+              initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: reducedMotion ? 0 : 0.65, ease: [0.22, 1, 0.36, 1] }}
+            >
+              לקולה של <GradientText animated>מדינה.</GradientText>
+            </motion.span>
+          </span>
+        </h1>
 
-          <h1 className={styles.heading}>
-            <AnimatedLetters text="אנחנו מאמינים" delay={0.2} />
-            <br />
-            <span className={styles.headingAccent}>
-              <AnimatedLetters text="בכוח הקהילה" delay={0.5} />
-            </span>
-          </h1>
-
-          <AnimatedFadeInUp delay={0.8}>
-            <Text size="xl" color="secondary" align="center" className={styles.description}>
-              תַּרְאוּ נוסדה מתוך אמונה עמוקה שכל אזרח צריך להיות שותף אמיתי
-              בקבלת ההחלטות המשפיעות על חייו. אנחנו בונים את הכלים שיאפשרו
-              לכם להשפיע על העתיד של הקהילה שלכם.
-            </Text>
-          </AnimatedFadeInUp>
-        </div>
+        <motion.p
+          className={styles.lead}
+          initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: reducedMotion ? 0 : 0.95 }}
+        >
+          התחלנו מהבנה אחת — לדמוקרטיה המקומית אין כלי מדידה אמין. אנחנו בונים את
+          התשתית שהופכת את הקול של הרוב למדיד, מאומת ושקוף, עיר אחר עיר.
+        </motion.p>
       </div>
     </section>
   );

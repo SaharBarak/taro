@@ -1,17 +1,36 @@
 /**
- * Payment Types - Green Invoice Integration
+ * Payment Types - Paddle (Merchant of Record) Integration
  */
 
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 export type PaymentType = 'vote_participation' | 'vote_creation';
 
-// === Green Invoice Payment Types ===
+// === Paddle Payment Types ===
+
+/** Paddle Billing webhook event names we handle */
+export type PaddleEventType =
+  | 'transaction.completed'
+  | 'transaction.paid'
+  | 'transaction.payment_failed'
+  | 'transaction.ready'
+  | 'adjustment.created';
+
+/** Normalized webhook event consumed by the payments webhook route */
+export interface PaymentWebhookEvent {
+  type: 'payment.succeeded' | 'payment.failed' | 'refund.created';
+  /** Paddle transaction id (txn_...) */
+  paymentId: string;
+  /** Amount in agorot (minor units) */
+  amount: number;
+  /** Flattened custom_data carried through checkout */
+  metadata: Record<string, string>;
+}
 
 export interface Payment {
   id: string;
 
-  // Green Invoice
-  greenInvoiceId: string;
+  // Paddle transaction id (txn_...)
+  providerId: string;
   idempotencyKey: string;
 
   // Details
@@ -92,4 +111,7 @@ export interface TokenTransaction {
 }
 
 // Note: Payment amounts in ILS are defined in @sync/shared/constants (VOTE_COST, CREATE_VOTE_COST)
-// The backend converts to agorot (amount * 100) when storing payments
+// The backend converts to agorot (amount * 100) when storing payments.
+// Paddle is the merchant of record; ILS settles to the platform bank account and is
+// accrued per-vote in the treasury ledger, then batch-seeded into a Bags.fm bag at
+// vote resolution (see services/treasury + services/nft).

@@ -6,9 +6,9 @@ import { SupportFlow } from './components/SupportFlow';
 import type { Locale } from '@/lib/i18n';
 
 export const metadata: Metadata = {
-  title: 'תמיכה חיצונית | Issue Coins',
+  title: 'תמיכה | תַּרְאוּ',
   description:
-    'תמכו ביוזמות מקומיות בכל מקום בעולם. רכשו Issue Coins והפכו לתומכים אזרחיים.',
+    'יש שאלה? יש תשובה. כל מה שרציתם לדעת על הצבעה, אימות, כסף ופרטיות — במקום אחד. לא מצאתם? כתבו לנו בוואטסאפ.',
 };
 
 interface SupportPageProps {
@@ -23,7 +23,7 @@ export default async function SupportPage({ params }: SupportPageProps) {
       <Header locale={locale} />
       <main>
         <SupportHero />
-        <SupportFlow />
+        <SupportFlow locale={locale} />
       </main>
       <Footer locale={locale} />
     </>

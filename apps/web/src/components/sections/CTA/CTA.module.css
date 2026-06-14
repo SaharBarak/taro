@@ -1,149 +1,136 @@
 .cta {
   position: relative;
-  padding-block: var(--space-32);
-  background: linear-gradient(
-    135deg,
-    var(--color-primary-50) 0%,
-    var(--color-background) 50%,
-    var(--color-accent-50) 100%
-  );
   overflow: hidden;
+  padding-block: clamp(var(--space-20), 12vw, var(--space-40));
+  background:
+    radial-gradient(120% 90% at 85% 0%, var(--color-primary-50) 0%, transparent 55%),
+    radial-gradient(110% 80% at 0% 100%, var(--color-accent-50) 0%, transparent 55%),
+    var(--lc-canvas);
 }
 
-/* Decorative lines */
-.cta::before {
-  content: '';
+/* Soft luminous mesh aura — matches the hero through-line */
+.mesh {
   position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 1px;
-  height: 60px;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    var(--color-primary-300),
-    transparent
-  );
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-behind);
+  background:
+    radial-gradient(40rem 40rem at 78% 12%, rgba(37, 99, 235, 0.12), transparent 60%),
+    radial-gradient(34rem 34rem at 12% 82%, rgba(139, 92, 246, 0.1), transparent 60%),
+    radial-gradient(30rem 30rem at 60% 95%, rgba(16, 185, 129, 0.08), transparent 60%);
 }
 
 .container {
   position: relative;
+  z-index: var(--z-default);
+  width: 100%;
   max-width: var(--container-7xl);
   margin-inline: auto;
-  padding-inline: var(--space-6);
+  padding-inline: clamp(var(--space-4), 5vw, var(--space-8));
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-12);
+  align-items: center;
 }
 
 @media (min-width: 768px) {
   .container {
-    padding-inline: var(--space-8);
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: var(--space-16);
   }
 }
 
-@media (min-width: 1024px) {
-  .container {
-    padding-inline: var(--space-12);
-  }
-}
-
-/* Background Circle */
-.backgroundCircle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80vw;
-  height: 80vw;
-  max-width: 800px;
-  max-height: 800px;
-  border-radius: var(--radius-full);
-  background: radial-gradient(
-    circle,
-    rgba(37, 99, 235, 0.08) 0%,
-    rgba(139, 92, 246, 0.04) 40%,
-    transparent 70%
-  );
-  pointer-events: none;
-  filter: blur(40px);
-}
-
-/* Content */
+/* ---- Primary column ---- */
 .content {
-  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--space-6);
-  z-index: var(--z-default);
+  align-items: flex-start;
+  text-align: start;
+  gap: var(--space-5);
 }
 
 .heading {
-  font-size: var(--text-3xl);
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-black);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--lc-ink);
+  font-size: clamp(var(--text-4xl), 4vw + 1rem, var(--text-6xl));
   word-break: keep-all;
   overflow-wrap: normal;
   hyphens: none;
 }
 
-@media (min-width: 480px) {
-  .heading {
-    font-size: var(--text-4xl);
-  }
+.accentLine {
+  display: inline-block;
 }
 
-@media (min-width: 768px) {
-  .heading {
-    font-size: var(--text-6xl);
-  }
-}
-
-.headingAccent {
-  color: var(--color-primary);
-  word-break: keep-all;
-}
-
-.description {
+.subhead {
   max-width: 36rem;
+  font-family: var(--font-secondary);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--lc-ink-soft);
 }
 
-/* Newsletter Form */
-.newsletterWrapper {
+.primary {
+  margin-block-start: var(--space-2);
   width: 100%;
-  max-width: 32rem;
-  margin-block-start: var(--space-4);
+  max-width: 28rem;
 }
 
-/* App Stores */
-.stores {
-  display: flex;
-  flex-direction: column;
+.primaryLink {
+  display: block;
+  text-decoration: none;
+}
+
+.primaryLink :global(button) {
+  width: 100%;
+}
+
+.primaryLabel {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
-  margin-block-start: var(--space-8);
+  gap: var(--space-2);
 }
 
-.storeLogos {
-  display: flex;
-  gap: var(--space-4);
+.whatsappIcon {
+  flex: 0 0 auto;
 }
 
-.storeBadge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.microcopy {
+  font-family: var(--font-secondary);
+  font-size: var(--text-sm);
+  color: var(--lc-ink-faint);
+}
+
+/* ---- Secondary column: the glass newsletter container ---- */
+.secondary {
+  width: 100%;
+}
+
+.formCard {
+  width: 100%;
+  padding: clamp(var(--space-6), 4vw, var(--space-8));
+}
+
+.formDivider {
+  display: block;
   width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius-lg);
-  background-color: var(--color-neutral-800);
-  color: var(--color-text-inverse);
-  transition: background-color var(--duration-fast) var(--ease-default);
+  height: 3px;
+  border-radius: var(--radius-full);
+  margin-block-end: var(--space-4);
+  background: var(--lc-grad-brand);
 }
 
-.storeBadge:hover {
-  background-color: var(--color-neutral-700);
+.formTitle {
+  color: var(--lc-ink);
+  font-family: var(--font-primary);
+  font-size: var(--text-lg);
 }
 
-.storeBadge svg {
-  width: 1.25rem;
-  height: 1.25rem;
+.formHint {
+  margin-block-start: var(--space-1);
+  margin-block-end: var(--space-4);
+  line-height: var(--leading-relaxed);
 }

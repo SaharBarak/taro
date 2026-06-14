@@ -1,40 +1,49 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Text } from '@/components/ui/Typography';
-import { AnimatedLetters, AnimatedFadeInUp } from '@/components/animations';
+import { GradientText } from '@/components/ui/GradientText';
+import { Eyebrow } from '@/components/ui/Eyebrow';
+import { AnimatedLetters } from '@/components/animations';
+import { useReducedMotion } from '@/hooks';
 import styles from './FAQHero.module.css';
 
 export function FAQHero() {
+  const reducedMotion = useReducedMotion();
+
   return (
     <section className={styles.hero}>
+      <div className={styles.mesh} aria-hidden />
+
       <div className={styles.container}>
         <motion.div
-          className={styles.backgroundText}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.03 }}
-          transition={{ duration: 1, delay: 0.5 }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
-          שאלות
+          <Eyebrow>מרכז העזרה של תַּרְאוּ</Eyebrow>
         </motion.div>
 
-        <div className={styles.content}>
-          <AnimatedFadeInUp>
-            <Text size="lg" color="accent" weight="semibold" align="center">
-              מרכז עזרה
-            </Text>
-          </AnimatedFadeInUp>
+        <h1 className={styles.heading}>
+          <AnimatedLetters text="יש שאלה?" delay={0.15} />
+          <span className={styles.accentLine}>
+            <motion.span
+              initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: reducedMotion ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <GradientText animated>יש תשובה.</GradientText>
+            </motion.span>
+          </span>
+        </h1>
 
-          <h1 className={styles.heading}>
-            <AnimatedLetters text="שאלות נפוצות" delay={0.2} />
-          </h1>
-
-          <AnimatedFadeInUp delay={0.5}>
-            <Text size="xl" color="secondary" align="center" className={styles.description}>
-              כל מה שצריך לדעת על תַּרְאוּ - מההרשמה ועד להשפעה על הקהילה שלכם
-            </Text>
-          </AnimatedFadeInUp>
-        </div>
+        <motion.p
+          className={styles.subtitle}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.9 }}
+        >
+          כל מה שרציתם לדעת על הצבעה, אימות, כסף ופרטיות — במקום אחד.
+        </motion.p>
       </div>
     </section>
   );

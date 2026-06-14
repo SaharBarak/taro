@@ -1,24 +1,30 @@
 .footer {
-  background-color: var(--color-neutral-900);
-  padding-block: var(--space-16);
+  position: relative;
+  overflow: hidden;
+  /* Refined deep-ink band — grounds the light site, lets the brand gradient sing.
+     Soft, hue-matched glows (not neon) bleed in from the corners. */
+  background:
+    radial-gradient(70% 60% at 85% 0%, rgba(37, 99, 235, 0.18) 0%, transparent 58%),
+    radial-gradient(60% 55% at 12% 100%, rgba(139, 92, 246, 0.16) 0%, transparent 58%),
+    radial-gradient(50% 50% at 50% 120%, rgba(16, 185, 129, 0.1) 0%, transparent 60%),
+    var(--lc-ink);
+  padding-block: clamp(var(--space-16), 8vw, var(--space-24));
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* Brand-gradient consensus line along the very top edge */
+.rule {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 2px;
 }
 
 .container {
+  position: relative;
   max-width: var(--container-7xl);
   margin-inline: auto;
-  padding-inline: var(--space-6);
-}
-
-@media (min-width: 768px) {
-  .container {
-    padding-inline: var(--space-8);
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding-inline: var(--space-12);
-  }
+  padding-inline: clamp(var(--space-4), 5vw, var(--space-8));
 }
 
 .grid {
@@ -29,13 +35,14 @@
 
 @media (min-width: 640px) {
   .grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (min-width: 1024px) {
   .grid {
-    grid-template-columns: 2fr repeat(3, 1fr);
+    grid-template-columns: 1.6fr repeat(3, 1fr);
+    gap: var(--space-12);
   }
 }
 
@@ -43,55 +50,99 @@
 .brandColumn {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-5);
+}
+
+@media (min-width: 640px) {
+  .brandColumn {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .brandColumn {
+    grid-column: auto;
+  }
 }
 
 .logo {
   text-decoration: none;
   display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  transition: transform var(--duration-fast) var(--lc-ease-brand);
+}
+
+.logo:active {
+  transform: scale(0.98);
+}
+
+.logo:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-primary-light);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .logoText {
-  font-family: 'Frank Ruhl Libre', var(--font-primary);
+  font-family: var(--font-secular-one), var(--font-primary);
   font-size: var(--text-4xl);
-  font-weight: 700;
-  color: var(--color-text-inverse);
+  font-weight: 400;
   letter-spacing: 0.02em;
   line-height: 1.1;
+  color: #ffffff;
 }
 
 .tagline {
-  max-width: 18rem;
+  max-width: 22rem;
+  font-family: var(--font-secondary);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  font-weight: var(--font-weight-medium);
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0;
 }
 
 .socialLinks {
   display: flex;
-  gap: var(--space-4);
-  margin-block-start: var(--space-2);
+  gap: var(--space-3);
+  margin-block-start: var(--space-1);
 }
 
 .socialLink {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--radius-full);
-  background-color: var(--color-neutral-800);
-  color: var(--color-neutral-400);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
   transition:
-    background-color var(--duration-fast) var(--ease-default),
-    color var(--duration-fast) var(--ease-default);
+    transform var(--duration-fast) var(--lc-ease-brand),
+    color var(--duration-fast) var(--lc-ease-brand),
+    border-color var(--duration-fast) var(--lc-ease-brand),
+    box-shadow var(--duration-normal) var(--lc-ease-brand);
 }
 
 .socialLink:hover {
-  background-color: var(--color-primary);
-  color: var(--color-text-inverse);
+  color: #ffffff;
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: var(--lc-glow-brand);
+}
+
+.socialLink:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.socialLink:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-primary-light);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .socialLink svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 /* Link Columns */
@@ -103,9 +154,10 @@
 
 .columnTitle {
   font-family: var(--font-primary);
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-inverse);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-wider);
+  color: rgba(255, 255, 255, 0.55);
   margin: 0;
 }
 
@@ -113,18 +165,56 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .link {
+  display: inline-flex;
   font-family: var(--font-secondary);
-  font-size: var(--text-sm);
-  color: var(--color-neutral-400);
+  font-size: var(--text-base);
+  color: rgba(255, 255, 255, 0.74);
   text-decoration: none;
-  transition: color var(--duration-fast) var(--ease-default);
+  transition: color var(--duration-fast) var(--lc-ease-brand);
 }
 
-.link:hover {
-  color: var(--color-text-inverse);
+.link:hover,
+.link:focus-visible {
+  color: #ffffff;
+}
+
+.link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-primary-light);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* Drawing brand-gradient underline on hover (consensus-line motif) */
+.linkLabel {
+  position: relative;
+  display: inline-block;
+}
+
+.linkLabel::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -3px;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--lc-grad-brand);
+  transform: scaleX(0);
+  transform-origin: inline-end;
+  transition: transform var(--duration-normal) var(--lc-ease-brand);
+}
+
+.link:hover .linkLabel::after,
+.link:focus-visible .linkLabel::after,
+.signatureLink:hover .linkLabel::after,
+.signatureLink:focus-visible .linkLabel::after {
+  transform: scaleX(1);
+  transform-origin: inline-start;
 }
 
 /* Bottom Bar */
@@ -134,9 +224,9 @@
   gap: var(--space-2);
   align-items: center;
   justify-content: space-between;
-  padding-block-start: var(--space-10);
-  margin-block-start: var(--space-10);
-  border-block-start: var(--border-width-thin) solid var(--color-neutral-800);
+  padding-block-start: var(--space-8);
+  margin-block-start: var(--space-12);
+  border-block-start: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 @media (min-width: 640px) {
@@ -145,14 +235,38 @@
   }
 }
 
+.copyright,
+.credit {
+  font-family: var(--font-secondary);
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
 /* Signature Link */
 .signatureLink {
   color: var(--color-primary-light);
   text-decoration: none;
-  transition: color var(--duration-fast) var(--ease-default);
+  font-weight: var(--font-weight-medium);
+  transition: color var(--duration-fast) var(--lc-ease-brand);
 }
 
-.signatureLink:hover {
-  color: var(--color-text-inverse);
-  text-decoration: underline;
+.signatureLink:hover,
+.signatureLink:focus-visible {
+  color: #ffffff;
+}
+
+.signatureLink:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-primary-light);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .socialLink:hover {
+    transform: none;
+  }
+  .linkLabel::after {
+    transition: none;
+  }
 }

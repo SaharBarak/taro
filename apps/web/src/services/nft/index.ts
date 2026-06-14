@@ -8,6 +8,8 @@
  */
 
 import { qubikService } from '../qubik';
+import { seedVoteBag } from '@/services/treasury/bagSeeding';
+import { emailService, sendInBatches } from '@/services/email';
 import {
   getIssueCoinByVoteId,
   getIssueCoinHolders,
@@ -17,6 +19,7 @@ import {
   getVoteNftStats,
   updateVoteResolutionStatus,
   getVotesNeedingResolution,
+  getVoteParticipantsWithEmails,
 } from '@/lib/supabase/db';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import type { NftMetadata } from '@sync/shared';
@@ -42,6 +45,8 @@ interface ResolutionResult {
   nftsMinted: number;
   feesExtracted?: number;
   issueCoinFrozen: boolean;
+  bagSeeded: boolean;
+  bagTokenMint?: string;
   errors: string[];
 }
 
@@ -279,6 +284,40 @@ export async function createNftRecordsForVote(voteId: string): Promise<number> {
 // === Vote Resolution Functions ===
 
 /**
+ * Email results to every participant after resolution (best-effort).
+ * Winning option = highest vote count among the vote's options.
+ */
+async function sendResolutionEmails(voteId: string, voteTitle: string): Promise<void> {
+  const { data: options, error } = await supabaseAdmin
+    .from('vote_options')
+    .select('id, text, votes')
+    .eq('vote_id', voteId);
+
+  if (error || !options?.length) {
+    console.warn('No options found for resolution emails:', voteId);
+    return;
+  }
+
+  const winning = options.reduce((max, opt) => (opt.votes > max.votes ? opt : max), options[0]);
+  const optionText = new Map(options.map((o) => [o.id, o.text]));
+  const participants = await getVoteParticipantsWithEmails(voteId);
+  const totalParticipants = participants.length;
+
+  await sendInBatches(participants, (p) =>
+    emailService.sendVoteResultsEmail({
+      to: p.email,
+      firstName: p.first_name || 'משתתפ/ת',
+      voteTitle,
+      voteId,
+      winningOption: winning.text,
+      totalParticipants,
+      userVotedFor: optionText.get(p.option_id) || '',
+      userWon: p.option_id === winning.id,
+    })
+  );
+}
+
+/**
  * Freeze Issue Coin for a vote (disable trading)
  */
 export async function freezeIssueCoin(voteId: string): Promise<boolean> {
@@ -319,25 +358,50 @@ export async function resolveVote(voteId: string): Promise<ResolutionResult> {
   // Update status to resolving
   await updateVoteResolutionStatus(voteId, 'resolving');
 
-  // Step 1: Freeze Issue Coin
-  const frozen = await freezeIssueCoin(voteId);
-  if (!frozen) {
-    errors.push('Failed to freeze Issue Coin');
+  // Step 1: Seed the vote's Bags.fm bag from the accrued ILS (created at resolution)
+  let bagSeeded = false;
+  let bagTokenMint: string | undefined;
+  try {
+    const seed = await seedVoteBag(voteId);
+    bagSeeded = seed.seeded;
+    bagTokenMint = seed.tokenMint;
+    if (!seed.seeded && seed.reason && seed.reason !== 'no_accrued_funds' && seed.reason !== 'bag_already_exists') {
+      errors.push(`Bag not seeded: ${seed.reason}`);
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    errors.push(`Failed to seed bag: ${message}`);
   }
 
-  // Step 2: Create NFT records for all participants
-  let nftCount = 0;
+  // Step 2: A freshly seeded bag stays tradable (that is the post-vote SocialFi
+  // artifact). Only legacy coins that existed *during* the vote get frozen here.
+  let frozen = false;
+  if (!bagSeeded) {
+    frozen = await freezeIssueCoin(voteId);
+    if (!frozen) {
+      errors.push('Failed to freeze Issue Coin');
+    }
+  }
+
+  // Step 3: Create NFT records for all participants
   try {
-    nftCount = await createNftRecordsForVote(voteId);
+    await createNftRecordsForVote(voteId);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     errors.push(`Failed to create NFT records: ${message}`);
   }
 
-  // Step 3: Get NFT stats
+  // Step 4: Email results to all participants (best-effort)
+  try {
+    await sendResolutionEmails(voteId, vote.title);
+  } catch (emailError) {
+    console.warn('Resolution emails failed (non-fatal):', emailError);
+  }
+
+  // Step 5: Get NFT stats
   const stats = await getVoteNftStats(voteId);
 
-  // Step 4: Update vote status to resolved
+  // Step 6: Update vote status to resolved
   if (errors.length === 0) {
     await updateVoteResolutionStatus(voteId, 'resolved', new Date());
   } else {
@@ -349,6 +413,8 @@ export async function resolveVote(voteId: string): Promise<ResolutionResult> {
     title: vote.title,
     nftsMinted: stats.minted,
     issueCoinFrozen: frozen,
+    bagSeeded,
+    bagTokenMint,
     errors,
   };
 }

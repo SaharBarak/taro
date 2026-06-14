@@ -1,20 +1,22 @@
 .section {
-  padding-block: var(--space-12) var(--space-24);
-  background-color: var(--color-neutral-50);
+  padding-block: var(--space-12) clamp(var(--space-16), 10vw, var(--space-24));
+  background: var(--lc-canvas);
 }
 
 .container {
   max-width: var(--container-7xl);
   margin-inline: auto;
-  padding-inline: var(--space-6);
+  padding-inline: clamp(var(--space-4), 5vw, var(--space-8));
 }
 
-/* Filters */
+/* ------------------------------------------------------------------ */
+/* Filters                                                           */
+/* ------------------------------------------------------------------ */
 .filters {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  margin-block-end: var(--space-6);
 }
 
 @media (min-width: 768px) {
@@ -33,6 +35,7 @@
 
 .filterLabel {
   white-space: nowrap;
+  color: var(--lc-ink-soft);
 }
 
 .filterPills {
@@ -41,36 +44,46 @@
 }
 
 .filterPill {
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-5);
   border-radius: var(--radius-full);
-  border: var(--border-width-thin) solid var(--color-border);
-  background-color: var(--color-background);
+  border: 1px solid var(--lc-glass-edge);
+  background: var(--lc-glass-fill);
+  backdrop-filter: blur(var(--lc-glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--lc-glass-blur)) saturate(140%);
   font-family: var(--font-secondary);
   font-size: var(--text-sm);
-  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+  color: var(--lc-ink-soft);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-default);
+  transition: all var(--duration-fast) var(--lc-ease-brand);
 }
 
 .filterPill:hover {
-  background-color: var(--color-neutral-100);
+  color: var(--color-primary);
+  border-color: var(--color-primary-100);
+}
+
+.filterPill:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .filterPill.active {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-text-inverse);
+  background: var(--lc-grad-brand);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--lc-glow-brand);
 }
 
 .select {
   padding: var(--space-2) var(--space-4);
-  padding-left: var(--space-8);
-  border-radius: var(--radius-md);
-  border: var(--border-width-thin) solid var(--color-border);
-  background-color: var(--color-background);
+  padding-inline-start: var(--space-8);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--lc-glass-edge);
+  background-color: var(--lc-surface);
   font-family: var(--font-secondary);
   font-size: var(--text-sm);
-  color: var(--color-text-primary);
+  color: var(--lc-ink);
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
@@ -79,11 +92,19 @@
   background-size: 20px;
 }
 
-.resultsCount {
-  margin-bottom: var(--space-6);
+.select:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
-/* Grid */
+.resultsCount {
+  margin-block-end: var(--space-6);
+  color: var(--lc-ink-soft);
+}
+
+/* ------------------------------------------------------------------ */
+/* Grid + card                                                       */
+/* ------------------------------------------------------------------ */
 .grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -102,20 +123,15 @@
   }
 }
 
-/* Card */
+.cardWrap {
+  height: 100%;
+}
+
 .card {
-  background-color: var(--color-background);
-  border-radius: var(--radius-xl);
-  border: var(--border-width-thin) solid var(--color-border);
-  padding: var(--space-6);
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  transition: box-shadow var(--duration-fast) var(--ease-default);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-md);
 }
 
 .cardHeader {
@@ -127,7 +143,7 @@
 .municipality {
   font-family: var(--font-secondary);
   font-size: var(--text-sm);
-  color: var(--color-text-secondary);
+  color: var(--lc-ink-soft);
 }
 
 .resultBadge {
@@ -135,22 +151,23 @@
   border-radius: var(--radius-full);
   font-family: var(--font-primary);
   font-size: var(--text-xs);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-bold);
 }
 
 .resultBadge.approved {
-  background-color: var(--color-success-100);
-  color: var(--color-success-700);
+  background-color: var(--color-secondary-50);
+  color: var(--color-secondary-700);
 }
 
 .resultBadge.rejected {
-  background-color: var(--color-error-100);
-  color: var(--color-error-700);
+  background-color: var(--color-error-light);
+  color: #B91C1C;
 }
 
 .cardTitle {
   font-size: var(--text-lg);
-  line-height: var(--leading-tight);
+  line-height: var(--leading-snug);
+  color: var(--lc-ink);
 }
 
 .cardDescription {
@@ -158,6 +175,7 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  color: var(--lc-ink-soft);
 }
 
 /* Result Stats */
@@ -168,17 +186,17 @@
 }
 
 .progressBar {
-  height: 8px;
-  background-color: var(--color-error-100);
+  block-size: 8px;
+  background-color: var(--color-error-light);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
 
 .progressFill {
-  height: 100%;
-  background-color: var(--color-success-500);
+  block-size: 100%;
+  background: var(--lc-grad-green);
   border-radius: var(--radius-full);
-  transition: width var(--duration-slow) var(--ease-default);
+  transition: width var(--duration-slow) var(--lc-ease-brand);
 }
 
 .voteBreakdown {
@@ -186,52 +204,68 @@
   justify-content: space-between;
   font-family: var(--font-secondary);
   font-size: var(--text-xs);
-  color: var(--color-text-secondary);
+  color: var(--lc-ink-soft);
 }
 
 /* NFT Stats */
 .nftStats {
   display: flex;
   justify-content: space-between;
+  gap: var(--space-2);
   padding: var(--space-3);
   background-color: var(--color-neutral-50);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
 }
 
 .nftStat {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  text-align: center;
+  text-align: start;
 }
 
 .nftIcon {
-  font-size: var(--text-xl);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--radius-full);
+  flex: 0 0 auto;
 }
+
+.nftIcon svg {
+  inline-size: 1.1rem;
+  block-size: 1.1rem;
+}
+
+.nftIconGreen { background: var(--color-secondary-50); color: var(--color-secondary-700); }
+.nftIconPurple { background: var(--color-accent-50); color: var(--color-accent-700); }
+.nftIconBlue { background: var(--color-primary-50); color: var(--color-primary); }
 
 .nftValue {
   font-family: var(--font-primary);
   font-size: var(--text-lg);
   font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
+  color: var(--lc-ink);
 }
 
 /* Funds Section */
 .fundsSection {
-  padding: var(--space-3);
+  padding: var(--space-4);
   background-color: var(--color-primary-50);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
 }
 
 .fundsHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-2);
+  margin-block-end: var(--space-2);
 }
 
 .totalFunds {
-  color: var(--color-primary-700);
+  color: var(--color-primary-dark);
 }
 
 .fundsBreakdown {
@@ -246,8 +280,8 @@
 }
 
 .fundDot {
-  width: 8px;
-  height: 8px;
+  inline-size: 8px;
+  block-size: 8px;
   border-radius: var(--radius-full);
 }
 
@@ -256,46 +290,82 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: var(--space-4);
-  border-top: var(--border-width-thin) solid var(--color-border);
-  margin-top: auto;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--lc-glass-edge);
+  margin-block-start: auto;
 }
 
-/* Loading & Empty States */
-.loading {
+/* ------------------------------------------------------------------ */
+/* Loading skeleton                                                  */
+/* ------------------------------------------------------------------ */
+.skeletonCard {
   display: flex;
   flex-direction: column;
+  padding: var(--space-6);
+  border-radius: var(--lc-radius-glass);
+  border: 1px solid var(--lc-glass-edge);
+  background: var(--lc-glass-fill);
+  box-shadow: var(--lc-e1);
+}
+
+.skeletonRow {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-16);
-  gap: var(--space-4);
+  justify-content: space-between;
+  margin-block-end: var(--space-4);
 }
 
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 3px solid var(--color-border);
-  border-top-color: var(--color-primary);
-  border-radius: var(--radius-full);
-  animation: spin 0.8s linear infinite;
+.shimmer {
+  display: block;
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(
+      100deg,
+      rgba(14, 21, 37, 0.05) 30%,
+      rgba(14, 21, 37, 0.09) 50%,
+      rgba(14, 21, 37, 0.05) 70%
+    );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s var(--ease-default) infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
+.skMeta { inline-size: 5rem; block-size: 0.9rem; }
+.skBadge { inline-size: 3.5rem; block-size: 1.25rem; border-radius: var(--radius-full); }
+.skTitle { inline-size: 75%; block-size: 1.3rem; margin-block-end: var(--space-3); }
+.skLine { inline-size: 100%; block-size: 0.85rem; margin-block-end: var(--space-4); }
+.skBar { inline-size: 100%; block-size: 0.6rem; border-radius: var(--radius-full); margin-block-end: var(--space-4); }
+.skBlock { inline-size: 100%; block-size: 4rem; border-radius: var(--radius-xl); }
+
+/* ------------------------------------------------------------------ */
+/* Empty state                                                       */
+/* ------------------------------------------------------------------ */
 .emptyState {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-16);
+  gap: var(--space-2);
+  padding: clamp(var(--space-12), 8vw, var(--space-16));
   text-align: center;
 }
 
 .emptyIcon {
-  font-size: var(--text-6xl);
-  margin-bottom: var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 4rem;
+  block-size: 4rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-50);
+  color: var(--color-primary);
+  margin-block-end: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer { animation: none; }
 }

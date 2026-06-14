@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/services/auth/session';
+import { emailService, sendInBatches } from '@/services/email';
 import {
   getActiveVotes,
   getVotesByMunicipality,
@@ -7,6 +8,8 @@ import {
   createVoteOptions,
   verifyPaymentCompleted,
   isPaymentAlreadyUsed,
+  getUserById,
+  getUsersByMunicipality,
 } from '@/lib/supabase/db';
 
 /**
@@ -158,6 +161,42 @@ export async function POST(request: NextRequest) {
         votes: 0,
       }))
     );
+
+    // Notify by email (best-effort — never blocks vote creation)
+    try {
+      const creator = await getUserById(session.userId);
+
+      // 1. Creator confirmation
+      if (creator?.email) {
+        await emailService.sendVoteCreatedEmail({
+          to: creator.email,
+          firstName: creator.first_name || 'יוצר ההצבעה',
+          voteTitle: vote.title,
+          voteId: vote.id,
+          municipality: vote.municipality_id,
+          endDate: new Date(vote.end_date),
+        });
+      }
+
+      // 2. Municipality broadcast — only for votes that are already open.
+      // Batched to respect the email provider's rate limits.
+      if (vote.status === 'active') {
+        const residents = await getUsersByMunicipality(vote.municipality_id);
+        const recipients = residents.filter((r) => r.id !== session.userId);
+        await sendInBatches(recipients, (r) =>
+          emailService.sendVoteNotification({
+            to: r.email,
+            firstName: r.first_name || 'תושב/ת',
+            voteTitle: vote.title,
+            voteId: vote.id,
+            municipality: vote.municipality_id,
+            endDate: new Date(vote.end_date),
+          })
+        );
+      }
+    } catch (emailError) {
+      console.warn('Vote creation emails failed (non-fatal):', emailError);
+    }
 
     // Transform to API response format
     // Note: option descriptions are not stored in DB, include from input if provided

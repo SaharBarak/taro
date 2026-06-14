@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { getAuthToken } from '@/lib/auth';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sync.co.il';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://taruu.co.il';
 
 interface VerificationStats {
   daysElapsed: number;

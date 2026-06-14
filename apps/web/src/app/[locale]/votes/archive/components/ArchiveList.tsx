@@ -5,9 +5,36 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Heading, Text } from '@/components/ui/Typography';
 import { Button } from '@/components/ui/Button';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { staggerContainer, fadeInUp } from '@/lib/animations';
 import { formatCurrency, formatDate } from '@sync/shared';
 import styles from './ArchiveList.module.css';
+
+function VerifiedVotersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M5 20a7 7 0 0 1 14 0M15.5 8.2l1 1 2-2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function PatronsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <path d="M12 3l2.5 5 5.5.8-4 3.9.95 5.5L12 16.5 7.05 18.2 8 12.7 4 8.8 9.5 8 12 3z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MintedIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <circle cx="12" cy="15" r="5" />
+      <path d="M9 10L6 3M15 10l3-7M11 15h2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 interface ResolvedVote {
   id: string;
@@ -110,12 +137,8 @@ function VoteArchiveCard({ vote }: { vote: ResolvedVote }) {
   const isApproved = vote.result.winningOption === 'בעד';
 
   return (
-    <motion.article
-      className={styles.card}
-      variants={fadeInUp}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2 }}
-    >
+    <motion.div variants={fadeInUp} className={styles.cardWrap}>
+      <GlassCard variant="interactive" glow={isApproved ? 'green' : 'blue'} className={styles.card}>
       {/* Header */}
       <div className={styles.cardHeader}>
         <span className={styles.municipality}>{vote.municipality}</span>
@@ -151,21 +174,27 @@ function VoteArchiveCard({ vote }: { vote: ResolvedVote }) {
       {/* NFT Stats */}
       <div className={styles.nftStats}>
         <div className={styles.nftStat}>
-          <span className={styles.nftIcon}>🏅</span>
+          <span className={`${styles.nftIcon} ${styles.nftIconGreen}`} aria-hidden>
+            <VerifiedVotersIcon />
+          </span>
           <div>
             <div className={styles.nftValue}>{vote.nftStats.verifiedVoters}</div>
             <Text size="xs" color="muted">מצביעים מאומתים</Text>
           </div>
         </div>
         <div className={styles.nftStat}>
-          <span className={styles.nftIcon}>💎</span>
+          <span className={`${styles.nftIcon} ${styles.nftIconPurple}`} aria-hidden>
+            <PatronsIcon />
+          </span>
           <div>
             <div className={styles.nftValue}>{vote.nftStats.civicPatrons}</div>
             <Text size="xs" color="muted">תומכים חיצוניים</Text>
           </div>
         </div>
         <div className={styles.nftStat}>
-          <span className={styles.nftIcon}>🎖️</span>
+          <span className={`${styles.nftIcon} ${styles.nftIconBlue}`} aria-hidden>
+            <MintedIcon />
+          </span>
           <div>
             <div className={styles.nftValue}>{vote.nftStats.totalMinted}</div>
             <Text size="xs" color="muted">NFTs</Text>
@@ -208,7 +237,8 @@ function VoteArchiveCard({ vote }: { vote: ResolvedVote }) {
           </Button>
         </Link>
       </div>
-    </motion.article>
+      </GlassCard>
+    </motion.div>
   );
 }
 
@@ -265,9 +295,19 @@ export function ArchiveList() {
     return (
       <section className={styles.section}>
         <div className={styles.container}>
-          <div className={styles.loading}>
-            <div className={styles.spinner} />
-            <Text>טוען ארכיון...</Text>
+          <div className={styles.grid} aria-busy="true" aria-label="טוען ארכיון">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className={styles.skeletonCard}>
+                <div className={styles.skeletonRow}>
+                  <span className={`${styles.shimmer} ${styles.skMeta}`} />
+                  <span className={`${styles.shimmer} ${styles.skBadge}`} />
+                </div>
+                <span className={`${styles.shimmer} ${styles.skTitle}`} />
+                <span className={`${styles.shimmer} ${styles.skLine}`} />
+                <span className={`${styles.shimmer} ${styles.skBar}`} />
+                <span className={`${styles.shimmer} ${styles.skBlock}`} />
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -326,7 +366,12 @@ export function ArchiveList() {
         {/* Votes Grid */}
         {filteredVotes.length === 0 ? (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>🔍</div>
+            <span className={styles.emptyIcon} aria-hidden>
+              <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
+              </svg>
+            </span>
             <Heading level={3}>לא נמצאו הצבעות</Heading>
             <Text color="secondary">
               נסו לשנות את הסינון או לחפש ברשות אחרת

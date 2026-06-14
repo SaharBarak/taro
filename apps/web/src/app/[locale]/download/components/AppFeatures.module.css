@@ -1,81 +1,122 @@
 .features {
-  padding-block: var(--space-24);
-  background-color: var(--color-background);
+  position: relative;
+  padding-block: clamp(var(--space-20), 12vw, var(--space-40));
+  background: var(--lc-canvas-tint);
 }
 
 .container {
+  width: 100%;
   max-width: var(--container-7xl);
   margin-inline: auto;
-  padding-inline: var(--space-6);
-}
-
-@media (min-width: 768px) {
-  .container {
-    padding-inline: var(--space-8);
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding-inline: var(--space-12);
-  }
+  padding-inline: clamp(var(--space-4), 5vw, var(--space-8));
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-4);
-  margin-block-end: var(--space-12);
-  text-align: center;
+  align-items: flex-start;
+  gap: var(--space-3);
+  max-width: 44rem;
+  margin-block-end: clamp(var(--space-10), 6vw, var(--space-16));
 }
 
-.description {
-  max-width: 32rem;
+.heading {
+  font-family: var(--font-primary);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--lc-ink);
+  font-size: clamp(var(--text-3xl), 3vw + 1rem, var(--text-4xl));
 }
 
-.grid {
+.lead {
+  max-width: 38rem;
+  line-height: var(--leading-relaxed);
+}
+
+/* ---- Bento: anti-3-card, deliberate asymmetry ---- */
+.bento {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-6);
 }
 
-@media (min-width: 640px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
+@media (min-width: 768px) {
+  .bento {
+    grid-template-columns: repeat(6, 1fr);
   }
+  /* Zig-zag: two wide, then two wide offset the other way */
+  .cell:nth-child(1) { grid-column: span 4; }
+  .cell:nth-child(2) { grid-column: span 2; }
+  .cell:nth-child(3) { grid-column: span 2; }
+  .cell:nth-child(4) { grid-column: span 4; }
 }
 
-@media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.cell {
+  display: flex;
 }
 
-.featureCard {
+.card {
   display: flex;
   flex-direction: column;
-  padding: var(--space-6);
-  background-color: var(--color-background-secondary);
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  padding: clamp(var(--space-5), 3vw, var(--space-8));
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 3rem;
+  block-size: 3rem;
   border-radius: var(--radius-xl);
-  border: var(--border-width-thin) solid var(--color-border);
-  transition: box-shadow var(--duration-fast) var(--ease-default);
+  margin-block-end: var(--space-1);
+  color: var(--cell-accent, var(--color-primary));
+  background: var(--cell-accent-soft, rgba(37, 99, 235, 0.1));
+  box-shadow: inset 0 0 0 1px var(--cell-accent-ring, rgba(37, 99, 235, 0.18));
 }
 
-.featureCard:hover {
-  box-shadow: var(--shadow-md);
+.icon svg {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
 }
 
-.featureIcon {
-  font-size: var(--text-4xl);
-  margin-block-end: var(--space-4);
-}
-
-.featureTitle {
+.title {
   font-family: var(--font-primary);
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-snug);
+  color: var(--lc-ink);
   margin: 0;
-  margin-block-end: var(--space-2);
+}
+
+.body {
+  line-height: var(--leading-relaxed);
+}
+
+/* ---- Per-cell accent (one accent each) ---- */
+.blue {
+  --cell-accent: var(--color-primary);
+  --cell-accent-soft: rgba(37, 99, 235, 0.1);
+  --cell-accent-ring: rgba(37, 99, 235, 0.18);
+}
+
+.green {
+  --cell-accent: var(--color-secondary-dark);
+  --cell-accent-soft: rgba(16, 185, 129, 0.1);
+  --cell-accent-ring: rgba(16, 185, 129, 0.18);
+}
+
+.purple {
+  --cell-accent: #7c3aed;
+  --cell-accent-soft: rgba(139, 92, 246, 0.1);
+  --cell-accent-ring: rgba(139, 92, 246, 0.18);
+}
+
+.amber {
+  --cell-accent: #b45309;
+  --cell-accent-soft: rgba(245, 158, 11, 0.12);
+  --cell-accent-ring: rgba(245, 158, 11, 0.22);
 }

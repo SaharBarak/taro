@@ -12,7 +12,7 @@ jest.mock('@sync/api-client', () => ({
 describe('usePayment Hook Logic', () => {
   const mockPaymentIntent = {
     id: 'pi_123',
-    paymentUrl: 'https://payment.greeninvoice.com/checkout/123',
+    paymentUrl: 'https://checkout.paddle.com/txn/123',
     amount: 300,
     currency: 'ILS' as const,
     status: 'pending' as const,
@@ -38,7 +38,7 @@ describe('usePayment Hook Logic', () => {
         metadata: { voteId: 'vote-123' },
       });
       expect(result.id).toBe('pi_123');
-      expect(result.paymentUrl).toBe('https://payment.greeninvoice.com/checkout/123');
+      expect(result.paymentUrl).toBe('https://checkout.paddle.com/txn/123');
     });
 
     it('should handle payment creation errors', async () => {

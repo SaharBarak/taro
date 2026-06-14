@@ -106,7 +106,7 @@ export default function PaymentFailedScreen() {
           <View className="flex-row-reverse items-center">
             <Ionicons name="help-circle" size={20} color="#6B7280" />
             <Text className="flex-1 text-sm font-assistant text-neutral-600 text-right mr-2">
-              נתקלתם בבעיה? פנו לתמיכה: support@sync.co.il
+              נתקלתם בבעיה? פנו לתמיכה: support@taruu.co.il
             </Text>
           </View>
         </View>

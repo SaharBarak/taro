@@ -1,0 +1,33 @@
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-wider);
+  color: var(--lc-ink-soft);
+}
+
+.dot {
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--lc-grad-brand);
+}
+
+.live {
+  background: var(--color-secondary);
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  animation: lc-breathe 2.4s var(--ease-default) infinite;
+}
+
+@keyframes lc-breathe {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live { animation: none; }
+}

@@ -121,7 +121,7 @@ export async function createTokenInfo(metadata: TokenMetadata): Promise<TokenInf
       symbol: metadata.symbol,
       description: metadata.description,
       image: metadata.image,
-      externalUrl: `https://taru.co.il/votes/${metadata.voteId}`,
+      externalUrl: `https://taruu.co.il/votes/${metadata.voteId}`,
       attributes: [
         { trait_type: 'Municipality', value: metadata.municipality },
         { trait_type: 'Vote ID', value: metadata.voteId },

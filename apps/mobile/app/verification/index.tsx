@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useUser, useVerificationStatus } from '@/stores/authStore';
 import { getAuthToken } from '@/lib/auth';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sync.co.il';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://taruu.co.il';
 
 interface VerificationData {
   verificationStatus: {

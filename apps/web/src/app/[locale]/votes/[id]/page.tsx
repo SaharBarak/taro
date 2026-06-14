@@ -101,10 +101,22 @@ export default function VoteDetailPage() {
 
   if (loading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner} />
-        <p>טוען...</p>
-      </div>
+      <>
+        <Header />
+        <main className={styles.main}>
+          <div className={styles.container}>
+            <div className={styles.skeletonHead}>
+              <span className={`${styles.shimmer} ${styles.skBadge}`} />
+              <span className={`${styles.shimmer} ${styles.skMeta}`} />
+            </div>
+            <span className={`${styles.shimmer} ${styles.skTitle}`} />
+            <span className={`${styles.shimmer} ${styles.skStats}`} />
+            <span className={`${styles.shimmer} ${styles.skCard}`} />
+            <span className={`${styles.shimmer} ${styles.skCard}`} />
+          </div>
+        </main>
+        <Footer />
+      </>
     );
   }
 
@@ -114,6 +126,12 @@ export default function VoteDetailPage() {
         <Header />
         <main className={styles.main}>
           <div className={styles.errorContainer}>
+            <span className={styles.errorIcon} aria-hidden>
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v5M12 16h.01" strokeLinecap="round" />
+              </svg>
+            </span>
             <h1>{error || 'ההצבעה לא נמצאה'}</h1>
             <p>לא ניתן לטעון את פרטי ההצבעה</p>
             <Button onClick={() => router.push('/votes')}>חזרה להצבעות</Button>
@@ -128,6 +146,33 @@ export default function VoteDetailPage() {
   const timeRemaining = getTimeRemaining(vote.endDate);
   const isActive = vote.status === 'active';
 
+  const handleShare = async () => {
+    if (typeof window === 'undefined' || !vote) return;
+
+    const shareUrl = window.location.href;
+    const shareData = {
+      title: vote.title,
+      text: vote.title,
+      url: shareUrl,
+    };
+
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('הקישור הועתק ללוח');
+      }
+    } catch (err) {
+      // Ignore user-cancelled share dialogs
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      console.error('Share error:', err);
+    }
+  };
+
   const handleVote = async () => {
     if (!selectedOption || !vote) return;
 
@@ -139,7 +184,7 @@ export default function VoteDetailPage() {
 
     setSubmitting(true);
     try {
-      // Create Green Invoice payment
+      // Create Paddle payment
       const response = await fetch('/api/payments/create', {
         method: 'POST',
         headers: {
@@ -160,7 +205,7 @@ export default function VoteDetailPage() {
 
       const data = await response.json();
 
-      // Redirect to Green Invoice payment page
+      // Redirect to Paddle payment page
       if (data.payment?.paymentUrl) {
         window.location.href = data.payment.paymentUrl;
       } else {
@@ -180,7 +225,9 @@ export default function VoteDetailPage() {
         <div className={styles.container}>
           {/* Back Button */}
           <button className={styles.backButton} onClick={() => router.back()}>
-            <span className={styles.backArrow}>←</span>
+            <svg className={styles.backArrow} viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
             חזרה
           </button>
 
@@ -293,7 +340,11 @@ export default function VoteDetailPage() {
                         <span className={styles.optionPercentage}>{percentage}%</span>
                       )}
                       {isSelected && !hasVoted && (
-                        <span className={styles.checkmark}>✓</span>
+                        <span className={styles.checkmark} aria-hidden>
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.4">
+                            <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
                       )}
                     </motion.button>
                   );
@@ -317,7 +368,11 @@ export default function VoteDetailPage() {
 
               {hasVoted && (
                 <div className={styles.votedMessage}>
-                  <span className={styles.votedIcon}>✓</span>
+                  <span className={styles.votedIcon} aria-hidden>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.4">
+                      <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
                   הצבעתכם נקלטה בהצלחה
                 </div>
               )}
@@ -331,7 +386,13 @@ export default function VoteDetailPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.7 }}
           >
-            <button className={styles.shareButton}>
+            <button className={styles.shareButton} onClick={handleShare}>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" strokeLinecap="round" />
+              </svg>
               שתפו את ההצבעה
             </button>
           </motion.div>

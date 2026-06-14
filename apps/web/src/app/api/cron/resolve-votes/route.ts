@@ -60,6 +60,8 @@ export async function POST(request: NextRequest) {
           id: v.voteId,
           title: v.title,
           nftsMinted: v.nftsMinted,
+          bagSeeded: v.bagSeeded,
+          bagTokenMint: v.bagTokenMint,
         })),
         errors: results.errors,
       },

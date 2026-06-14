@@ -1,8 +1,7 @@
 import { Metadata } from 'next';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { VotesHero } from './components/VotesHero';
-import { VotesList } from './components/VotesList';
+import { VotesView } from './components/VotesView';
 import type { Locale } from '@/lib/i18n';
 
 export const metadata: Metadata = {
@@ -22,8 +21,7 @@ export default async function VotesPage({ params }: VotesPageProps) {
     <>
       <Header locale={locale} />
       <main>
-        <VotesHero />
-        <VotesList />
+        <VotesView />
       </main>
       <Footer locale={locale} />
     </>

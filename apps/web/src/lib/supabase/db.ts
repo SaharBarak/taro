@@ -111,6 +111,67 @@ export async function updateUserIdentityScore(
     .eq('id', userId);
 }
 
+/**
+ * Get users of a municipality for notifications (id, email, first name).
+ * Capped to protect the request path — broadcast batches stay bounded.
+ */
+export async function getUsersByMunicipality(
+  municipalityId: string,
+  options: { limit?: number } = {}
+): Promise<Array<{ id: string; email: string; first_name: string | null }>> {
+  const { limit = 500 } = options;
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('id, email, first_name')
+    .eq('municipality_id', municipalityId)
+    .not('email', 'is', null)
+    .limit(limit);
+
+  if (error) {
+    console.error('Failed to get municipality users:', error);
+    return [];
+  }
+  return data || [];
+}
+
+/**
+ * Get a vote's participants with their contact details and chosen option.
+ * Used for the post-resolution results email.
+ */
+export async function getVoteParticipantsWithEmails(
+  voteId: string
+): Promise<
+  Array<{
+    user_id: string;
+    option_id: string;
+    email: string;
+    first_name: string | null;
+  }>
+> {
+  const { data, error } = await supabaseAdmin
+    .from('user_votes')
+    .select('user_id, option_id, users(email, first_name)')
+    .eq('vote_id', voteId);
+
+  if (error) {
+    console.error('Failed to get vote participants:', error);
+    return [];
+  }
+
+  return (data || [])
+    .map((row) => {
+      const user = row.users as unknown as { email: string; first_name: string | null } | null;
+      if (!user?.email) return null;
+      return {
+        user_id: row.user_id,
+        option_id: row.option_id,
+        email: user.email,
+        first_name: user.first_name,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+}
+
 // ============================================
 // SOCIAL PROOFS OPERATIONS
 // ============================================
@@ -1073,6 +1134,93 @@ export async function getOrCreateTreasury(municipalityId: string): Promise<strin
     throw error;
   }
   return data;
+}
+
+/**
+ * Accrue an ILS deposit into a municipality treasury ledger.
+ * Wraps the record_treasury_deposit SQL function (atomic balance update + audit row).
+ * For vote participation, pass voteId so the amount feeds that vote's bag at resolution.
+ */
+export async function recordTreasuryDeposit(params: {
+  municipalityId: string;
+  /** Amount in agorot (minor units) — treasury columns store agorot throughout */
+  amountAgorot: number;
+  paymentId: string;
+  userId: string;
+  voteId?: string | null;
+  description?: string;
+}): Promise<string> {
+  const { data, error } = await supabaseAdmin.rpc('record_treasury_deposit', {
+    p_municipality_id: params.municipalityId,
+    p_amount_ils: params.amountAgorot,
+    p_payment_id: params.paymentId,
+    p_user_id: params.userId,
+    p_vote_id: params.voteId ?? null,
+    p_description: params.description ?? 'Vote payment deposit',
+  });
+
+  if (error) {
+    console.error('Failed to record treasury deposit:', error);
+    throw error;
+  }
+  return data;
+}
+
+/**
+ * Sum confirmed ILS deposits (agorot) accrued for a single vote.
+ * This is the pool that gets seeded into the vote's Bags.fm bag at resolution.
+ */
+export async function getAccruedIlsForVote(voteId: string): Promise<number> {
+  const { data, error } = await supabaseAdmin
+    .from('treasury_transactions')
+    .select('amount_ils')
+    .eq('vote_id', voteId)
+    .eq('type', 'deposit')
+    .eq('status', 'confirmed');
+
+  if (error) {
+    console.error('Failed to sum accrued ILS for vote:', error);
+    throw error;
+  }
+  return (data || []).reduce((sum, row) => sum + (row.amount_ils || 0), 0);
+}
+
+/**
+ * Record a treasury transaction (allocation, token_purchase, fee_claim, etc.).
+ * Used by the bag-seeding flow to log the fiat→SOL conversion and liquidity add.
+ */
+export async function recordTreasuryTransaction(params: {
+  treasuryId: string;
+  type: TreasuryTransactionType;
+  voteId?: string | null;
+  amountIls?: number | null;
+  amountSol?: number | null;
+  description: string;
+  bagsTxHash?: string | null;
+  status?: 'pending' | 'confirmed' | 'failed';
+  metadata?: Record<string, unknown> | null;
+}): Promise<string> {
+  const { data, error } = await supabaseAdmin
+    .from('treasury_transactions')
+    .insert({
+      treasury_id: params.treasuryId,
+      type: params.type,
+      vote_id: params.voteId ?? null,
+      amount_ils: params.amountIls ?? null,
+      amount_sol: params.amountSol != null ? String(params.amountSol) : null,
+      description: params.description,
+      bags_tx_hash: params.bagsTxHash ?? null,
+      status: params.status ?? 'confirmed',
+      metadata: params.metadata ?? null,
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('Failed to record treasury transaction:', error);
+    throw error;
+  }
+  return data.id;
 }
 
 // === Issue Coin Functions ===

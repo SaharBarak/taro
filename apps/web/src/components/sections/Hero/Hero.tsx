@@ -1,109 +1,96 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Text } from '@/components/ui/Typography';
-import {
-  AnimatedLetters,
-  AnimatedWords,
-  AnimatedFadeInUp,
-} from '@/components/animations';
+import { MagneticButton } from '@/components/ui/MagneticButton';
+import { RippleButton } from '@/components/ui/RippleButton';
+import { GradientText } from '@/components/ui/GradientText';
+import { Eyebrow } from '@/components/ui/Eyebrow';
+import { AnimatedLetters } from '@/components/animations';
 import { useReducedMotion } from '@/hooks';
-import { HeroParallax } from './HeroParallax';
+import { ShaderBackground } from '@/components/effects';
+import { ConsensusVisual } from './ConsensusVisual';
 import type { Locale } from '@/lib/i18n';
 import styles from './Hero.module.css';
+
+const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
 
 interface HeroProps {
   locale?: Locale;
 }
 
-export function Hero({ locale = 'he' }: HeroProps) {
+export function Hero(_props: HeroProps) {
   const reducedMotion = useReducedMotion();
-
-  const t = {
-    backgroundText: locale === 'en' ? 'Democracy' : 'דמוקרטיה',
-    title1: locale === 'en' ? 'The Local Voice,' : 'הקול המקומי,',
-    title2: locale === 'en' ? 'In a Measurable Way.' : 'בצורה שאפשר\u00A0למדוד.',
-    subtitle: locale === 'en'
-      ? 'Taro helps communities form a transparent civic majority on issues that truly matter. We create an objective picture that helps authorities understand residents\' wishes and act in coordination with the community.'
-      : 'תַּרְאוּ עוזרת לקהילות לגבש רוב אזרחי שקוף בנושאים שבאמת חשובים לנו. אנחנו מייצרים תמונת מצב אובייקטיבית שעוזרת לרשויות להבין את רצון התושבים לעומק ולפעול בתיאום עם הקהילה.',
-    downloadBtn: locale === 'en' ? 'Download App - Coming Soon!' : 'הורדת האפליקציה - בקרוב!',
-    viewVotesBtn: locale === 'en' ? 'View Public Votes' : 'צפייה בהצבעות פומביות',
-    pilot: locale === 'en' ? 'Pilot running in Kiryat Tivon. Features and procedures evolve with the community.' : 'פיילוט בהרצה בקריית טבעון. התכונות והנהלים מתפתחים יחד עם הקהילה.',
-  };
 
   return (
     <section className={styles.hero}>
-      {/* Parallax Background Layers */}
-      <HeroParallax />
+      <ShaderBackground />
+      <div className={styles.mesh} aria-hidden />
 
       <div className={styles.container}>
-        {/* Background Typography */}
-        <motion.div
-          className={styles.backgroundText}
-          initial={{ opacity: reducedMotion ? 0.03 : 0 }}
-          animate={{ opacity: 0.03 }}
-          transition={{ duration: reducedMotion ? 0 : 1, delay: reducedMotion ? 0 : 0.5 }}
-        >
-          {t.backgroundText}
-        </motion.div>
-
         <div className={styles.content}>
-          {/* Main Heading */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Eyebrow>מנגנון הקונצנזוס הציבורי של ישראל</Eyebrow>
+          </motion.div>
+
           <h1 className={styles.heading}>
-            <AnimatedLetters text={t.title1} delay={0.2} />
-            <br />
-            <span className={styles.headingAccent}>
-              <AnimatedLetters text={t.title2} delay={0.5} />
+            <AnimatedLetters text="הקול של השכונה —" delay={0.15} />
+            <span className={styles.accentLine}>
+              <motion.span
+                initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: reducedMotion ? 0 : 0.7, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <GradientText animated>סוף־סוף במספרים.</GradientText>
+              </motion.span>
             </span>
           </h1>
 
-          {/* Subtitle */}
-          <motion.div
+          <motion.p
             className={styles.subtitle}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1 }}
+          >
+            תַּרְאוּ מודד את עמדת רוב התושבים בנושאים המקומיים שחשובים לנו — בצורה
+            מאומתת, שקופה ובלתי ניתנת לזיוף. במקום ויכוחים בלי סוף, תמונת מצב אחת
+            ברורה שהמועצה לא יכולה להתעלם ממנה.
+          </motion.p>
+
+          <motion.div
+            className={styles.cta}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.2 }}
           >
-            <Text size="xl" color="secondary" align="center">
-              <AnimatedWords
-                text={t.subtitle}
-                delay={1.4}
-              />
-            </Text>
+            <MagneticButton>
+              <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className={styles.ctaPrimary}>
+                <RippleButton size="xl">הצטרפו לפיילוט בקריית טבעון</RippleButton>
+              </a>
+            </MagneticButton>
+            <a href="#how" className={styles.ctaSecondary}>
+              איך זה עובד
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+                <path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
           </motion.div>
 
-          {/* CTA Buttons */}
-          <motion.div
-            className={styles.cta}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.6 }}
-          >
-            <Link href={`/${locale}/download`}>
-              <Button size="xl">
-                {t.downloadBtn}
-              </Button>
-            </Link>
-            <Link href={`/${locale}/votes`}>
-              <Button variant="outline" size="xl">
-                {t.viewVotesBtn}
-              </Button>
-            </Link>
-          </motion.div>
-
-          {/* Beta Disclaimer */}
-          <motion.div
-            className={styles.betaDisclaimer}
+          <motion.p
+            className={styles.microcopy}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 2.2 }}
+            transition={{ duration: 0.6, delay: 1.5 }}
           >
-            <Text size="xs" color="muted" align="center">
-              {t.pilot}
-            </Text>
-          </motion.div>
+            ההצבעה הראשונה יוצאת לדרך ב-23.01.26. הצטרפות חינם, בלי התחייבות.
+          </motion.p>
+        </div>
+
+        <div className={styles.visual}>
+          <ConsensusVisual />
         </div>
       </div>
     </section>

@@ -1,74 +1,76 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { GradientText } from '@/components/ui/GradientText';
+import { Eyebrow } from '@/components/ui/Eyebrow';
+import { Heading, Text } from '@/components/ui/Typography';
+import { RippleButton } from '@/components/ui/RippleButton';
+import { MagneticButton } from '@/components/ui/MagneticButton';
+import { AnimatedFadeInUp } from '@/components/animations';
 import type { Locale } from '@/lib/i18n';
 import styles from './CTASection.module.css';
+
+const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
 
 interface CTASectionProps {
   locale: Locale;
 }
 
-export function CTASection({ locale }: CTASectionProps) {
+const trustStats = [
+  { value: '₪3', label: 'עלות הצבעה' },
+  { value: '70%', label: 'לקרן הקהילתית' },
+  { value: 'תעודה', label: 'לכל משתתף' },
+];
+
+export function CTASection(_props: CTASectionProps) {
   return (
-    <section className={styles.cta}>
+    <section className={styles.cta} aria-labelledby="cta-title">
+      <span className={styles.mesh} aria-hidden />
+
       <div className={styles.container}>
-        <motion.div
-          className={styles.content}
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className={styles.title}>מוכנים להצטרף?</h2>
-          <p className={styles.subtitle}>
-            הורידו את האפליקציה והתחילו להשפיע על הקהילה שלכם
-          </p>
+        <div className={styles.content}>
+          <AnimatedFadeInUp>
+            <Eyebrow>פיילוט חי בקריית טבעון</Eyebrow>
+          </AnimatedFadeInUp>
 
-          <div className={styles.buttons}>
-            <Link href={`/${locale}/download`} className={styles.primaryButton}>
-              <span className={styles.buttonIcon}>📱</span>
-              <span className={styles.buttonText}>
-                <span className={styles.buttonLabel}>הורידו את האפליקציה</span>
-                <span className={styles.buttonSub}>iOS & Android</span>
-              </span>
-            </Link>
+          <Heading level={2} id="cta-title" className={styles.title}>
+            מוכנים להפוך{' '}
+            <GradientText variant="brand" animated>
+              3 שקלים
+            </GradientText>{' '}
+            לכוח קהילתי?
+          </Heading>
 
-            <Link href={`/${locale}/support`} className={styles.secondaryButton}>
-              <span className={styles.buttonIcon}>🌍</span>
-              <span className={styles.buttonText}>
-                <span className={styles.buttonLabel}>Connect Wallet</span>
-                <span className={styles.buttonSub}>Support from anywhere</span>
-              </span>
-            </Link>
-          </div>
+          <AnimatedFadeInUp delay={0.1}>
+            <Text as="p" size="lg" color="secondary" className={styles.subtitle}>
+              הצטרפו לקהילת התושבים שבונה את הקרן הראשונה. הצטרפות חינם, בלי התחייבות.
+            </Text>
+          </AnimatedFadeInUp>
 
-          <motion.div
-            className={styles.stats}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>₪3</span>
-              <span className={styles.statLabel}>עלות הצבעה</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>70%</span>
-              <span className={styles.statLabel}>לקרן הרשות</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>NFT</span>
-              <span className={styles.statLabel}>לכל משתתף</span>
-            </div>
-          </motion.div>
-        </motion.div>
+          <AnimatedFadeInUp delay={0.2} className={styles.actions}>
+            <MagneticButton>
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.primaryLink}
+              >
+                <RippleButton size="xl">הצטרפו לפיילוט בוואטסאפ</RippleButton>
+              </a>
+            </MagneticButton>
+          </AnimatedFadeInUp>
 
-        {/* Background decoration */}
-        <div className={styles.backgroundPattern} />
+          <AnimatedFadeInUp delay={0.3} className={styles.stats}>
+            {trustStats.map((stat, index) => (
+              <div key={stat.label} className={styles.statItem}>
+                {index > 0 && <span className={styles.statDivider} aria-hidden />}
+                <span className={styles.statBlock}>
+                  <span className={styles.statValue}>{stat.value}</span>
+                  <span className={styles.statLabel}>{stat.label}</span>
+                </span>
+              </div>
+            ))}
+          </AnimatedFadeInUp>
+        </div>
       </div>
     </section>
   );

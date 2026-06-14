@@ -97,7 +97,7 @@ export default function CreateVotePage() {
     setError('');
 
     try {
-      // Create Green Invoice payment session
+      // Create Paddle payment session
       const response = await fetch('/api/payments/create', {
         method: 'POST',
         headers: {
@@ -116,7 +116,7 @@ export default function CreateVotePage() {
 
       const data = await response.json();
 
-      // Redirect to Green Invoice payment page
+      // Redirect to Paddle payment page
       if (data.payment?.paymentUrl) {
         // Store vote creation data in sessionStorage before redirect
         sessionStorage.setItem('pendingVote', JSON.stringify({
@@ -141,10 +141,17 @@ export default function CreateVotePage() {
 
   if (isLoading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner} />
-        <p>טוען...</p>
-      </div>
+      <>
+        <Header />
+        <main className={styles.main}>
+          <div className={styles.container}>
+            <span className={`${styles.shimmer} ${styles.skHead}`} />
+            <span className={`${styles.shimmer} ${styles.skBar}`} />
+            <span className={`${styles.shimmer} ${styles.skCard}`} />
+          </div>
+        </main>
+        <Footer />
+      </>
     );
   }
 
@@ -161,7 +168,9 @@ export default function CreateVotePage() {
             transition={{ duration: 0.5 }}
           >
             <button className={styles.backButton} onClick={() => router.back()}>
-              <span className={styles.backArrow}>←</span>
+              <svg className={styles.backArrow} viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
               חזרה
             </button>
             <div>
@@ -245,8 +254,11 @@ export default function CreateVotePage() {
                           className={styles.removeButton}
                           onClick={() => removeOption(index)}
                           type="button"
+                          aria-label={`הסרת אפשרות ${index + 1}`}
                         >
-                          ✕
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+                            <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+                          </svg>
                         </button>
                       )}
                     </div>
@@ -255,7 +267,10 @@ export default function CreateVotePage() {
 
                 {options.length < 5 && (
                   <button className={styles.addButton} onClick={addOption} type="button">
-                    + הוספת אפשרות
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+                      <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+                    </svg>
+                    הוספת אפשרות
                   </button>
                 )}
               </>
@@ -302,7 +317,7 @@ export default function CreateVotePage() {
                     <span>עלות יצירת הצבעה</span>
                     <strong>{formatCurrency(CREATE_VOTE_COST)}</strong>
                   </div>
-                  <p className={styles.paymentNote}>תשלום מאובטח דרך Green Invoice</p>
+                  <p className={styles.paymentNote}>תשלום מאובטח דרך Paddle</p>
                 </div>
               </>
             )}

@@ -266,7 +266,7 @@ export interface Database {
           amount: number;
           currency: string;
           status: 'pending' | 'completed' | 'failed' | 'refunded';
-          provider: 'green_invoice';
+          provider: 'paddle' | 'green_invoice';
           provider_id: string | null;
           idempotency_key: string;
           vote_id: string | null;
@@ -282,7 +282,7 @@ export interface Database {
           amount: number;
           currency?: string;
           status?: 'pending' | 'completed' | 'failed' | 'refunded';
-          provider?: 'green_invoice';
+          provider?: 'paddle' | 'green_invoice';
           provider_id?: string | null;
           idempotency_key: string;
           vote_id?: string | null;
@@ -298,7 +298,7 @@ export interface Database {
           amount?: number;
           currency?: string;
           status?: 'pending' | 'completed' | 'failed' | 'refunded';
-          provider?: 'green_invoice';
+          provider?: 'paddle' | 'green_invoice';
           provider_id?: string | null;
           idempotency_key?: string;
           vote_id?: string | null;
@@ -765,12 +765,12 @@ export interface Database {
       };
       record_treasury_deposit: {
         Args: {
-          p_treasury_id: string;
+          p_municipality_id: string;
+          p_amount_ils: number;
           p_payment_id: string;
           p_user_id: string;
-          p_vote_id: string | null;
-          p_amount_ils: number;
-          p_description: string;
+          p_vote_id?: string | null;
+          p_description?: string;
         };
         Returns: string;
       };

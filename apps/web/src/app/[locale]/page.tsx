@@ -1,10 +1,12 @@
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Hero } from '@/components/sections/Hero';
-import { Features } from '@/components/sections/Features';
-import { HowItWorks } from '@/components/sections/HowItWorks';
-import { Pilot } from '@/components/sections/Pilot';
-import { CTA } from '@/components/sections/CTA';
+import { Masthead, Ticker } from '@/components/press';
+import {
+  Lead,
+  Participate,
+  Pillars,
+  HowItWorks,
+  PilotDispatch,
+  Colophon,
+} from '@/components/press/sections';
 import type { Locale } from '@/lib/i18n';
 
 interface HomePageProps {
@@ -15,16 +17,17 @@ export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
 
   return (
-    <>
-      <Header locale={locale} />
+    <div className="np-page">
+      <Masthead locale={locale} />
+      <Ticker />
       <main>
-        <Hero locale={locale} />
-        <Features locale={locale} />
+        <Lead locale={locale} />
+        <Participate locale={locale} />
+        <Pillars locale={locale} />
         <HowItWorks locale={locale} />
-        <Pilot locale={locale} />
-        <CTA locale={locale} />
+        <PilotDispatch locale={locale} />
       </main>
-      <Footer locale={locale} />
-    </>
+      <Colophon locale={locale} />
+    </div>
   );
 }

@@ -78,7 +78,7 @@ export const tokenStorage = {
  * Google OAuth configuration
  */
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sync.co.il';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://taruu.co.il';
 
 /**
  * Build Google OAuth URL for mobile

@@ -1,0 +1,31 @@
+.gradient {
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background-size: 100% 100%;
+}
+
+.brand { background-image: var(--lc-grad-brand); }
+.blue { background-image: var(--lc-grad-blue); }
+.green { background-image: var(--lc-grad-green); }
+.purple { background-image: var(--lc-grad-purple); }
+.amber { background-image: var(--lc-grad-amber); }
+
+.animated {
+  background-size: 220% 100%;
+  animation: lc-sweep 6s var(--ease-linear) infinite;
+}
+
+@keyframes lc-sweep {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated {
+    animation: none;
+    background-size: 100% 100%;
+  }
+}

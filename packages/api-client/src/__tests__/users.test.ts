@@ -184,22 +184,22 @@ describe('usersApi', () => {
     it('should return Facebook connect URL', async () => {
       // Mock window.location for browser environment
       const originalWindow = global.window;
-      global.window = { location: { origin: 'https://app.sync.co.il' } } as Window & typeof globalThis;
+      global.window = { location: { origin: 'https://app.taruu.co.il' } } as Window & typeof globalThis;
 
       const url = await usersApi.getSocialConnectUrl('facebook');
 
-      expect(url).toBe('https://app.sync.co.il/api/social/connect/facebook');
+      expect(url).toBe('https://app.taruu.co.il/api/social/connect/facebook');
 
       global.window = originalWindow;
     });
 
     it('should return Instagram connect URL', async () => {
       const originalWindow = global.window;
-      global.window = { location: { origin: 'https://app.sync.co.il' } } as Window & typeof globalThis;
+      global.window = { location: { origin: 'https://app.taruu.co.il' } } as Window & typeof globalThis;
 
       const url = await usersApi.getSocialConnectUrl('instagram');
 
-      expect(url).toBe('https://app.sync.co.il/api/social/connect/instagram');
+      expect(url).toBe('https://app.taruu.co.il/api/social/connect/instagram');
 
       global.window = originalWindow;
     });

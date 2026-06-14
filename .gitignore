@@ -51,3 +51,9 @@ public/workbox-*.js
 
 # Docker with secrets
 docker-compose.yml
+
+# redesign throwaway artifacts (keep .md docs)
+.redesign/*.png
+.redesign/*.mjs
+.redesign/*.html
+.redesign/*.jpg
