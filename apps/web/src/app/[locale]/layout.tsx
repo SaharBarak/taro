@@ -305,7 +305,8 @@ export default async function LocaleLayout({
       </head>
       <body>
         <AuthProvider>
-          <LenisProvider>{children}</LenisProvider>
+          <LenisProvider><script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="taro" />
+        {children}</LenisProvider>
           <WhatsAppButton locale={locale} />
         </AuthProvider>
       </body>
