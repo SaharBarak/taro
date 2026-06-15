@@ -23,6 +23,8 @@ export interface Database {
           last_name: string | null;
           phone: string | null;
           municipality_id: string | null;
+          city: string | null;
+          notification_settings: Record<string, boolean> | null;
           did: string | null;
           did_public_key: string | null;
           did_encrypted_private_key: string | null;
@@ -41,6 +43,8 @@ export interface Database {
           last_name?: string | null;
           phone?: string | null;
           municipality_id?: string | null;
+          city?: string | null;
+          notification_settings?: Record<string, boolean> | null;
           did?: string | null;
           did_public_key?: string | null;
           did_encrypted_private_key?: string | null;
@@ -59,6 +63,8 @@ export interface Database {
           last_name?: string | null;
           phone?: string | null;
           municipality_id?: string | null;
+          city?: string | null;
+          notification_settings?: Record<string, boolean> | null;
           did?: string | null;
           did_public_key?: string | null;
           did_encrypted_private_key?: string | null;

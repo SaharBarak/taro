@@ -34,14 +34,16 @@ tsc + lint green throughout. Hebrew-only, web-only, mobile-first.
   - **J2 participation:** reshaped to **choice → pay ₪3 → seal** (per-vote GPS REMOVED). Gate at payment; selected option persisted across the sign-in/verify round-trip (sessionStorage `taruu-pending-vote` + `?option=`). ₪3 justified + tied to the BAG. `flow/ParticipationFlow.tsx`.
   - **J4 verification:** WIRED FOR REAL — phone OTP (Twilio, mock-degrades w/o creds) → immediate first GPS check-in (start→check-in, hard-fail+retry, surfaces next window) → eligible. `?redirect=` preserved through sign-in. `lib/verification.ts isEligibleToVote()` (phase completed OR ≥1 check-in) drives both the verification success state AND the J2 payment gate — one check-in unlocks voting; scheduled program continues in background.
 
-## NEXT SESSION — start here
-**UX breakdown tracker = `.redesign/UX_FLOWS.md`** (per-journey MAP→FRICTION→UX→UI→COPY checklist). Done: J1, J2, J4. **Pending:** J8 (auth/onboarding + the new account requests below), J5 (coin — incl. unwired bags.fm trading `quote`/`swap`), J6 (store — POD fulfilment + webhook persistence), J3 (create), J9 (resolution→NFT certificate), J7 (dashboard), J10 (treasury), J11 (info). Method: dissect ONE journey at a time; present grounded MAP + friction; get UX forks via questions; then UI; then COPY; commit per journey.
+**5. J8 auth/onboarding + account (absorbs B2/B3/B4).** Data layer: `UserProfile.city` + `notification_settings` added across shared type / DB types / PATCH whitelist / `transformToProfile`; migrations `20260615000001_user_city.sql`, `..0002_user_notification_settings.sql`. **B2** — `Masthead` gained auth state via `useAuth`: signed-out = founders'-group CTA (unchanged); signed-in = city chip (`city || municipality`, ● glyph, collapses into menu ≤767px) + avatar dropdown (לוח שלי · הפרופיל שלי · חשבונות מקושרים · התנתקות; outside-click/Esc/route close, aria-menu). **B3** — built the 3 previously-dead `/settings/*` pages (profile/municipality/notifications), press-styled, mirroring `social-connections` (auth guard, GET hydrate → PATCH → `refreshSession()`); `/dashboard` stays the hub. **B4** — single-country pilot: country fixed ישראל (no field); `city` is the editable location. tsc + lint green; routes compile 200. Live visual pending a real session (signed-in branch + auth-gated forms can't render on mock DB).
 
-**Backlog (new requests 2026-06-15 — see UX_FLOWS.md "Backlog"):**
-- **B1** OTP via serverless **Cloudflare Worker** (replace Twilio behind the `/api/user/phone/*` contract).
-- **B2** Account **icon bar in masthead** — signed-in Google account + location (city) chip/menu; masthead has no auth state today.
-- **B3** Dedicated **account space** (`/account` or expand `/settings`) — profile, identity, verification, location.
-- **B4** Explicit **city + country** fields (onboarding captures municipality only) → capture + edit in account, surface in B2 chip; extend `UserProfile`/profile API.
+## NEXT SESSION — start here
+**UX breakdown tracker = `.redesign/UX_FLOWS.md`** (per-journey MAP→FRICTION→UX→UI→COPY checklist). Done: J1, J2, J4, **J8**. **Pending:** J5 (coin — incl. unwired bags.fm trading `quote`/`swap`), J6 (store — POD fulfilment + webhook persistence), J3 (create), J9 (resolution→NFT certificate), J7 (dashboard), J10 (treasury), J11 (info). Method: dissect ONE journey at a time; present grounded MAP + friction; get UX forks via questions; then UI; then COPY; commit per journey. **Natural next: J5 (coin)** — newest/least-specified, high ambiguity.
+
+**Backlog status (2026-06-15):**
+- **B1** OTP via serverless **Cloudflare Worker** (replace Twilio behind the `/api/user/phone/*` contract). **STILL PENDING** (J4 infra).
+- ~~**B2** Account icon bar in masthead~~ **DONE (J8)** — signed-in city chip + avatar dropdown.
+- ~~**B3** Dedicated account space~~ **DONE (J8)** — built the 3 dead `/settings/*` pages (profile · municipality · notifications); `/dashboard` stays the hub.
+- ~~**B4** city + country~~ **DONE (J8)** — single-country pilot: country fixed ישראל (no field); `city` added as the editable location (chip + `/settings/profile`).
 
 ## OPEN DECISIONS / KNOWN GAPS
 1. **₪ create-vote price:** constant `CREATE_VOTE_COST = 200` (`packages/shared/src/constants/index.ts`); CONTENT_STRATEGY §5 says **₪50**. Site is wired to the constant (renders ₪200). Flip the one constant if ₪50 is canonical.
