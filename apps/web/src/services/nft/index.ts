@@ -158,7 +158,9 @@ export function generateNftMetadata(input: NftMetadataInput): NftMetadata {
     name,
     symbol: NFT_SYMBOL,
     description: vote.description || `Commemorative NFT for participation in "${vote.title}"`,
-    image: `${NFT_IMAGE_CDN_URL}/${vote.id}/${holder.type}.png`,
+    // Type-based certificate artwork (served from the app's public dir). A
+    // per-vote image + real IPFS pin can replace this once the minter runs.
+    image: `${NFT_IMAGE_CDN_URL}/${holder.type}.png`,
     external_url: `https://taruu.co.il/votes/${vote.id}`,
     attributes,
   };

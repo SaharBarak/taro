@@ -14,6 +14,7 @@ import {
   PressInput,
 } from '@/components/press';
 import { useReducedMotion } from '@/hooks';
+import { CertificateCard, type Certificate } from '@/components/certificate/CertificateCard';
 import {
   getIdentityLevelLabel,
   getIdentityLevelDescription,
@@ -50,10 +51,11 @@ interface TreasuryContribution {
   date: string;
 }
 
-type DashboardTab = 'history' | 'fund' | 'billing' | 'settings';
+type DashboardTab = 'history' | 'certificates' | 'fund' | 'billing' | 'settings';
 
 const TABS: { value: DashboardTab; label: string }[] = [
   { value: 'history', label: 'הצבעות' },
+  { value: 'certificates', label: 'תעודות' },
   { value: 'fund', label: 'הקרן' },
   { value: 'billing', label: 'חיובים' },
   { value: 'settings', label: 'הגדרות' },
@@ -70,6 +72,7 @@ export default function DashboardPage() {
   const [recentVotes, setRecentVotes] = useState<RecentVote[]>([]);
   const [tokenTxns, setTokenTxns] = useState<TokenTransaction[]>([]);
   const [contributions, setContributions] = useState<TreasuryContribution[]>([]);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [tab, setTab] = useState<DashboardTab>('history');
 
@@ -185,10 +188,23 @@ export default function DashboardPage() {
       }
     };
 
+    // Civic certificates (NFTs) — auto-issued on resolution, view-only.
+    const fetchCertificates = async () => {
+      try {
+        const res = await fetch('/api/user/nfts');
+        if (!res.ok) return;
+        const data = await res.json();
+        setCertificates((data.nfts || []) as Certificate[]);
+      } catch (error) {
+        console.error('Error fetching certificates:', error);
+      }
+    };
+
     if (isAuthenticated) {
       fetchData();
       fetchBilling();
       fetchContributions();
+      fetchCertificates();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally omit user to prevent refetch on every user update; we only want to fetch once when authenticated
   }, [isLoading, isAuthenticated, router]);
@@ -408,6 +424,33 @@ export default function DashboardPage() {
                       </li>
                     ))}
                   </ul>
+                )}
+              </div>
+            )}
+
+            {/* --- CERTIFICATES --- */}
+            {tab === 'certificates' && (
+              <div className={styles.panel}>
+                <span className={styles.panelKicker}>
+                  <span aria-hidden className={styles.kickerTick} />
+                  התעודות שלכם · CIVIC CERTIFICATES
+                </span>
+                {certificates.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <p className={styles.emptyText}>
+                      תעודה אזרחית מונפקת אוטומטית בכל פעם שהצבעה שהשתתפתם בה
+                      מסתיימת — שיא חתום של ההשתתפות שלכם. עוד אין לכם תעודות.
+                    </p>
+                    <NewsButton variant="red" size="md" onClick={() => router.push('/votes')}>
+                      להצבעות הפעילות
+                    </NewsButton>
+                  </div>
+                ) : (
+                  <div className={styles.certGrid}>
+                    {certificates.map((cert) => (
+                      <CertificateCard key={cert.id} cert={cert} />
+                    ))}
+                  </div>
                 )}
               </div>
             )}
