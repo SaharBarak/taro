@@ -104,7 +104,7 @@ export function CoinDossier({ voteId, locale = 'he' }: CoinDossierProps) {
           }
         }
       } catch {
-        if (!cancelled) setError('לא הצלחנו לטעון את תיק המטבע כרגע.');
+        if (!cancelled) setError('לא הצלחנו לטעון את תיק ה-BAG כרגע.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -133,14 +133,14 @@ export function CoinDossier({ voteId, locale = 'he' }: CoinDossierProps) {
           <span className={styles.emptyGlyph} aria-hidden>
             ▍
           </span>
-          <h2 className={styles.emptyTitle}>אין מטבע קהילה להצבעה הזו.</h2>
+          <h2 className={styles.emptyTitle}>אין BAG להצבעה הזו.</h2>
           <p className={styles.emptyText}>
-            ייתכן שההצבעה עדיין לא הנפיקה מטבע, או שהמזהה שגוי. חזרו לשוק או הצטרפו
+            ייתכן שההצבעה עדיין לא פתחה BAG ב-bags.fm, או שהמזהה שגוי. חזרו לשוק או הצטרפו
             לפיילוט.
           </p>
           <div className={styles.emptyActions}>
             <NewsButton href={`/${locale}/coin`} variant="ink" size="md">
-              ← לשוק המטבעות
+              ← לשוק ה-BAGS
             </NewsButton>
             <NewsButton
               href={WHATSAPP_LINK}
@@ -167,11 +167,11 @@ export function CoinDossier({ voteId, locale = 'he' }: CoinDossierProps) {
       {/* Header */}
       <header className={styles.head}>
         <Link className={styles.crumb} href={`/${locale}/coin`}>
-          ← שוק המטבעות
+          ← שוק ה-BAGS
         </Link>
         <span className={styles.kicker}>
           <span aria-hidden className={styles.kickerTick} />
-          מטבע קהילה · ISSUE COIN
+          מטבע ההצבעה · BAGS.FM
         </span>
         <h1 className={styles.headline}>
           {coin.tokenName} <span className={styles.symbol}>{coin.tokenSymbol}</span>
@@ -237,14 +237,14 @@ export function CoinDossier({ voteId, locale = 'he' }: CoinDossierProps) {
           <div className={styles.explainer}>
             <h3 className={styles.explainerTitle}>איך זה עובד</h3>
             <p className={styles.explainerText}>
-              לכל הצבעה אפשר להנפיק מטבע קהילה. תושבים מקומיים ותומכים חיצוניים רוכשים את
-              המטבע ומגבים את הנושא — וכל עסקה מייצרת עמלה. 70% מהעמלות זורמות לקרן הרשות,
-              30% לתפעול הפלטפורמה. המטבע שקוף, סחיר, וחתום בבלוקצ׳יין: הגיבוי לנושא הופך
-              ממילים למשאבים אמיתיים.
+              לכל הצבעה נפתח BAG משלה ב-bags.fm — מטבע ממים מבוסס בלוקצ׳יין, ממותג סביב
+              הפלטפורמה. תושבים מקומיים ואנשים מבחוץ קונים את ה-BAG ומשקיעים בתנועה
+              הכלכלית של ההצבעה, בדיוק כמו במניה, כדי לתמוך בביצוע החלטת הרוב. ה-BAG שקוף,
+              סחיר, וחתום בבלוקצ׳יין: ככל שהוא גדל, לנושא יש יותר משאבים אמיתיים מאחוריו.
             </p>
             <div className={styles.explainerLinks}>
               <NewsButton href={`/${locale}/votes/${voteId}`} variant="red" size="md" trailing={<span aria-hidden>←</span>}>
-                להצבעה שמאחורי המטבע
+                להצבעה שמאחורי ה-BAG
               </NewsButton>
               <Link href={`/${locale}/economics`} className={styles.textLink}>
                 איך הכלכלה עובדת ←
@@ -262,7 +262,7 @@ export function CoinDossier({ voteId, locale = 'he' }: CoinDossierProps) {
 
           {holders.length === 0 ? (
             <div className={styles.ledgerEmpty}>
-              <span aria-hidden>□</span> עדיין אין מחזיקים רשומים למטבע הזה.
+              <span aria-hidden>□</span> עדיין אין מחזיקים רשומים ל-BAG הזה.
             </div>
           ) : (
             <div className={styles.ledger}>
@@ -317,7 +317,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 function BackLink({ locale }: { locale: Locale }) {
   return (
     <Link className={styles.crumb} href={`/${locale}/coin`}>
-      ← שוק המטבעות
+      ← שוק ה-BAGS
     </Link>
   );
 }

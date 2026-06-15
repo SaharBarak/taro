@@ -56,7 +56,7 @@ const MOCK_TREASURY: TreasuryData = {
       type: 'fee_claim',
       amountILS: 5000,
       amountSOL: 2.5,
-      description: 'תביעת עמלות Issue Coin',
+      description: 'תביעת עמלות BAG',
       createdAt: '2025-01-14T15:30:00Z',
     },
     {

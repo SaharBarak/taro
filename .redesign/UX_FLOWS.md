@@ -2,6 +2,18 @@
 
 _Created 2026-06-15. Working doc for the UX breakdown session._
 
+## Decisions log
+- **2026-06-15 · J1 channels:** WhatsApp pilot group + email newsletter are **two separate channels**, both kept. Not competing — do not collapse.
+- **2026-06-15 · J5 rebrand → BAGS:** "Issue Coin" is renamed **bags.fm memecoin** in all user-facing copy. Lexicon below. Tone = **bridge** (civic-trust spine; memecoin mechanics framed as the economic engine outsiders buy into to fund execution — like a stock; dignified, not hype). Code identifiers (IssueCoin type, API routes, CSS classes) stay unchanged — copy layer only.
+
+### BAGS lexicon (canonical)
+- **Section / nav label:** `BAGS` (Latin caps).
+- **Per-vote object:** a `BAG` (Latin caps) — "ה-BAG של ההצבעה". (Hebrew "באג" = "bug" — never transliterate.)
+- **Platform:** `bags.fm` (lowercase).
+- **Concept one-liner:** "כל הצבעה מקבלת BAG משלה ב-bags.fm — מטבע ממים מבוסס בלוקצ׳יין, ממותג סביב הפלטפורמה, שמאפשר לאנשים מבחוץ להשקיע בתנועה הכלכלית של ההצבעה — בדיוק כמו במניה — ולתמוך בביצוע ההחלטה של הרוב. ככל שה-BAG גדל, לנושא יש יותר משאבים אמיתיים מאחוריו."
+- **Replace:** Issue Coin / מטבע קהילה / מטבעות הקהילה / ISSUE COIN / מטבע הקהילה → BAG/BAGS framing.
+- **New FAQ — "למה bags.fm?"** (economics page): independent money rails that can't be shut down. The money, votes, and fund run on a public blockchain — not one company's server anyone can pressure or switch off. Every BAG is transparent and auditable; the structure fits civic economics, community money control, and transparency toward authorities + taxation — with no single gatekeeper able to close the tap.
+
 ## How to use this
 Whole-site map first, then we dissect **one journey at a time, methodically**. Each
 journey carries a 5-phase checklist:

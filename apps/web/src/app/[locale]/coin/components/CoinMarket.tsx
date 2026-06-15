@@ -51,7 +51,7 @@ export function CoinMarket({ locale = 'he' }: CoinMarketProps) {
         const data = await res.json();
         if (!cancelled) setCoins(Array.isArray(data.coins) ? data.coins : []);
       } catch {
-        if (!cancelled) setError('לא הצלחנו לטעון את שוק המטבעות כרגע.');
+        if (!cancelled) setError('לא הצלחנו לטעון את שוק ה-BAGS כרגע.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -92,15 +92,16 @@ export function CoinMarket({ locale = 'he' }: CoinMarketProps) {
       <header className={styles.head}>
         <span className={styles.kicker}>
           <span aria-hidden className={styles.kickerTick} />
-          מטבעות הקהילה · ISSUE COINS
+          מטבע ההצבעה · BAGS.FM
         </span>
         <h1 className={styles.headline}>
-          נושאים עם <span className={styles.red}>משאבים אמיתיים.</span>
+          להשקיע בהחלטה של <span className={styles.red}>הרוב.</span>
         </h1>
         <p className={styles.standfirst}>
-          כל הצבעה יכולה להנפיק מטבע קהילה. תומכים מגבים את הנושאים שחשובים להם, והעמלות
-          זורמות — 70% לקרן הרשות, 30% לתפעול הפלטפורמה. כאן לא רק קוראים את השוק:
-          מגבים אותו. כל מספר מאומת, שקוף וחתום בבלוקצ׳יין.
+          כל הצבעה מקבלת BAG משלה ב-bags.fm — מטבע ממים מבוסס בלוקצ׳יין, ממותג סביב
+          הפלטפורמה, שמאפשר לאנשים מבחוץ להשקיע בתנועה הכלכלית של ההצבעה, בדיוק כמו במניה,
+          ולתמוך בביצוע החלטת הרוב. ככל שה-BAG גדל, לנושא יש יותר משאבים אמיתיים מאחוריו.
+          כל מספר מאומת, שקוף וחתום בבלוקצ׳יין.
         </p>
       </header>
 
@@ -126,10 +127,10 @@ export function CoinMarket({ locale = 'he' }: CoinMarketProps) {
 
       {/* Market table */}
       {!loading && !error && filtered.length > 0 ? (
-        <div className={styles.market} role="table" aria-label="שוק מטבעות הקהילה">
+        <div className={styles.market} role="table" aria-label="שוק ה-BAGS">
           {/* Header row (desktop only) */}
           <div className={styles.colHead} role="row" aria-hidden>
-            <span className={styles.chToken}>מטבע / נושא</span>
+            <span className={styles.chToken}>BAG / הצבעה</span>
             <span className={styles.chMuni}>רשות</span>
             <span className={styles.chRaised}>גויס · ₪</span>
             <span className={styles.chChange}>24ש׳</span>
@@ -241,10 +242,10 @@ function EmptyState() {
       <span className={styles.emptyGlyph} aria-hidden>
         ▍
       </span>
-      <h2 className={styles.emptyTitle}>עוד לא הונפקו מטבעות קהילה.</h2>
+      <h2 className={styles.emptyTitle}>עוד לא נפתחו BAGS.</h2>
       <p className={styles.emptyText}>
-        ההנפקה הראשונה תצא עם ההצבעה הראשונה — הצטרפו לוואטסאפ הפיילוט ותהיו שם כשזה
-        קורה.
+        ה-BAG הראשון ייפתח ב-bags.fm עם ההצבעה הראשונה — הצטרפו לוואטסאפ הפיילוט ותהיו
+        שם כשזה קורה.
       </p>
       <NewsButton
         href={WHATSAPP_LINK}

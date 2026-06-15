@@ -79,9 +79,9 @@ function StepIcon({ name }: { name: IconName }) {
 
 const flywheelSteps: FlywheelStep[] = [
   { id: 'local', title: 'תושב מקומי', description: 'משלם ₪3 ומצביע', icon: 'resident' },
-  { id: 'coin', title: 'Issue Coin נוצר', description: 'ההצבעה נרשמת בבלוקצ\'יין', icon: 'coin' },
+  { id: 'coin', title: 'BAG נוצר ב-bags.fm', description: 'ההצבעה נרשמת בבלוקצ\'יין', icon: 'coin' },
   { id: 'external', title: 'תומך חיצוני', description: 'מזהה נושא שחשוב לו', icon: 'globe' },
-  { id: 'trade', title: 'קונה Issue Coins', description: 'תמיכה שמייצרת עמלות', icon: 'trade' },
+  { id: 'trade', title: 'קונה את ה-BAG', description: 'תמיכה שמייצרת עמלות', icon: 'trade' },
   { id: 'fees', title: 'עמלות מחולקות', description: '70% לקרן הרשות, 30% לפלטפורמה', icon: 'split' },
   { id: 'result', title: 'תוצאה נקבעת', description: 'תעודה דיגיטלית לכל משתתף', icon: 'award' },
 ];
@@ -90,7 +90,7 @@ const revenueStreams = [
   { stream: 'יצירת הצבעה', source: '₪50 להצבעה חדשה', allocation: 'תפעול הפלטפורמה' },
   { stream: 'השתתפות בהצבעה', source: '₪3 לכל הצבעה', allocation: '70% לקרן · 30% לפלטפורמה' },
   { stream: 'עמלות מסחר', source: '1% על כל עסקה', allocation: '70% לקרן · 30% לפלטפורמה' },
-  { stream: 'רכישות חיצוניות', source: 'תמיכה → Issue Coins', allocation: '100% לקופת הקרן' },
+  { stream: 'רכישות חיצוניות', source: 'תמיכה → BAGS ב-bags.fm', allocation: '100% לקופת הקרן' },
 ];
 
 const sustainabilityPoints = [

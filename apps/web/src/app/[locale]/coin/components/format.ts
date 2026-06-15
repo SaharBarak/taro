@@ -1,5 +1,5 @@
 /**
- * Shared mono-tabular formatters for the Issue-Coin market surface.
+ * Shared mono-tabular formatters for the BAGS market surface.
  * Hebrew locale, ILS, signed percentages.
  */
 

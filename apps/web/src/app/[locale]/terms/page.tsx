@@ -24,7 +24,7 @@ function content(locale: Locale): { title: string; intro: string; updated: strin
         {
           heading: '1. The Service',
           paragraphs: [
-            'Taro is a civic participation platform that lets verified residents of Israeli municipalities vote on local affairs. Votes are recorded with blockchain verification and GPS pinning. Each resolved vote may issue a commemorative community token ("Issue Coin").',
+            'Taro is a civic participation platform that lets verified residents of Israeli municipalities vote on local affairs. Votes are recorded with blockchain verification and GPS pinning. Each resolved vote may issue a BAG — a bags.fm memecoin minted on a public blockchain for that vote, which outsiders may invest in to fund execution of the winning decision.',
           ],
         },
         {
@@ -37,13 +37,13 @@ function content(locale: Locale): { title: string; intro: string; updated: strin
           heading: '3. Payments & Fees',
           paragraphs: [
             'Paid actions are priced in Israeli New Shekels (ILS). Participating in a vote costs ₪3; creating a vote costs ₪200. Payments are processed by Paddle.com, which acts as the Merchant of Record for your purchase. Applicable taxes are calculated and collected by Paddle at checkout.',
-            'Funds collected from vote participation are accrued in a per-vote treasury ledger and, at vote resolution, are used to seed the vote’s community Issue Coin.',
+            'Funds collected from vote participation are accrued in a per-vote treasury ledger and, at vote resolution, are used to seed the vote’s BAG (its bags.fm memecoin).',
           ],
         },
         {
           heading: '4. Tokens & Blockchain',
           paragraphs: [
-            'Issue Coins and any commemorative NFTs are community artifacts tied to civic participation. They are not investment products and carry no promise of financial return. On-chain records are public and immutable; do not submit content you are not willing to make public.',
+            'BAGS are bags.fm memecoins minted on a public blockchain, one BAG per vote; any commemorative NFTs are likewise on-chain artifacts tied to civic participation. A BAG is a volatile, speculative crypto-asset issued via the third-party bags.fm platform — not a Taro investment product — and carries no promise of financial return; Taro does not guarantee any value, liquidity, or outcome. On-chain records are public and immutable; do not submit content you are not willing to make public.',
           ],
         },
         {
@@ -83,7 +83,7 @@ function content(locale: Locale): { title: string; intro: string; updated: strin
       {
         heading: '1. השירות',
         paragraphs: [
-          'תַּרְאוּ היא פלטפורמת השתתפות אזרחית המאפשרת לתושבים מאומתים של רשויות מקומיות בישראל להצביע בנושאים מקומיים. ההצבעות מתועדות עם אימות בלוקצ׳יין ואימות מיקום GPS. הצבעה שהסתיימה עשויה להנפיק מטבע קהילתי לזכר ההשתתפות ("Issue Coin").',
+          'תַּרְאוּ היא פלטפורמת השתתפות אזרחית המאפשרת לתושבים מאומתים של רשויות מקומיות בישראל להצביע בנושאים מקומיים. ההצבעות מתועדות עם אימות בלוקצ׳יין ואימות מיקום GPS. הצבעה שהסתיימה עשויה להנפיק BAG — מטבע ב-bags.fm (memecoin) הנטבע על גבי בלוקצ׳יין ציבורי עבור אותה הצבעה, שגורמים חיצוניים יכולים להשקיע בו כדי לממן את ביצוע ההחלטה הזוכה.',
         ],
       },
       {
@@ -96,13 +96,13 @@ function content(locale: Locale): { title: string; intro: string; updated: strin
         heading: '3. תשלומים ועמלות',
         paragraphs: [
           'הפעולות בתשלום מתומחרות בשקלים חדשים (₪). השתתפות בהצבעה עולה ₪3; יצירת הצבעה עולה ₪200. התשלומים מעובדים על ידי Paddle.com, המשמשת כסוחר הרשום (Merchant of Record) עבור הרכישה. מסים רלוונטיים מחושבים ונגבים על ידי Paddle בעת התשלום.',
-          'כספים שנאספים מהשתתפות בהצבעה נצברים בספר אוצר ייעודי לכל הצבעה, ובעת סיום ההצבעה משמשים לזריעת מטבע הקהילה (Issue Coin) של אותה הצבעה.',
+          'כספים שנאספים מהשתתפות בהצבעה נצברים בספר אוצר ייעודי לכל הצבעה, ובעת סיום ההצבעה משמשים לזריעת ה-BAG (המטבע ב-bags.fm) של אותה הצבעה.',
         ],
       },
       {
         heading: '4. מטבעות ובלוקצ׳יין',
         paragraphs: [
-          'מטבעות Issue Coin וכל NFT הנצחה הם פריטים קהילתיים הקשורים להשתתפות אזרחית. הם אינם מוצרי השקעה ואינם נושאים הבטחה לתשואה כספית. רישומים על גבי הבלוקצ׳יין הם ציבוריים ובלתי ניתנים לשינוי; אין להגיש תוכן שאינכם מעוניינים לפרסם.',
+          'BAGS הם מטבעות ב-bags.fm (memecoins) הנטבעים על גבי בלוקצ׳יין ציבורי, BAG אחד לכל הצבעה; כל NFT הנצחה הוא אף הוא פריט on-chain הקשור להשתתפות אזרחית. BAG הוא נכס קריפטו ספקולטיבי ותנודתי המונפק באמצעות פלטפורמת הצד-השלישי bags.fm — אינו מוצר השקעה של תַּרְאוּ — ואינו נושא הבטחה לתשואה כספית; תַּרְאוּ אינה מתחייבת לערך, לנזילות או לתוצאה כלשהם. רישומים על גבי הבלוקצ׳יין הם ציבוריים ובלתי ניתנים לשינוי; אין להגיש תוכן שאינכם מעוניינים לפרסם.',
         ],
       },
       {

@@ -42,7 +42,7 @@ function content(locale: Locale): { title: string; intro: string; updated: strin
           bullets: [
             'Supabase — database and authentication.',
             'Paddle — payment processing (Merchant of Record).',
-            'Bags.fm — community token (Issue Coin) infrastructure on Solana.',
+            'bags.fm — BAG memecoin infrastructure (the per-vote bags.fm token) on Solana.',
             'Resend — transactional email.',
             'Twilio — SMS verification.',
             'Vercel — hosting.',
@@ -51,7 +51,7 @@ function content(locale: Locale): { title: string; intro: string; updated: strin
         {
           heading: '4. Blockchain Data',
           paragraphs: [
-            'Vote proofs and Issue Coins are recorded on public blockchains. On-chain records are pseudonymous, public, and cannot be deleted.',
+            'Vote proofs and BAGS (bags.fm memecoins, one BAG per vote) are recorded on public blockchains. On-chain records are pseudonymous, public, and cannot be deleted.',
           ],
         },
         {
@@ -94,7 +94,7 @@ function content(locale: Locale): { title: string; intro: string; updated: strin
         bullets: [
           'Supabase — בסיס נתונים ואימות.',
           'Paddle — עיבוד תשלומים (Merchant of Record).',
-          'Bags.fm — תשתית מטבע קהילתי (Issue Coin) על רשת Solana.',
+          'bags.fm — תשתית ה-BAG (מטבע ב-bags.fm לכל הצבעה) על רשת Solana.',
           'Resend — דוא״ל טרנזקציוני.',
           'Twilio — אימות SMS.',
           'Vercel — אחסון.',
@@ -103,7 +103,7 @@ function content(locale: Locale): { title: string; intro: string; updated: strin
       {
         heading: '4. מידע על הבלוקצ׳יין',
         paragraphs: [
-          'הוכחות הצבעה ומטבעות Issue Coin נרשמים על גבי בלוקצ׳יין ציבורי. רישומים אלה הם פסאודונימיים, ציבוריים ואינם ניתנים למחיקה.',
+          'הוכחות הצבעה ו-BAGS (מטבעות ב-bags.fm, BAG אחד לכל הצבעה) נרשמים על גבי בלוקצ׳יין ציבורי. רישומים אלה הם פסאודונימיים, ציבוריים ואינם ניתנים למחיקה.',
         ],
       },
       {

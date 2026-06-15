@@ -5,9 +5,9 @@ import { CoinMarket } from './components/CoinMarket';
 import type { Locale } from '@/lib/i18n';
 
 export const metadata: Metadata = {
-  title: 'מטבעות הקהילה',
+  title: 'BAGS',
   description:
-    'שוק מטבעות הקהילה של תַּרְאוּ — כל הצבעה יכולה להנפיק Issue Coin שתומכים מגבים בו, והעמלות זורמות 70% לקרן הרשות. שקוף, מאומת, חתום בבלוקצ׳יין.',
+    'שוק ה-BAGS של תַּרְאוּ — כל הצבעה מקבלת BAG משלה ב-bags.fm, מטבע ממים מבוסס בלוקצ׳יין שאנשים מבחוץ קונים כדי להשקיע בתנועה הכלכלית של ההצבעה ולממן את ביצוע החלטת הרוב. שקוף, מאומת, חתום בבלוקצ׳יין.',
 };
 
 interface CoinPageProps {

@@ -38,7 +38,7 @@ function content(locale: Locale): { title: string; intro: string; updated: strin
         {
           heading: '3. When Refunds Are Not Available',
           paragraphs: [
-            'Once a vote participation has been successfully recorded on the blockchain, or once a created vote has been published and its funds accrued toward the community Issue Coin seed, the action is final and generally non-refundable, because the service was delivered.',
+            'Once a vote participation has been successfully recorded on the blockchain, or once a created vote has been published and its funds accrued toward seeding the vote’s BAG (its bags.fm memecoin), the action is final and generally non-refundable, because the service was delivered.',
           ],
         },
         {
@@ -78,7 +78,7 @@ function content(locale: Locale): { title: string; intro: string; updated: strin
       {
         heading: '3. מתי לא ניתן החזר',
         paragraphs: [
-          'לאחר שהשתתפות בהצבעה תועדה בהצלחה על גבי הבלוקצ׳יין, או לאחר שהצבעה שנוצרה פורסמה וכספיה נצברו לטובת זריעת מטבע הקהילה (Issue Coin) — הפעולה סופית ואינה ניתנת להחזר ככלל, מאחר שהשירות סופק.',
+          'לאחר שהשתתפות בהצבעה תועדה בהצלחה על גבי הבלוקצ׳יין, או לאחר שהצבעה שנוצרה פורסמה וכספיה נצברו לטובת זריעת ה-BAG (המטבע ב-bags.fm) של ההצבעה — הפעולה סופית ואינה ניתנת להחזר ככלל, מאחר שהשירות סופק.',
         ],
       },
       {

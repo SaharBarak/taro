@@ -121,7 +121,7 @@ const residentSteps: Step[] = [
 const supporterSteps: Step[] = [
   { number: '1', title: 'חיבור ארנק', description: 'חיבור ארנק לתמיכה מכל מקום בעולם', icon: 'wallet' },
   { number: '2', title: 'גילוי נושאים מובילים', description: 'נושאים אזרחיים שחשובים לך', icon: 'globe' },
-  { number: '3', title: 'רכישת Issue Coins', description: 'תמיכה בנושאים שאתה מאמין בהם', icon: 'coin' },
+  { number: '3', title: 'רכישת BAGS ב-bags.fm', description: 'תמיכה בנושאים שאתה מאמין בהם', icon: 'coin' },
   { number: '4', title: 'מסחר לפי הסנטימנט', description: 'הערך משקף את מידת התמיכה בנושא', icon: 'trend' },
   { number: '5', title: 'תעודת תומך קהילתי', description: 'תג שמתקבל בסיום ההצבעה', icon: 'badge' },
 ];

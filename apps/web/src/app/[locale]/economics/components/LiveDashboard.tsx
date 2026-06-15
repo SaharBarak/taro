@@ -162,7 +162,7 @@ export function LiveDashboard() {
 
             {coins.length > 0 && (
               <div className={styles.trending}>
-                <h3 className={styles.sectionTitle}>Issue Coins מובילים</h3>
+                <h3 className={styles.sectionTitle}>BAGS מובילים ב-bags.fm</h3>
                 <div className={styles.coinsList}>
                   {coins.map((coin, index) => (
                     <motion.div

@@ -5,9 +5,9 @@ import { CoinDossier } from '../components/CoinDossier';
 import type { Locale } from '@/lib/i18n';
 
 export const metadata: Metadata = {
-  title: 'מטבע קהילה',
+  title: 'BAG · bags.fm',
   description:
-    'תיק מטבע הקהילה — הנושא שהוא מגבה, ההיצע, סכום הגיוס, מחזיקי המטבע והחתימה בבלוקצ׳יין. שקוף ומאומת.',
+    'תיק ה-BAG — ההצבעה שהוא מגבה ב-bags.fm, ההיצע, סכום הגיוס, מחזיקי ה-BAG והחתימה בבלוקצ׳יין. שקוף ומאומת.',
 };
 
 interface CoinDetailPageProps {
