@@ -163,7 +163,8 @@ async function createTransaction(params: {
       collection_mode: 'automatic',
       custom_data: params.customData,
       checkout: {
-        url: `${process.env.NEXT_PUBLIC_APP_URL}/payments/return`,
+        // Hebrew-only app — return to the locale-prefixed finaliser.
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/he/payments/return`,
       },
     }),
   });

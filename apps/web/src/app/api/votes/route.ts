@@ -75,26 +75,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Only a fully verified resident may raise a vote, and it is always for
+    // their OWN municipality (a local issue is raised by a local).
+    const creator = await getUserById(session.userId);
+    if (!creator) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+    if (creator.verification_status !== 'verified') {
+      return NextResponse.json(
+        { error: 'Only verified residents may create a vote' },
+        { status: 403 }
+      );
+    }
+    if (!creator.municipality_id) {
+      return NextResponse.json(
+        { error: 'Set your municipality before creating a vote' },
+        { status: 400 }
+      );
+    }
+    const municipality = creator.municipality_id;
+
     const body = await request.json();
     const {
       title,
       description,
-      municipality,
       options,
       startDate,
       endDate,
       paymentTxId,
     } = body;
 
-    // Validate required fields
-    if (
-      !title ||
-      !description ||
-      !municipality ||
-      !options ||
-      !startDate ||
-      !endDate
-    ) {
+    // Validate required fields (municipality is derived from the creator)
+    if (!title || !description || !options || !startDate || !endDate) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -164,9 +176,7 @@ export async function POST(request: NextRequest) {
 
     // Notify by email (best-effort — never blocks vote creation)
     try {
-      const creator = await getUserById(session.userId);
-
-      // 1. Creator confirmation
+      // 1. Creator confirmation (creator fetched + gated above)
       if (creator?.email) {
         await emailService.sendVoteCreatedEmail({
           to: creator.email,

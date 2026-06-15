@@ -44,7 +44,7 @@ const STEP_COUNT = STEP_LABELS.length;
 export default function CreateVotePage() {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   // 1-based step index preserved (1..4)
   const [step, setStep] = useState(1);
@@ -142,6 +142,12 @@ export default function CreateVotePage() {
   const handleSubmit = async () => {
     if (!isAuthenticated) {
       router.push('/sign-in?redirect=/votes/create');
+      return;
+    }
+
+    // Only a fully verified resident may raise a vote for their municipality.
+    if (user?.verificationStatus?.phase !== 'completed') {
+      router.push('/verification?redirect=/votes/create');
       return;
     }
 

@@ -4,7 +4,7 @@
 
 // Payment amounts in ILS
 export const VOTE_COST = 3;
-export const CREATE_VOTE_COST = 200;
+export const CREATE_VOTE_COST = 50;
 
 // Merch store (ILS, settled via Green Invoice)
 export const MERCH_CURRENCY = 'ILS' as const;

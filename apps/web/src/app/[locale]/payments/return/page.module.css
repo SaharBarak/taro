@@ -1,0 +1,86 @@
+.page {
+  min-block-size: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--np-paper);
+  padding: var(--space-16) var(--space-4);
+}
+
+.inner {
+  inline-size: 100%;
+  max-inline-size: 44rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--np-red);
+}
+.kickerTick {
+  inline-size: 0.7em;
+  block-size: 0.7em;
+  background: var(--np-red);
+}
+
+.headline {
+  font-family: var(--np-font-display);
+  font-weight: 900;
+  font-size: clamp(var(--text-4xl), 5vw, var(--text-7xl));
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--np-ink);
+  margin: 0;
+}
+.red {
+  color: var(--np-red);
+}
+
+.standfirst {
+  font-family: var(--np-font-body);
+  font-size: clamp(var(--text-base), 0.5vw + 0.9rem, var(--text-xl));
+  line-height: 1.5;
+  color: var(--np-ink-soft);
+  max-inline-size: 52ch;
+  margin: 0;
+}
+
+/* Indeterminate finalising bar — mechanical, reduced-motion safe. */
+.bar {
+  block-size: var(--np-rule-heavy);
+  background: var(--np-paper-2);
+  overflow: hidden;
+  position: relative;
+  margin-block: var(--space-2);
+}
+.bar::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inline-size: 40%;
+  background: var(--np-red);
+  animation: slide 1s var(--np-ease) infinite;
+}
+@keyframes slide {
+  from { inset-inline-start: -40%; }
+  to { inset-inline-start: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar::after { animation: none; inline-size: 100%; inset-inline-start: 0; }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-start: var(--space-4);
+}
