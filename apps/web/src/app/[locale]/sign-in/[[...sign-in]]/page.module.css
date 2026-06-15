@@ -140,15 +140,11 @@
   outline-offset: 2px;
 }
 
-/* White seat for the brand glyph so it never inverts with the button. */
+/* Monochrome glyph — inherits the button text colour, inverts with it on hover. */
 .googleGlyph {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 1.75rem;
-  block-size: 1.75rem;
-  background: var(--np-paper-box);
-  border: var(--np-rule-hair) solid var(--np-ink);
 }
 .googleLabel {
   display: inline-flex;
