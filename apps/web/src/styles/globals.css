@@ -55,7 +55,9 @@ body {
   font-size: var(--text-base);
   font-weight: var(--font-weight-regular);
   line-height: var(--leading-normal);
-  color: var(--color-text-primary);
+  /* Press ink as the inherited default; ink/red blocks set paper on their
+   * container and headings/paragraphs now inherit it (see below). */
+  color: var(--np-ink);
   background-color: var(--color-background);
   min-height: 100vh;
   overflow-x: hidden;
@@ -95,7 +97,8 @@ h6 {
   font-family: var(--font-secular-one), var(--font-primary);
   font-weight: var(--font-weight-bold);
   line-height: var(--leading-tight);
-  color: var(--color-text-primary);
+  /* Inherit container colour so headings render correctly on ink/red blocks. */
+  color: inherit;
 }
 
 /* Logo specific font */
@@ -135,7 +138,9 @@ p {
   font-family: var(--font-secondary);
   font-size: var(--text-lg);
   line-height: var(--leading-relaxed);
-  color: var(--color-text-secondary);
+  /* Inherit container colour so paragraphs render correctly on ink/red blocks
+   * (cream pages inherit ink from body; ink blocks inherit paper). */
+  color: inherit;
 }
 
 a {

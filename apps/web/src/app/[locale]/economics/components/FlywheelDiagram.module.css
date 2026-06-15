@@ -189,6 +189,7 @@
   letter-spacing: -0.02em;
   margin: 0;
   max-width: 30ch;
+  color: var(--np-paper);
 }
 .resultNum {
   color: var(--np-red);
