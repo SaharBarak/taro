@@ -137,7 +137,7 @@ Nav today: הצבעות · מטבעות הקהילה · כלכלה אזרחית 
 **Goal:** a reason to come back between votes.
 **Path:** `/he/dashboard` — history, Issue-Coin balance, fund contributions, billing, settings.
 **Friction:** what's the recurring hook? Notifications of new local votes? Coin positions moving? Empty states dominate pre-launch.
-`[ ] MAP  [ ] FRICTION  [ ] UX  [ ] UI  [ ] COPY`
+`[x] MAP  [x] FRICTION  [x] UX  [x] UI  [x] COPY` — **J7 pass done.** Dashboard was history-only (real API, empty states OK) — added the missing **retention hook**: an "open votes in your city" callout (fetch `/api/votes?municipality&status=active`, count + up to 3 titles + CTA, hidden when none). Fixed a stale hardcoded "₪200" create CTA → `formatCurrency(CREATE_VOTE_COST)` (₪50). Certificates tab added in J9. **Deferred:** real push notifications; refund form stays a graceful mock (no `/api/payments/refund`).
 
 ### J8 · Auth & onboarding  ✅built
 **Goal:** account + municipality set, lowest friction.
@@ -161,12 +161,12 @@ Nav today: הצבעות · מטבעות הקהילה · כלכלה אזרחית 
 **Goal:** anyone audits where the money goes.
 **Path:** `/he/treasury` ledger.
 **Friction:** municipality switching (`api/treasury/[municipality]`) may not be wired in UI; pre-launch empty.
-`[ ] MAP  [ ] FRICTION  [ ] UX  [ ] UI  [ ] COPY`
+`[x] MAP  [x] FRICTION  [x] UX  [x] UI  [x] COPY` — **J10 fixed.** The selector WAS wired, but the page only worked on a hardcoded mock (₪125k round numbers): the API returns `{ treasury: {...} }` with a different schema → `setTreasury(data)` stored the wrapper → every figure undefined; errors fell back to the fake mock. Now maps the real summary (totalCollectedILS/balanceILS, balanceSOL, activeVotesCount), fetches the previously-unused `/transactions` endpoint, **derives** local/external split + resolved count from the ledger, and renders an honest **zeroed board** (₪0 + coming-soon) on empty/error — no fabricated figures. **Deferred:** API doesn't track the local/external split or resolved count natively (derived from tx); municipalityName = the constant string.
 
 ### J11 · Info / support / legal  ✅built
 **Path:** `/he/faq` · `/he/support` (→ WhatsApp) · `/he/download` · legal.
 **Friction:** low-priority; ensure they feed back into the J1 CTA, don't leak attention.
-`[ ] MAP  [ ] FRICTION  [ ] UX  [ ] UI  [ ] COPY`
+`[x] MAP  [x] FRICTION  [x] UX  [x] UI  [x] COPY` — **J11 audited, near-clean.** faq/support/download all route their CTAs to the founders'-group WhatsApp (`FITvea9IVsn2Ljie1yCrAc`) consistently; store badges show בקרוב. Only real fix: the JSON-LD Organization schema (`layout.tsx`) had stale placeholders — `sameAs` → real WhatsApp link; `verification.google` → env (`NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`, omitted when unset). **Nit (deferred):** WHATSAPP link is hardcoded in 5 files — consistent but un-centralized.
 
 ---
 
@@ -185,13 +185,18 @@ Nav today: הצבעות · מטבעות הקהילה · כלכלה אזרחית 
 ## Methodical worklist (order to dissect)
 Proposed sequence — highest leverage first. Reorder as you like.
 
-1. ⬜ **J1 funnel** — sets the north-star everything else serves.
-2. ⬜ **J2 participation** — core money loop.
-3. ⬜ **J5 coin** + **J6 store** — newest, least-specified; high ambiguity.
-4. ⬜ **J4 verification** + **J8 auth/onboarding** — the gate before J2.
-5. ⬜ **J3 create** — narrower persona.
-6. ⬜ **J9 resolution/certificate** — close the loop after a vote.
-7. ⬜ **J7 dashboard** + **J10 treasury** — retention + trust.
-8. ⬜ **J11 info/legal** — cleanup pass.
+1. ✅ **J1 funnel** — founders'-group CTA + interactive home ballot.
+2. ✅ **J2 participation** — choice → pay ₪3 → seal.
+3. ✅ **J5 coin** (link-out back) + ✅ **J6 store** (persistence + imagery).
+4. ✅ **J4 verification** + ✅ **J8 auth/onboarding** (+ account: masthead state, settings, city).
+5. ✅ **J3 create** — finalise + verified-resident gate + ₪50.
+6. ✅ **J9 resolution/certificate** — view-only certificates.
+7. ✅ **J7 dashboard** (retention hook) + ✅ **J10 treasury** (real API, no fake figures).
+8. ✅ **J11 info/legal** — schema cleanup.
 
-> Next: pick a journey, fill MAP together, then work the phases down.
+> **ALL 11 JOURNEYS DISSECTED + SHIPPED (2026-06-15).** What remains is not UX
+> design but live wiring + deferred infra (see each journey's "Deferred"):
+> real creds for e2e (Supabase / Paddle / Green Invoice / Twilio), on-chain mint
+> + IPFS (J9), POD fulfilment (J6), in-app custodial swap (J5), push
+> notifications (J7), per-vote NFT art. Auth-gated surfaces need a real session
+> to visually verify.
