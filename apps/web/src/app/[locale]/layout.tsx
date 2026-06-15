@@ -4,7 +4,6 @@ import Script from 'next/script';
 import { Secular_One, Heebo } from 'next/font/google';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { LenisProvider } from '@/providers/LenisProvider';
-import { WhatsAppButton } from '@/components/ui/WhatsAppButton';
 import { i18n, localeDirections, getDictionary } from '@/lib/i18n';
 import type { Locale } from '@/lib/i18n';
 import '@/styles/globals.css';
@@ -305,7 +304,6 @@ export default async function LocaleLayout({
       <body>
         <AuthProvider>
           <LenisProvider>{children}</LenisProvider>
-          <WhatsAppButton locale={locale} />
         </AuthProvider>
       </body>
     </html>

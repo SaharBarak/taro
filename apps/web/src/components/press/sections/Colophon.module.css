@@ -130,6 +130,11 @@
   text-decoration: none;
 }
 .wa:hover { color: var(--np-paper); }
+.foundersCta {
+  margin-block-start: var(--space-2);
+  /* paper border so the red block reads on the ink colophon */
+  border-color: var(--np-paper);
+}
 
 .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
 .col { display: flex; flex-direction: column; gap: var(--space-2); }

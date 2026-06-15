@@ -47,7 +47,7 @@ export function Masthead({ locale = 'he' }: MastheadProps) {
       {/* Nav + participate */}
       <nav className={styles.nav} aria-label="ניווט ראשי">
         <NewsButton href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" variant="red" size="sm">
-          הצטרפו לפיילוט
+          קבוצת המייסדים
         </NewsButton>
         <ul className={styles.navList}>
           {NAV.map((n) => (

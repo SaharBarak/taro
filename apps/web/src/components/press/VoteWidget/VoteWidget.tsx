@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { NewsButton } from '@/components/press/NewsButton';
 import { TallyBar } from './TallyBar';
 import styles from './VoteWidget.module.css';
@@ -43,6 +43,19 @@ export function VoteWidget({
 }: VoteWidgetProps) {
   const [selected, setSelected] = useState<string | null>(null);
 
+  // Real micro-interaction: tapping an option casts a sample ballot — the
+  // tally recomputes with your +1 so the bars actually move. Honest framing:
+  // it's a demo; to make the vote count you join the founders' group.
+  const view = useMemo(() => {
+    if (!selected) return options;
+    const bumped = options.map((o) => ({
+      ...o,
+      count: o.id === selected ? o.count + 1 : o.count,
+    }));
+    const total = bumped.reduce((sum, o) => sum + o.count, 0) || 1;
+    return bumped.map((o) => ({ ...o, pct: Math.round((o.count / total) * 100) }));
+  }, [selected, options]);
+
   return (
     <section className={styles.widget} aria-label="הצבעה חיה">
       <header className={styles.head}>
@@ -56,7 +69,7 @@ export function VoteWidget({
       <h3 className={styles.question}>{question}</h3>
 
       <ul className={styles.options}>
-        {options.map((o) => {
+        {view.map((o) => {
           const isSel = selected === o.id;
           return (
             <li key={o.id}>
@@ -69,6 +82,7 @@ export function VoteWidget({
                 <span className={styles.optionTop}>
                   <span className={styles.mark} aria-hidden>{isSel ? '■' : '□'}</span>
                   <span className={styles.optionLabel}>{o.label}</span>
+                  {isSel ? <span className={styles.you}>+ הקול שלך</span> : null}
                   <span className={styles.pct}>{o.pct}%</span>
                 </span>
                 <TallyBar pct={o.pct} selected={isSel} />
@@ -79,6 +93,13 @@ export function VoteWidget({
         })}
       </ul>
 
+      {selected ? (
+        <p className={styles.prompt} role="status">
+          <span aria-hidden>✓ </span>
+          זו הצבעת הדגמה. כדי שהקול יספור באמת — הצטרפו לקבוצת המייסדים.
+        </p>
+      ) : null}
+
       <div className={styles.actions}>
         <NewsButton
           href={href}
@@ -88,7 +109,7 @@ export function VoteWidget({
           size="lg"
           trailing={<span aria-hidden>←</span>}
         >
-          {selected ? 'אשרו את הקול · הצביעו' : 'הצביעו · VOTE'}
+          {selected ? 'שיספור באמת · קבוצת המייסדים' : 'הצביעו · VOTE'}
         </NewsButton>
         <span className={styles.total}>{totalLabel}</span>
       </div>

@@ -92,7 +92,17 @@ export function Colophon({ locale = 'he' }: ColophonProps) {
         <div className={styles.brand}>
           <Link href={`/${locale}`} className={styles.wordmark}>תַּרְאוּ</Link>
           <p className={styles.tagline}>הקול שלכם. הקהילה שלכם. העתיד שלנו.</p>
-          <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className={styles.wa}>וואטסאפ הפיילוט ←</a>
+          <NewsButton
+            href={WHATSAPP_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="red"
+            size="sm"
+            className={styles.foundersCta}
+            trailing={<span aria-hidden>←</span>}
+          >
+            קבוצת המייסדים
+          </NewsButton>
         </div>
 
         <nav className={styles.cols} aria-label="ניווט תחתון">

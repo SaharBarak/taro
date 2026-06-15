@@ -78,8 +78,8 @@ Nav today: הצבעות · מטבעות הקהילה · כלכלה אזרחית 
 **Goal:** stranger → WhatsApp pilot member (pre-launch north-star).
 **Path:** `/he` (or any marketing page) → reads value → single WhatsApp CTA (or newsletter capsule in Colophon).
 **Surfaces:** front page, economics/treasury/pricing/about/faq, Masthead CTA, Colophon newsletter.
-**Friction (hypotheses):** one CTA repeated everywhere — does the page earn the click first? 21 routes + 7 nav items may dilute the single action. Newsletter vs WhatsApp = two competing captures.
-`[ ] MAP  [ ] FRICTION  [ ] UX  [ ] UI  [ ] COPY`
+**Decisions:** (1) WhatsApp + newsletter = two separate channels, both stay. (2) Persistent WhatsApp ask = chrome only — **removed the floating button**, moved into **masthead + footer**, relabelled **"קבוצת המייסדים"** (founders' group). (3) Homepage live ballot is now a **real micro-interaction** — tap an option → tally recomputes with your +1 → honest "demo, join to make it count" prompt → founders' group. (Escalating-CTA arc deferred — chrome carries the persistent ask instead.)
+`[x] MAP  [x] FRICTION  [x] UX  [x] UI  [~] COPY` — body-CTA copy ("הצטרפו לפיילוט" in Lead/PilotDispatch) not yet unified to the founders'-group framing; decide in a copy pass.
 
 ### J2 · Browse votes → participate (CORE)  ✅built
 **Goal:** verified resident casts a paid, sealed vote.
