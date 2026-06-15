@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/providers/AuthProvider';
 import { NewsButton, PressInput, Receipt } from '@/components/press';
 import {
   useMerchCartStore,
@@ -41,6 +43,8 @@ interface CartViewProps {
 }
 
 export function CartView({ locale }: CartViewProps) {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const items = useMerchCartStore((s) => s.items);
   const updateQty = useMerchCartStore((s) => s.updateQty);
   const removeItem = useMerchCartStore((s) => s.removeItem);
@@ -75,6 +79,13 @@ export function CartView({ locale }: CartViewProps) {
   const handleCheckout = async () => {
     setSubmitError(null);
     if (items.length === 0) return;
+
+    // Checkout requires sign-in — send guests to sign-in and back to the cart.
+    if (!isAuthenticated) {
+      router.push(`/${locale}/sign-in?redirect=/${locale}/store/cart`);
+      return;
+    }
+
     if (!validate()) return;
 
     setSubmitting(true);
@@ -94,6 +105,10 @@ export function CartView({ locale }: CartViewProps) {
         body: JSON.stringify(body),
       });
 
+      if (res.status === 401) {
+        router.push(`/${locale}/sign-in?redirect=/${locale}/store/cart`);
+        return;
+      }
       if (!res.ok) throw new Error('checkout failed');
 
       const data = (await res.json()) as CheckoutResponse;

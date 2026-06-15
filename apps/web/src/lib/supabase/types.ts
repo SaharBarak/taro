@@ -78,6 +78,45 @@ export interface Database {
         };
         Relationships: [];
       };
+      merch_orders: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          items: Record<string, unknown>[];
+          subtotal_ils: number;
+          shipping_ils: number;
+          total_ils: number;
+          currency: string;
+          status: 'pending' | 'paid' | 'fulfilling' | 'shipped' | 'cancelled' | 'failed';
+          shipping: Record<string, unknown>;
+          payment_id: string | null;
+          pod_order_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          user_id?: string | null;
+          items: Record<string, unknown>[];
+          subtotal_ils: number;
+          shipping_ils: number;
+          total_ils: number;
+          currency?: string;
+          status?: 'pending' | 'paid' | 'fulfilling' | 'shipped' | 'cancelled' | 'failed';
+          shipping: Record<string, unknown>;
+          payment_id?: string | null;
+          pod_order_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          status?: 'pending' | 'paid' | 'fulfilling' | 'shipped' | 'cancelled' | 'failed';
+          payment_id?: string | null;
+          pod_order_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       push_tokens: {
         Row: {
           id: string;
@@ -817,3 +856,4 @@ export type UserVote = Tables<'user_votes'>;
 export type PushToken = Tables<'push_tokens'>;
 export type WebhookEvent = Tables<'webhook_events'>;
 export type VoteNft = Tables<'vote_nfts'>;
+export type MerchOrderRow = Tables<'merch_orders'>;

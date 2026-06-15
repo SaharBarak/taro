@@ -93,6 +93,8 @@ export interface ShippingAddress {
 
 export interface MerchOrder {
   id: string;
+  /** Buyer's user id — checkout requires sign-in, so this is set on real orders. */
+  userId?: string;
   items: CartItem[];
   subtotalILS: number;
   shippingILS: number;

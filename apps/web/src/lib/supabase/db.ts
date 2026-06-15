@@ -20,6 +20,7 @@ import type {
   PushToken,
   WebhookEvent,
   VoteNft,
+  MerchOrderRow,
   InsertTables,
   UpdateTables,
 } from './types';
@@ -1789,4 +1790,61 @@ export async function bulkCreateVoteNfts(
     throw error;
   }
   return data || [];
+}
+
+// ============================================
+// MERCH ORDER OPERATIONS
+// ============================================
+
+/** Persist a new merch order (status 'pending') at checkout. */
+export async function createMerchOrder(
+  record: InsertTables<'merch_orders'>
+): Promise<MerchOrderRow> {
+  const { data, error } = await supabaseAdmin
+    .from('merch_orders')
+    .insert(record)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to create merch order:', error);
+    throw error;
+  }
+  return data;
+}
+
+/** Read a merch order by id (source of truth for the thank-you page). */
+export async function getMerchOrderById(
+  id: string
+): Promise<MerchOrderRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from('merch_orders')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to fetch merch order:', error);
+    return null;
+  }
+  return data;
+}
+
+/** Patch a merch order (webhook status flips, payment/POD ids). */
+export async function updateMerchOrder(
+  id: string,
+  updates: UpdateTables<'merch_orders'>
+): Promise<MerchOrderRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from('merch_orders')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to update merch order:', error);
+    return null;
+  }
+  return data;
 }

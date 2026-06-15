@@ -28,6 +28,8 @@ import {
   isGreenInvoiceConfigured,
   createPaymentForm,
 } from '@/services/greenInvoice';
+import { getSessionFromRequest } from '@/services/auth/session';
+import { createMerchOrder } from '@/lib/supabase/db';
 import { logger } from '@/lib/logger';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -46,6 +48,15 @@ function validShipping(s: unknown): s is ShippingAddress {
 }
 
 export async function POST(request: Request) {
+  // Checkout requires sign-in — every order is tied to a buyer.
+  const session = await getSessionFromRequest(request);
+  if (!session) {
+    return NextResponse.json(
+      { error: 'Sign in to complete checkout' },
+      { status: 401 }
+    );
+  }
+
   let body: CheckoutRequest;
   try {
     body = (await request.json()) as CheckoutRequest;
@@ -98,6 +109,7 @@ export async function POST(request: Request) {
   const now = new Date();
   const order: MerchOrder = {
     id: randomUUID(),
+    userId: session.userId,
     items,
     subtotalILS,
     shippingILS,
@@ -108,6 +120,38 @@ export async function POST(request: Request) {
     createdAt: now,
     updatedAt: now,
   };
+
+  // Persist the order (status 'pending') BEFORE creating the payment page, so
+  // the Green Invoice webhook can find it by id. In dev without a database the
+  // mock flow stays exercisable; a persist failure only hard-fails when a real
+  // payment provider is configured (we must never lose a real order).
+  try {
+    await createMerchOrder({
+      id: order.id,
+      user_id: order.userId ?? null,
+      items: order.items as unknown as Record<string, unknown>[],
+      subtotal_ils: order.subtotalILS,
+      shipping_ils: order.shippingILS,
+      total_ils: order.totalILS,
+      currency: order.currency,
+      status: 'pending',
+      shipping: order.shipping as unknown as Record<string, unknown>,
+    });
+  } catch (error) {
+    if (isGreenInvoiceConfigured()) {
+      logger.error('Merch order persist failed', {
+        error: String(error),
+        orderId: order.id,
+      });
+      return NextResponse.json(
+        { error: 'Could not record order. Please try again.' },
+        { status: 500 }
+      );
+    }
+    logger.warn('Merch order persist skipped (dev / no database)', {
+      orderId: order.id,
+    });
+  }
 
   // Resolve redirect/notify URLs from the request origin (locale-aware).
   const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;

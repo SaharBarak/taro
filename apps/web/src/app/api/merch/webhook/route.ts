@@ -2,16 +2,19 @@
  * POST /api/merch/webhook
  *
  * Green Invoice notifies this endpoint after a payment completes (the `custom`
- * field carries our order id). Acknowledge fast (200) and record the outcome.
+ * field carries our order id). Acknowledge fast (200), then mark the order paid
+ * idempotently and store the issued document id.
  *
- * TODO (needs persistence + POD wiring):
- *  - Look up the order by id, mark it `paid`, store the issued document id.
- *  - Hand the order to the POD partner (Printful/Printify) for fulfilment.
- *  - Idempotency on the document/payment id to survive retries.
+ * TODO (POD wiring): hand a freshly-paid order to the POD partner
+ * (Printful/Printify) for fulfilment and advance it to `fulfilling`.
  */
 
 import { NextResponse } from 'next/server';
+import { getMerchOrderById, updateMerchOrder } from '@/lib/supabase/db';
 import { logger } from '@/lib/logger';
+
+/** Statuses past 'pending' — a notification for these is a duplicate. */
+const SETTLED = new Set(['paid', 'fulfilling', 'shipped', 'cancelled']);
 
 export async function POST(request: Request) {
   let payload: Record<string, unknown> = {};
@@ -36,7 +39,40 @@ export async function POST(request: Request) {
     keys: Object.keys(payload),
   });
 
-  // TODO: mark order paid + trigger POD fulfilment (see file header).
+  if (!orderId) {
+    logger.warn('Merch webhook: no order id in payload');
+    return NextResponse.json({ received: true });
+  }
+
+  try {
+    const order = await getMerchOrderById(orderId);
+    if (!order) {
+      logger.warn('Merch webhook: unknown order', { orderId });
+      return NextResponse.json({ received: true });
+    }
+    if (SETTLED.has(order.status)) {
+      // Idempotent — already handled; ignore the duplicate notification.
+      return NextResponse.json({ received: true });
+    }
+
+    // The issued document / payment id, defensive across Green Invoice fields.
+    const paymentId =
+      (payload.id as string) ||
+      (payload.documentId as string) ||
+      (payload.paymentId as string) ||
+      order.payment_id ||
+      null;
+
+    await updateMerchOrder(orderId, { status: 'paid', payment_id: paymentId });
+    logger.info('Merch order marked paid', { orderId });
+    // TODO(J6+): hand the paid order to the POD partner → status 'fulfilling'.
+  } catch (error) {
+    // Log but still ack — the order stays 'pending' and can be reconciled.
+    logger.error('Merch webhook processing failed', {
+      error: String(error),
+      orderId,
+    });
+  }
 
   return NextResponse.json({ received: true });
 }
