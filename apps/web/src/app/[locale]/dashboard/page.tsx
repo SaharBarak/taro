@@ -18,6 +18,8 @@ import { CertificateCard, type Certificate } from '@/components/certificate/Cert
 import {
   getIdentityLevelLabel,
   getIdentityLevelDescription,
+  CREATE_VOTE_COST,
+  formatCurrency,
 } from '@sync/shared';
 import styles from './page.module.css';
 
@@ -73,6 +75,7 @@ export default function DashboardPage() {
   const [tokenTxns, setTokenTxns] = useState<TokenTransaction[]>([]);
   const [contributions, setContributions] = useState<TreasuryContribution[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [activeInCity, setActiveInCity] = useState<{ id: string; title: string }[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [tab, setTab] = useState<DashboardTab>('history');
 
@@ -200,11 +203,31 @@ export default function DashboardPage() {
       }
     };
 
+    // Retention hook: open votes in the reader's own city, waiting for a ballot.
+    const fetchActiveInCity = async () => {
+      const municipality = user?.municipality;
+      if (!municipality) return;
+      try {
+        const res = await fetch(
+          `/api/votes?municipality=${encodeURIComponent(municipality)}&status=active`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        const votes = ((data.votes || []) as { id: string; title: string }[]).map(
+          (v) => ({ id: v.id, title: v.title })
+        );
+        setActiveInCity(votes);
+      } catch (error) {
+        console.error('Error fetching active city votes:', error);
+      }
+    };
+
     if (isAuthenticated) {
       fetchData();
       fetchBilling();
       fetchContributions();
       fetchCertificates();
+      fetchActiveInCity();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally omit user to prevent refetch on every user update; we only want to fetch once when authenticated
   }, [isLoading, isAuthenticated, router]);
@@ -352,6 +375,38 @@ export default function DashboardPage() {
           </motion.section>
 
           {/* ===== Quick actions strip ===== */}
+          {activeInCity.length > 0 && (
+            <motion.section className={styles.cityCallout} {...reveal(0.1)}>
+              <div className={styles.cityMain}>
+                <span className={styles.cityKicker}>
+                  <span aria-hidden className={styles.kickerTick} />
+                  פעיל ב{user?.municipality || 'עיר שלך'} · {activeInCity.length}
+                </span>
+                <p className={styles.cityLine}>
+                  {activeInCity.length === 1
+                    ? 'הצבעה אחת פתוחה מחכה לקול שלכם.'
+                    : `${activeInCity.length} הצבעות פתוחות מחכות לקול שלכם.`}
+                </p>
+                <ul className={styles.cityList}>
+                  {activeInCity.slice(0, 3).map((v) => (
+                    <li key={v.id}>
+                      <button
+                        type="button"
+                        className={styles.cityItem}
+                        onClick={() => router.push(`/votes/${v.id}`)}
+                      >
+                        <span aria-hidden>▍</span> {v.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <NewsButton variant="red" size="md" onClick={() => router.push('/votes')}>
+                לכל ההצבעות
+              </NewsButton>
+            </motion.section>
+          )}
+
           <motion.section className={styles.actionsStrip} {...reveal(0.12)}>
             <NewsButton variant="ink" size="md" onClick={() => router.push('/votes')}>
               צפייה בהצבעות פעילות
@@ -361,7 +416,7 @@ export default function DashboardPage() {
               size="md"
               onClick={() => router.push('/votes/create')}
             >
-              יצירת הצבעה חדשה · ₪200
+              יצירת הצבעה חדשה · {formatCurrency(CREATE_VOTE_COST)}
             </NewsButton>
           </motion.section>
 
