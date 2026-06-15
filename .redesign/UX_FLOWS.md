@@ -103,7 +103,9 @@ Nav today: הצבעות · מטבעות הקהילה · כלכלה אזרחית 
 **Goal:** resident proposes an issue, pays ₪200, it goes live.
 **Path:** `/he/votes/create` Stepper: propose → options → duration → pay ₪200.
 **Friction:** ₪200 is a big ask — who's the creator persona? Trust that it'll get traction before paying. Moderation/approval step? (none visible).
-`[ ] MAP  [ ] FRICTION  [ ] UX  [ ] UI  [ ] COPY`
+**MAP (grounded 2026-06-15):** `/votes/create` 4-step wizard → `POST /api/payments/create` (vote_creation, Paddle) → stashes `pendingVote` in sessionStorage → Paddle redirect. `POST /api/votes` (requires `paymentTxId`, verifies payment, blocks double-spend) is what inserts the vote. **BROKEN:** `pendingVote` was never consumed — no finaliser, so paying created no vote. No residency gate, no moderation. Price `CREATE_VOTE_COST` (was 200; CONTENT_STRATEGY §5 said 50).
+**Decisions (UX) 2026-06-15:** (1) **Client return-page finalize.** (2) **Verified resident of that city** — full verification + own municipality. (3) **Auto-publish on payment** (no review). (4) **Price ₪50.**
+`[x] MAP  [x] FRICTION  [x] UX  [x] UI  [x] COPY` — **J3 shipped.** New `/he/payments/return` (Paddle's return URL, now locale-prefixed) reads the draft → `POST /api/votes` with `paymentTxId`, retries 402 for webhook lag, redirects to the new vote (processing/received/error states). Creator gate: wizard pre-checks `verificationStatus.phase==='completed'` → `/verification?redirect`; server requires `verification_status==='verified'` + **derives municipality from the creator** (not client). `CREATE_VOTE_COST 200→50` (propagates to display + Paddle amount). **Caveat:** dev mock path (no Paddle) still shows an in-page seal and doesn't finalise (POST needs a completed payment); live e2e needs Paddle + the webhook to mark the payment completed.
 
 ### J4 · Resident verification  🟡partial
 **Goal:** prove "I live here" once, privately.
