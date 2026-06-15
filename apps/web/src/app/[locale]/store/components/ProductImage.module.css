@@ -1,0 +1,61 @@
+.img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  filter: saturate(1.04) contrast(1.02);
+}
+
+.card {
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.detail {
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+/* --- ink/halftone fallback --- */
+.placeholder {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  background: var(--np-ink);
+  color: var(--np-paper);
+  overflow: hidden;
+  padding: var(--space-6);
+  text-align: center;
+}
+.placeholder.card { aspect-ratio: 4 / 5; }
+.placeholder.detail { aspect-ratio: 4 / 5; }
+
+.halftone {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle,
+    var(--np-paper) 1px,
+    transparent 1.6px
+  );
+  background-size: 7px 7px;
+  opacity: 0.16;
+}
+
+.phName {
+  position: relative;
+  font-family: var(--np-font-display);
+  font-weight: 900;
+  font-size: clamp(var(--text-lg), 2.4vw, var(--text-3xl));
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.phMark {
+  position: relative;
+  color: var(--np-red);
+  font-size: var(--text-2xl);
+}

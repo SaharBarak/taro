@@ -13,8 +13,10 @@ interface MastheadProps {
 
 const NAV = [
   { label: 'הצבעות', href: 'votes' },
+  { label: 'מטבעות הקהילה', href: 'coin' },
   { label: 'כלכלה אזרחית', href: 'economics' },
   { label: 'שקיפות הקרן', href: 'treasury' },
+  { label: 'חנות', href: 'store' },
   { label: 'אודות', href: 'about' },
   { label: 'שאלות נפוצות', href: 'faq' },
 ];

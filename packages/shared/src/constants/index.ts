@@ -6,6 +6,15 @@
 export const VOTE_COST = 3;
 export const CREATE_VOTE_COST = 200;
 
+// Merch store (ILS, settled via Green Invoice)
+export const MERCH_CURRENCY = 'ILS' as const;
+/** Flat print-on-demand shipping fee in ILS. */
+export const MERCH_SHIPPING_FLAT_ILS = 25;
+/** Order subtotal (ILS) at/above which shipping is free. */
+export const MERCH_FREE_SHIPPING_THRESHOLD_ILS = 250;
+/** Max units of a single variant per cart line. */
+export const MERCH_MAX_QTY_PER_LINE = 10;
+
 // Token conversion rate (1 ILS = 1 SYNC token)
 export const TOKEN_RATE = 1;
 

@@ -2,6 +2,7 @@ export * from './user';
 export * from './payment';
 export * from './signup';
 export * from './bags';
+export * from './merch';
 export * from './nft';
 export * from './phone';
 
