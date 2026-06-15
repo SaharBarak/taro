@@ -32,59 +32,18 @@ interface Transaction {
   voteTitle?: string;
 }
 
-// Mock data for development
-const MOCK_TREASURY: TreasuryData = {
-  municipalityId: 'kiryat-tivon',
-  municipalityName: 'קרית טבעון',
-  totalILS: 125000,
-  totalSOL: 15.5,
-  localContributions: 85000,
-  externalContributions: 40000,
-  activeVotes: 3,
-  totalVotesResolved: 12,
-  transactions: [
-    {
-      id: '1',
-      type: 'deposit',
-      amountILS: 15000,
-      description: 'תרומות מהצבעה: גינה קהילתית',
-      createdAt: '2025-01-15T10:00:00Z',
-      voteTitle: 'הקמת גינה קהילתית ברחוב הרצל',
-    },
-    {
-      id: '2',
-      type: 'fee_claim',
-      amountILS: 5000,
-      amountSOL: 2.5,
-      description: 'תביעת עמלות BAG',
-      createdAt: '2025-01-14T15:30:00Z',
-    },
-    {
-      id: '3',
-      type: 'token_purchase',
-      amountILS: 8500,
-      amountSOL: 4.25,
-      description: 'תמיכה חיצונית: שדרוג תאורה',
-      createdAt: '2025-01-13T12:00:00Z',
-      voteTitle: 'שדרוג תאורת רחובות במרכז',
-    },
-    {
-      id: '4',
-      type: 'deposit',
-      amountILS: 12000,
-      description: 'תרומות מהצבעה: מרכז הספורט',
-      createdAt: '2025-01-10T09:00:00Z',
-      voteTitle: 'הרחבת מרכז הספורט העירוני',
-    },
-    {
-      id: '5',
-      type: 'allocation',
-      amountILS: -25000,
-      description: 'העברה לתקציב הרשות',
-      createdAt: '2025-01-08T14:00:00Z',
-    },
-  ],
-};
+/** Honest empty board for a municipality with no treasury activity yet. */
+const emptyTreasury = (municipality: string): TreasuryData => ({
+  municipalityId: municipality,
+  municipalityName: municipality,
+  totalILS: 0,
+  totalSOL: 0,
+  localContributions: 0,
+  externalContributions: 0,
+  activeVotes: 0,
+  totalVotesResolved: 0,
+  transactions: [],
+});
 
 const TRANSACTION_TYPE_LABELS: Record<Transaction['type'], string> = {
   deposit: 'הפקדה',
@@ -204,13 +163,65 @@ export function TreasuryDashboard() {
   useEffect(() => {
     const fetchTreasury = async () => {
       try {
+        // Summary: { treasury: { balanceILS, balanceSOL, totalCollectedILS, activeVotesCount, ... } }
         const res = await fetch(`/api/treasury/${selectedMunicipality}`);
-        if (!res.ok) throw new Error('Failed to fetch treasury');
-        const data = await res.json();
-        setTreasury(data);
+        const summary = res.ok
+          ? ((await res.json()).treasury as Record<string, number> | null)
+          : null;
+
+        // Ledger from the dedicated endpoint (the split + resolved count are
+        // derived from it — never fabricated).
+        let transactions: Transaction[] = [];
+        try {
+          const txRes = await fetch(
+            `/api/treasury/${selectedMunicipality}/transactions?limit=25`
+          );
+          if (txRes.ok) {
+            const txData = await txRes.json();
+            transactions = ((txData.transactions || []) as Record<string, unknown>[]).map(
+              (t): Transaction => ({
+                id: String(t.id),
+                type: t.type as Transaction['type'],
+                amountILS: typeof t.amountILS === 'number' ? t.amountILS : 0,
+                amountSOL: typeof t.amountSOL === 'number' ? t.amountSOL : undefined,
+                description:
+                  (t.description as string) ||
+                  TRANSACTION_TYPE_LABELS[t.type as Transaction['type']] ||
+                  '',
+                createdAt: String(t.createdAt),
+                voteTitle: t.voteTitle as string | undefined,
+              })
+            );
+          }
+        } catch {
+          // No ledger — leave transactions empty.
+        }
+
+        const local = transactions
+          .filter((t) => t.type === 'deposit')
+          .reduce((s, t) => s + Math.max(0, t.amountILS), 0);
+        const external = transactions
+          .filter((t) => t.type === 'token_purchase' || t.type === 'fee_claim')
+          .reduce((s, t) => s + Math.max(0, t.amountILS), 0);
+        const resolved = new Set(
+          transactions.map((t) => t.voteTitle).filter(Boolean)
+        ).size;
+
+        setTreasury({
+          municipalityId: selectedMunicipality,
+          municipalityName: selectedMunicipality,
+          totalILS: summary?.totalCollectedILS ?? summary?.balanceILS ?? 0,
+          totalSOL: summary?.balanceSOL ?? 0,
+          localContributions: local,
+          externalContributions: external,
+          activeVotes: summary?.activeVotesCount ?? 0,
+          totalVotesResolved: resolved,
+          transactions,
+        });
       } catch (err) {
         console.error('Error fetching treasury:', err);
-        setTreasury(MOCK_TREASURY);
+        // Honest empty board — never fabricated figures.
+        setTreasury(emptyTreasury(selectedMunicipality));
       } finally {
         setLoading(false);
       }
