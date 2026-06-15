@@ -82,6 +82,31 @@
   border-block-end-color: var(--np-red);
 }
 
+/* === Guest actions (signed-out) === */
+.guestActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.signIn {
+  font-family: var(--np-font-mono);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  color: var(--np-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  padding-block: var(--space-1);
+  border-block-end: var(--np-rule) solid transparent;
+  transition: border-color var(--np-dur-snap) var(--np-ease), color var(--np-dur-snap) var(--np-ease);
+}
+
+.signIn:hover {
+  color: var(--np-red);
+  border-block-end-color: var(--np-red);
+}
+
 /* === Account cluster (signed-in) === */
 .account {
   position: relative;

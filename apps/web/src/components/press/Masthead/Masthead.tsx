@@ -172,9 +172,14 @@ export function Masthead({ locale = 'he' }: MastheadProps) {
         {isAuthenticated ? (
           <AccountCluster locale={locale} />
         ) : (
-          <NewsButton href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" variant="red" size="sm">
-            קבוצת המייסדים
-          </NewsButton>
+          <div className={styles.guestActions}>
+            <NewsButton href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" variant="red" size="sm">
+              קבוצת המייסדים
+            </NewsButton>
+            <Link href={`/${locale}/sign-in`} className={styles.signIn}>
+              התחברות
+            </Link>
+          </div>
         )}
         <ul className={styles.navList}>
           {NAV.map((n) => (

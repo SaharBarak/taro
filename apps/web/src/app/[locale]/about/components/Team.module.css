@@ -81,11 +81,7 @@
   }
 }
 
-@media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
+/* Two founders — keep a 2-up byline grid at every width ≥640px. */
 
 .member {
   display: flex;
