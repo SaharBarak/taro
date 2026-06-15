@@ -116,7 +116,8 @@ export async function generateMetadata({
     },
     manifest: '/site.webmanifest',
     verification: {
-      google: 'your-google-verification-code', // Add your verification code
+      // Set NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION in env; omitted when unset.
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     },
     category: 'technology',
   };
@@ -145,7 +146,7 @@ function generateStructuredData(locale: Locale) {
       name: 'Israel',
     },
     sameAs: [
-      'https://chat.whatsapp.com/your-whatsapp-group',
+      'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc',
     ],
   };
 
