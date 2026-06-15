@@ -208,6 +208,45 @@ export function CoinDossier({ voteId, locale = 'he' }: CoinDossierProps) {
         />
       </dl>
 
+      {/* Back this BAG — primary action (links out to bags.fm) */}
+      <section className={styles.back}>
+        <div className={styles.backCopy}>
+          <span className={styles.backKicker}>
+            <span aria-hidden className={styles.kickerTick} />
+            גבו את ההחלטה · BACK
+          </span>
+          <p className={styles.backLine}>
+            כל אחד יכול לגבות את ה-BAG — תושב או מבחוץ.{' '}
+            <strong className={styles.backStrong}>
+              ההצבעה שמורה לתושבים מאומתים; הגיבוי הכלכלי פתוח לכולם.
+            </strong>{' '}
+            ככל שה-BAG גדל, לביצוע החלטת הרוב יש יותר משאבים אמיתיים מאחוריו.
+          </p>
+          <p className={styles.backNote}>
+            המסחר רץ על bags.fm — מסילות כסף עצמאיות על בלוקצ׳יין ציבורי, מחוץ לפלטפורמה.
+          </p>
+        </div>
+        <div className={styles.backAction}>
+          {live && coin.tokenMint ? (
+            <NewsButton
+              href={`https://bags.fm/${coin.tokenMint}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="red"
+              size="lg"
+              trailing={<span aria-hidden>↗</span>}
+            >
+              גבו ב-bags.fm
+            </NewsButton>
+          ) : (
+            <div className={styles.backDisabled}>
+              <span aria-hidden>□</span>{' '}
+              {coin.isFrozen ? 'המסחר ב-BAG קפוא כרגע.' : 'ה-BAG עדיין לא נפתח למסחר.'}
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Layout: seal + holders */}
       <div className={styles.body}>
         {/* On-chain mint */}

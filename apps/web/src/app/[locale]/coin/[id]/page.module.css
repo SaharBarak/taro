@@ -430,3 +430,83 @@
 .skelBlock {
   block-size: 16em;
 }
+
+/* ── Back this BAG — primary action block (ink furniture) ──────────────── */
+.back {
+  margin-block: var(--space-8);
+  background: var(--np-ink);
+  color: var(--np-paper);
+  border: var(--np-rule) solid var(--np-ink);
+  padding: var(--space-8) var(--space-6);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .back {
+    grid-template-columns: 1.6fr auto;
+    gap: var(--space-10);
+    padding: var(--space-10) var(--space-8);
+  }
+}
+
+.backCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.backKicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--np-red);
+}
+
+.backLine {
+  font-family: var(--np-font-body);
+  font-size: clamp(var(--text-lg), 0.6vw + 1rem, var(--text-xl));
+  line-height: 1.45;
+  color: var(--np-paper);
+  margin: 0;
+  max-inline-size: 52ch;
+}
+.backStrong {
+  font-weight: 700;
+  color: var(--np-paper);
+}
+
+.backNote {
+  font-family: var(--np-font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--np-paper);
+  opacity: 0.66;
+  margin: 0;
+}
+
+.backAction {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.backDisabled {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  color: var(--np-paper);
+  opacity: 0.6;
+  border: var(--np-rule-hair) dashed var(--np-paper);
+  padding: var(--space-3) var(--space-4);
+}
