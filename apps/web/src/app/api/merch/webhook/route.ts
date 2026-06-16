@@ -29,9 +29,13 @@ import { logger } from '@/lib/logger';
 function isAuthentic(request: Request): boolean {
   const secret = process.env.GREENINVOICE_WEBHOOK_SECRET || '';
   if (!secret) {
-    logger.warn(
-      'Merch webhook: GREENINVOICE_WEBHOOK_SECRET unset — endpoint is UNAUTHENTICATED'
-    );
+    // Fail CLOSED in production (a missing secret must not leave a forge-to-paid
+    // hole); fail open only in dev so mock checkout works without creds.
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('Merch webhook: GREENINVOICE_WEBHOOK_SECRET unset in production — rejecting');
+      return false;
+    }
+    logger.warn('Merch webhook: GREENINVOICE_WEBHOOK_SECRET unset — UNAUTHENTICATED (dev only)');
     return true;
   }
   const provided =

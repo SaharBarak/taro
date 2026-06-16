@@ -80,7 +80,7 @@ describe('POST /api/merch/webhook', () => {
       expect(res.status).toBe(200);
     });
 
-    it('runs OPEN (accepts) when no secret is configured', async () => {
+    it('runs OPEN (accepts) when no secret is configured in dev', async () => {
       process.env.GREENINVOICE_WEBHOOK_SECRET = '';
       vi.resetModules();
       const route = await import('@/app/api/merch/webhook/route');
@@ -88,6 +88,19 @@ describe('POST /api/merch/webhook', () => {
       (markMerchOrderPaid as Mock).mockResolvedValue({ kind: 'updated', row: pendingOrder });
       const res = await route.POST(post('http://localhost/api/merch/webhook', { custom: 'order-1' }));
       expect(res.status).toBe(200);
+    });
+
+    it('fails CLOSED (401) when the secret is unset in production', async () => {
+      const prevEnv = process.env.NODE_ENV;
+      process.env.GREENINVOICE_WEBHOOK_SECRET = '';
+      // @ts-expect-error override for the test
+      process.env.NODE_ENV = 'production';
+      vi.resetModules();
+      const route = await import('@/app/api/merch/webhook/route');
+      const res = await route.POST(post('http://localhost/api/merch/webhook', { custom: 'order-1' }));
+      expect(res.status).toBe(401);
+      // @ts-expect-error restore
+      process.env.NODE_ENV = prevEnv;
     });
   });
 

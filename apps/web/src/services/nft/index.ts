@@ -243,41 +243,48 @@ export async function mintPendingNfts(
   const voteCache = new Map<string, Awaited<ReturnType<typeof getVoteById>>>();
 
   for (const nft of pending) {
-    if (!nft.recipient) {
-      summary.skipped++;
-      continue;
-    }
-    if (!voteCache.has(nft.vote_id)) {
-      voteCache.set(nft.vote_id, await getVoteById(nft.vote_id));
-    }
-    const vote = voteCache.get(nft.vote_id);
-    if (!vote) {
-      summary.skipped++;
-      continue;
-    }
+    // Per-item isolation: a single bad vote lookup or mint must not abort the
+    // whole batch.
+    try {
+      if (!nft.recipient) {
+        summary.skipped++;
+        continue;
+      }
+      if (!voteCache.has(nft.vote_id)) {
+        voteCache.set(nft.vote_id, await getVoteById(nft.vote_id));
+      }
+      const vote = voteCache.get(nft.vote_id);
+      if (!vote) {
+        summary.skipped++;
+        continue;
+      }
 
-    const meta = (nft.metadata || {}) as { voteCast?: string; tokensHeld?: number };
-    const metadata = generateNftMetadata({
-      vote: {
-        id: vote.id,
-        title: vote.title,
-        description: vote.description,
-        municipality: vote.municipality_id,
-        endDate: new Date(vote.end_date),
-        result: '',
-        totalVoters: vote.participant_count ?? 0,
-        totalRaised: 0,
-      },
-      holder: {
-        type: nft.type,
-        voteCast: meta.voteCast,
-        tokensHeld: meta.tokensHeld,
-      },
-    });
+      const meta = (nft.metadata || {}) as { voteCast?: string; tokensHeld?: number };
+      const metadata = generateNftMetadata({
+        vote: {
+          id: vote.id,
+          title: vote.title,
+          description: vote.description,
+          municipality: vote.municipality_id,
+          endDate: new Date(vote.end_date),
+          result: '',
+          totalVoters: vote.participant_count ?? 0,
+          totalRaised: 0,
+        },
+        holder: {
+          type: nft.type,
+          voteCast: meta.voteCast,
+          tokensHeld: meta.tokensHeld,
+        },
+      });
 
-    const result = await mintSingleNft(nft.id, nft.recipient, metadata);
-    if (result.success) summary.minted++;
-    else summary.failed++;
+      const result = await mintSingleNft(nft.id, nft.recipient, metadata);
+      if (result.success) summary.minted++;
+      else summary.failed++;
+    } catch (error) {
+      summary.failed++;
+      console.error('mintPendingNfts: item failed', { nftId: nft.id, error: String(error) });
+    }
   }
 
   return summary;

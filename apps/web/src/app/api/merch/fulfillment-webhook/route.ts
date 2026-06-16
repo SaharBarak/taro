@@ -22,7 +22,12 @@ import { logger } from '@/lib/logger';
 function isAuthentic(request: Request): boolean {
   const secret = process.env.PRINTFUL_WEBHOOK_SECRET || '';
   if (!secret) {
-    logger.warn('Printful webhook: PRINTFUL_WEBHOOK_SECRET unset — endpoint is UNAUTHENTICATED');
+    // Fail closed in production; open only in dev.
+    if (process.env.NODE_ENV === 'production') {
+      logger.error('Printful webhook: PRINTFUL_WEBHOOK_SECRET unset in production — rejecting');
+      return false;
+    }
+    logger.warn('Printful webhook: PRINTFUL_WEBHOOK_SECRET unset — UNAUTHENTICATED (dev only)');
     return true;
   }
   const provided =
