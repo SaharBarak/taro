@@ -24,6 +24,9 @@ function toOrder(row: MerchOrderRow): MerchOrder {
     shipping: row.shipping as unknown as ShippingAddress,
     paymentId: row.payment_id ?? undefined,
     podOrderId: row.pod_order_id ?? undefined,
+    trackingNumber: row.tracking_number ?? undefined,
+    trackingUrl: row.tracking_url ?? undefined,
+    carrier: row.carrier ?? undefined,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };

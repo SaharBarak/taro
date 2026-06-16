@@ -107,6 +107,10 @@ export interface MerchOrder {
   paymentId?: string;
   /** POD partner order id once fulfilment starts. */
   podOrderId?: string;
+  /** Shipment tracking, set when the POD partner ships the order. */
+  trackingNumber?: string;
+  trackingUrl?: string;
+  carrier?: string;
   createdAt: Date;
   updatedAt: Date;
 }

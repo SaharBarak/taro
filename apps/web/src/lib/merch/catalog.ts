@@ -106,3 +106,14 @@ export function resolveVariant(slug: string, variantId: string) {
   if (!variant) return null;
   return { product, variant };
 }
+
+/**
+ * The POD partner's variant id for a cart line (productId + variantId), or null.
+ * Populate each variant's `podVariantId` with the real Printful sync-variant id
+ * once products are set up in the Printful dashboard.
+ */
+export function getPodVariantId(productId: string, variantId: string): string | null {
+  const product = MERCH_CATALOG.find((p) => p.id === productId);
+  const variant = product?.variants.find((v) => v.id === variantId);
+  return variant?.podVariantId ?? null;
+}
