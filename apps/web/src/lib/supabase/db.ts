@@ -532,6 +532,35 @@ export async function createPayment(
   return data;
 }
 
+/**
+ * Atomically claim a payment as completed: `pending → completed` guarded in the
+ * same statement. Returns the row to the single caller that won the race, or
+ * null if it was already completed / lost (idempotent). All downstream
+ * fulfilment (treasury, tokens, entitlement) MUST gate on a non-null return so
+ * Paddle's dual completed/paid events + retries can't double-process.
+ */
+export async function markPaymentCompleted(
+  paymentId: string,
+  providerId?: string
+): Promise<Payment | null> {
+  const updates: UpdateTables<'payments'> = { status: 'completed' };
+  if (providerId) updates.provider_id = providerId;
+
+  const { data, error } = await supabaseAdmin
+    .from('payments')
+    .update(updates)
+    .eq('id', paymentId)
+    .eq('status', 'pending')
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to mark payment completed:', error);
+    return null;
+  }
+  return data;
+}
+
 export async function updatePaymentStatus(
   paymentId: string,
   status: 'pending' | 'completed' | 'failed' | 'refunded',

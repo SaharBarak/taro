@@ -91,11 +91,8 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    // Log detail server-side; this is a PUBLIC endpoint — don't leak internals.
     console.error('Failed to get vote resolution status:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -7,6 +7,7 @@ import { emailService } from '@/services/email';
 import {
   getPaymentById,
   getPaymentByProviderId,
+  markPaymentCompleted,
   updatePaymentStatus,
   createEntitlement,
   getUserById,
@@ -101,14 +102,16 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
         }
 
-        // Idempotency
-        if (payment.status === 'completed') {
+        // Atomic claim: pending→completed in one statement. Only the delivery
+        // that flips the row runs fulfilment — Paddle fires BOTH transaction.
+        // completed and transaction.paid (distinct event_ids that both pass the
+        // event_id dedup) and retries on non-2xx, so a TOCTOU status read would
+        // double-credit treasury + double-mint tokens. The loser is idempotent.
+        const claimed = await markPaymentCompleted(payment.id, event.paymentId);
+        if (!claimed) {
           log.info('Payment already processed (idempotent)', { paymentId: payment.id });
           return NextResponse.json({ received: true, idempotent: true });
         }
-
-        // Mark completed, persist Paddle transaction id
-        await updatePaymentStatus(payment.id, 'completed', event.paymentId);
 
         const user = await getUserById(payment.user_id);
         if (!user) {

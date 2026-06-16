@@ -28,6 +28,7 @@ vi.mock('@/lib/supabase/db', () => ({
   getPaymentById: vi.fn(),
   getPaymentByProviderId: vi.fn(),
   getPaymentByIdempotencyKey: vi.fn(),
+  markPaymentCompleted: vi.fn(),
   updatePaymentStatus: vi.fn(),
   createEntitlement: vi.fn(),
   recordUserVote: vi.fn(),
@@ -85,6 +86,7 @@ import {
   getPaymentById,
   getPaymentByProviderId,
   getPaymentByIdempotencyKey,
+  markPaymentCompleted,
   updatePaymentStatus,
   createEntitlement,
   recordUserVote,
@@ -134,6 +136,9 @@ describe('Payments API Routes (Paddle)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: the atomic pending→completed claim succeeds (this delivery wins).
+    // Idempotent/already-completed tests override this to null (lost the race).
+    (markPaymentCompleted as Mock).mockResolvedValue(mockPayment);
   });
 
   describe('GET /api/payments/create', () => {
@@ -597,7 +602,7 @@ describe('Payments API Routes (Paddle)', () => {
 
       expect(response.status).toBe(200);
       expect(data.received).toBe(true);
-      expect(updatePaymentStatus).toHaveBeenCalledWith('payment-123', 'completed', 'txn_123');
+      expect(markPaymentCompleted).toHaveBeenCalledWith('payment-123', 'txn_123');
       expect(recordTreasuryDeposit).toHaveBeenCalledWith(
         expect.objectContaining({
           municipalityId: 'tel-aviv',
@@ -678,6 +683,8 @@ describe('Payments API Routes (Paddle)', () => {
       (getWebhookEventByEventId as Mock).mockResolvedValue(null);
       (createWebhookEvent as Mock).mockResolvedValue(undefined);
       (getPaymentById as Mock).mockResolvedValue({ ...mockPayment, status: 'completed' });
+      // Atomic claim finds no pending row → null → idempotent (lost/already done).
+      (markPaymentCompleted as Mock).mockResolvedValue(null);
       (updateWebhookEventStatus as Mock).mockResolvedValue(undefined);
 
       const request = createWebhookRequest({
@@ -691,7 +698,8 @@ describe('Payments API Routes (Paddle)', () => {
       expect(response.status).toBe(200);
       expect(data.received).toBe(true);
       expect(data.idempotent).toBe(true);
-      expect(updatePaymentStatus).not.toHaveBeenCalled();
+      // The losing delivery must not run fulfilment.
+      expect(recordTreasuryDeposit).not.toHaveBeenCalled();
     });
 
     it('should return 404 when payment not found', async () => {

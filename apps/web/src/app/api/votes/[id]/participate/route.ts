@@ -13,6 +13,7 @@ import {
   isPaymentAlreadyUsed,
 } from '@/lib/supabase/db';
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { verifyCheckIn } from '@/services/verification/municipality';
 import {
   voteParticipationLimiter,
   createRateLimitResponse,
@@ -70,6 +71,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Check if vote has ended
     if (new Date(vote.end_date) < new Date()) {
       return NextResponse.json({ error: 'Vote has ended' }, { status: 400 });
+    }
+
+    // SECURITY: verify the GPS location server-side against the vote's
+    // municipality. Client coordinates are spoofable, but recording them
+    // unverified let anyone vote in any municipality — at minimum the bounds
+    // must be enforced here, not just by the advisory verify-location endpoint.
+    const geo = verifyCheckIn(
+      gpsCoordinates.latitude,
+      gpsCoordinates.longitude,
+      gpsCoordinates.accuracy,
+      vote.municipality_id
+    );
+    if (!geo.verified) {
+      return NextResponse.json(
+        { error: geo.error || 'Location verification failed for this vote.', code: 'LOCATION_NOT_VERIFIED' },
+        { status: 403 }
+      );
     }
 
     // Check if user has already participated
@@ -144,7 +162,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       JSON.stringify({
         lat: gpsCoordinates.latitude,
         lng: gpsCoordinates.longitude,
-        timestamp: gpsCoordinates.timestamp,
+        // Server time — the client-supplied timestamp is untrusted.
+        timestamp: new Date().toISOString(),
       })
     ).toString('base64');
 

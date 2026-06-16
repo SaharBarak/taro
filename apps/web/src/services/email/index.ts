@@ -9,6 +9,7 @@
  */
 
 import { Resend } from 'resend';
+import { escapeHtml } from '@/lib/escapeHtml';
 
 interface EmailConfig {
   apiKey: string;
@@ -183,7 +184,8 @@ class EmailService {
       ['סכום', `₪${params.amountILS}`],
       ['סיבה', params.reason],
     ]
-      .map(([k, v]) => `<tr><td style="padding:4px 12px;font-weight:700">${k}</td><td style="padding:4px 12px">${v}</td></tr>`)
+      // Escape every value — `reason`/`userEmail` are user-controlled.
+      .map(([k, v]) => `<tr><td style="padding:4px 12px;font-weight:700">${escapeHtml(k)}</td><td style="padding:4px 12px">${escapeHtml(v)}</td></tr>`)
       .join('');
 
     await this.getResend().emails.send({

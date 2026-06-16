@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { mintPendingNfts } from '@/services/nft';
 import { cronLogger as log } from '@/lib/logger';
+import { secureEqual } from '@/lib/secureCompare';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
       log.error('CRON_SECRET not configured - rejecting request');
       return NextResponse.json({ error: 'Cron endpoint not configured' }, { status: 503 });
     }
-    if (authHeader !== `Bearer ${CRON_SECRET}`) {
+    if (!authHeader || !secureEqual(authHeader, `Bearer ${CRON_SECRET}`)) {
       log.warn('Invalid cron authorization attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
