@@ -1,21 +1,27 @@
 # HANDOVER — Taruu Redesign → Full Build
 
-_Updated 2026-06-16. All 11 UX journeys shipped; PR open + code-reviewed. Resume via "RESUME HERE" below._
+_Updated 2026-06-16. All 11 UX journeys shipped + code-reviewed; security/nits fixed; Cloudflare Workers deploy scaffolded & validated. PR open. Resume via "RESUME HERE" below._
 
-## ▶ RESUME HERE (2026-06-16)
-**State:** branch `redesign/brutalist-tech-press` — **37 commits, pushed**. **PR #7 OPEN** → https://github.com/SaharBarak/taro/pull/7 (base `main`). All 11 UX journeys (J1–J11) dissected + shipped. **High-effort code review done; fixes applied.** Verification: `tsc=0`, lint clean, **460/460 web tests pass**.
+## ▶ RESUME HERE (2026-06-16, session 2)
+**State:** branch `redesign/brutalist-tech-press` — **41 commits, pushed**. **PR #7 OPEN** → https://github.com/SaharBarak/taro/pull/7 (base `main`). All 11 UX journeys (J1–J11) shipped. Code review done + fixes applied. **This session added: webhook hardening, the two cleanup nits, and the full Vercel→Cloudflare Workers migration scaffold (validated locally).** Verification: `tsc=0`, lint clean, **470/470 web tests pass** (+10 webhook tests).
 
 **What's DONE:** whole-site brutalist migration + every primary journey (funnel, participate, verify, auth/account, BAGS coin, store, certificate, create, dashboard, treasury, info). Detail per journey + each one's "Deferred" list in `.redesign/UX_FLOWS.md`.
 
-**Decision needed from user:** merge PR #7, or harden first (see "Deferred — needs infra" below).
+**Done this session (commits 71eafc5 → c464b89):**
+- **GI webhook hardened** (was the security flag): `/api/merch/webhook` now requires a shared secret (`GREENINVOICE_WEBHOOK_SECRET`, timing-safe compare via `?token=` on the notify URL or `x-greeninvoice-token` header; fails OPEN only when unset, for dev). Paid transition is atomic via `markMerchOrderPaid` (`WHERE status='pending'`) — no double-process; distinguishes no-op (200) from DB error (500 retry). +10 tests. Checkout appends the secret; `.env.example` documents it.
+- **Nits cleared:** `WHATSAPP_FOUNDERS_LINK` centralized in `@sync/shared` (was hardcoded in 24 files); `VoteWidget` `issueNo` is now an optional prop (real votes no longer show fake `· גיליון 04`; demo placements pass it explicitly).
+- **Hosting moved Vercel → Cloudflare Workers (OpenNext).** Scaffold: `apps/web/wrangler.jsonc`, `open-next.config.ts`, `worker.ts` (custom entry: OpenNext fetch handler + scheduled handler driving the two `/api/cron/*` routes via Cron Triggers), `next.config.ts` dev shim, `package.json` scripts (`cf:build`/`preview`/`deploy`/`cf:typegen`) + deps (`@opennextjs/cloudflare`, `wrangler`; bumped `next ^15.5.18` for adapter peer), `.dev.vars.example`, gitignore. Validated WITHOUT creds: `opennextjs-cloudflare build` ✓, `wrangler deploy --dry-run` bundles (2.2MB gzip, bindings resolved) ✓. Full plan in **`DNS-SETUP.md`**.
+- **DNS:** `taruu.co.il` (registered at box.co.il, .co.il — can't transfer to CF, DNS-host only) nameservers pointed to Cloudflare. Zone was empty → zero-risk cutover. Awaiting CF "Active". App DNS records auto-created when the Worker's custom domain is attached post-deploy.
 
-**Highest-value remaining work (none is UX design — it's wiring/infra), priority order:**
-1. **Live creds + e2e pass** — drop real Supabase / Google OAuth / Paddle / Green Invoice / Twilio into env, then visually verify every auth-gated surface (dashboard, settings, verification, certificates, create-finalise, signed-in masthead) — all built + tested but never seen with a real session. Also set the real **Paddle product price to ₪50** (constant is ₪50; product must match).
-2. **Green Invoice webhook hardening** (security, flagged in review) — `/api/merch/webhook` flips an order to `paid` on ANY POST: no signature/authenticity check, non-atomic idempotency. Forge-to-paid gap; real once POD ships. Add a GI signature/secret check + conditional `WHERE status='pending'` update.
+**Decision needed from user:** merge PR #7, or keep hardening. Hosting cost: ~$5/mo Workers Paid (free DNS + free egress + free static assets).
+
+**Highest-value remaining work (wiring/infra, not UX), priority order:**
+1. **Deploy to Cloudflare + live creds e2e** — `wrangler login` → set secrets (`wrangler secret put` per `.dev.vars.example`) → `pnpm deploy` → attach `taruu.co.il`/`www`/`api` domains (auto-creates DNS). Then visually verify every auth-gated surface (dashboard, settings, verification, certificates, create-finalise, signed-in masthead) — built + tested but never seen with a real session. Set real **Paddle vote-creation price = ₪50** and **`GREENINVOICE_WEBHOOK_SECRET`**.
+2. **Image optimization on Workers** — verify `next/image` works post-deploy; may need a custom loader / Cloudflare Images (only thing not validatable locally).
 3. **Deferred per-journey infra:** on-chain NFT mint + IPFS pin (J9, no batch minter runs); POD fulfilment webhook→Printful (J6); in-app custodial swap via qubik wiring `quote`/`swap` (J5); push notifications + real refund endpoint (J7); B1 OTP via Cloudflare Worker (J4).
-4. **Cleanup nits:** WhatsApp founders link hardcoded in ~25 files → centralize one `WHATSAPP_FOUNDERS_LINK` in `@sync/shared`; treasury split/resolved-count are derived from a 25-row ledger (approximate at volume — API doesn't track them natively).
+4. **Minor:** treasury split/resolved-count are derived from a 25-row ledger (approximate at volume — API doesn't track them natively).
 
-**Migrations added this work:** `user_city`, `user_notification_settings`, `merch_orders` (all under `supabase/migrations/2026061500000*`).
+**Migrations added (session 1):** `user_city`, `user_notification_settings`, `merch_orders` (all under `supabase/migrations/2026061500000*`).
 
 ## ✅ LOCKED design decision
 **Brutalist Tech-Press** is the approved, final art direction. Do NOT re-explore alternatives.
@@ -69,17 +75,19 @@ Latest tier: **J7** (dashboard retention hook — open-votes-in-your-city callou
 ## OPEN DECISIONS / KNOWN GAPS
 1. ~~**₪ create-vote price:**~~ **RESOLVED 2026-06-15 → ₪50** (`CREATE_VOTE_COST = 50`); matches CONTENT_STRATEGY §5. Real Paddle product price (`PADDLE_PRICE_VOTE_CREATION`) must be set to ₪50 to match.
 2. **Payments real-with-mock-fallback:** ₪3/₪200 → `/api/payments/create` → Paddle when `paymentUrl` returned, else in-page mock seal. **The vote is recorded server-side on the Paddle `payment.completed` webhook, not the client; the mock path persists nothing.** Needs real Supabase/Paddle creds for live e2e.
-3. **Merch:** POD fulfilment + `/api/merch/webhook` persistence are TODO (webhook only ACKs); no product imagery (press placeholders); Green Invoice creds needed for live checkout.
+3. **Merch:** webhook now **persists + hardened** (secret gate + atomic paid transition, +10 tests — session 2); POD fulfilment (→Printful) still TODO; no product imagery beyond the 5 Higgsfield duotone shots; Green Invoice creds needed for live checkout, and `GREENINVOICE_WEBHOOK_SECRET` must be set in prod.
 4. **BAGS trading unwired:** `/api/bags/quote` + `/api/bags/swap` exist; no buy/back UI or wallet connect (J5).
 5. **NFT resolution certificates** (`user/nfts`, `votes/[id]/resolution`, cron) — engine exists, no claim/view UX (J9).
 6. **Verification creds:** Twilio (OTP) — mock-degrades in dev; B1 plans a Cloudflare Worker replacement.
-7. **VoteWidget hardcodes** `· גיליון 04` / place — parametrize for per-vote issue numbers.
+7. ~~**VoteWidget hardcodes** `· גיליון 04`~~ **DONE (session 2)** — `issueNo` optional prop; real votes omit it, demo placements pass it.
+8. **Hosting = Cloudflare Workers (OpenNext)**, not Vercel. Deploy not yet run (needs `wrangler login` + secrets). Cron via `worker.ts` scheduled handler + Cron Triggers. `next/image` optimization on Workers unverified until first deploy. See `DNS-SETUP.md`.
 
 Build approach that worked: fan out parallel agents (one per page/flow) with NEWSPRINT_TECH.md + `Lead` as reference + the canonical-scale block + "use press primitives, keep all data/logic, scope-locked to your folder." Assemble + verify with Playwright (`.redesign/shot-routes.mjs`, 390 + 1600). **Gotcha:** press sections render **static** — never gate body content behind `whileInView` (blanked legal bodies once); and globals `p`/`h*` now `color: inherit` so ink/red blocks render paper text (don't re-hardcode).
 
 ## Run / verify
 - Dev: `cd apps/web && node_modules/.bin/next dev -p 3777` → http://localhost:3777/he. **Never `next build` while dev runs** (clobbers `.next`). Hebrew-only.
-- Typecheck: `node_modules/.bin/tsc -p apps/web/tsconfig.json --noEmit`. Lint: `cd apps/web && node_modules/.bin/next lint`. Tests: `cd apps/web && node_modules/.bin/vitest run` (460 pass as of 2026-06-16).
+- Typecheck: `node_modules/.bin/tsc -p apps/web/tsconfig.json --noEmit`. Lint: `cd apps/web && node_modules/.bin/next lint`. Tests: `cd apps/web && node_modules/.bin/vitest run` (470 pass as of 2026-06-16, session 2).
+- Cloudflare deploy (OpenNext): `cd apps/web && pnpm preview` (local worker) / `pnpm deploy` (ship). Validate the bundle without shipping: `node_modules/.bin/wrangler deploy --dry-run --outdir .wrangler/dryrun`. Full runbook in `DNS-SETUP.md`.
 - Screenshots: `.redesign/shot-routes.mjs` (multi-route, 390 + 1600). Run: `PW_SHELL="$HOME/Library/Caches/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-mac-arm64/chrome-headless-shell" ROUTES="/he,/he/votes" node .redesign/shot-routes.mjs` (binary is `chrome-headless-shell`, NOT `headless_shell`). Outputs `.redesign/r-{m,d}-<route>.png`.
 - Local dev data: Supabase placeholder creds → components fall back to MOCK; real Supabase/Paddle creds needed for live e2e.
 
