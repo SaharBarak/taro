@@ -23,6 +23,9 @@ _Updated 2026-06-16. All 11 UX journeys shipped + code-reviewed; security/nits f
 
 **Migrations added (session 1):** `user_city`, `user_notification_settings`, `merch_orders` (all under `supabase/migrations/2026061500000*`).
 
+## 🔒 Security audit (2026-06-16) — `SECURITY-AUDIT.md`
+Multi-agent static audit: 22 confirmed findings (2 HIGH, 4 MED, 14 LOW, 2 INFO), each adversarially verified. **Fixed this session:** both HIGHs (payment-webhook double-credit → atomic `markPaymentCompleted` + treasury UNIQUE(payment_id); GPS spoofing → server-side `verifyCheckIn` at participate), plus refund-email HTML escaping, constant-time cron compare, bags verifier hex+length-guard, resolution raw-error leak. **Deferred (in SECURITY-AUDIT.md, need provider info / bigger change):** Google OAuth state+PKCE (MED — drive-by blunted by JSON-preflight+sameSite, code-replay remains), webhook-secret-in-URL → header (MED, needs GI/Printful header support), merch_orders RLS, OTP attempt-reset-on-resend, send-code Upstash rate-limit, vote-template email escaping (subject-vs-body care). 4 false positives recorded (no action).
+
 ## ✅ LOCKED design decision
 **Brutalist Tech-Press** is the approved, final art direction. Do NOT re-explore alternatives.
 - Contract (read first): `.redesign/NEWSPRINT_TECH.md` (LOCKED).
