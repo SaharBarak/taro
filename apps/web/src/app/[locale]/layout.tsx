@@ -4,6 +4,7 @@ import Script from 'next/script';
 import { Secular_One, Heebo } from 'next/font/google';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { LenisProvider } from '@/providers/LenisProvider';
+import { AnalyticsEvents } from '@/components/AnalyticsEvents';
 import { WhatsAppButton } from '@/components/ui/WhatsAppButton';
 import { i18n, localeDirections, getDictionary } from '@/lib/i18n';
 import type { Locale } from '@/lib/i18n';
@@ -304,6 +305,7 @@ export default async function LocaleLayout({
         </Script>
       </head>
       <body>
+        <AnalyticsEvents />
         <AuthProvider>
           <LenisProvider><script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="taro" />
         {children}</LenisProvider>
