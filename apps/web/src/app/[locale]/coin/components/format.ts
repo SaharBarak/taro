@@ -1,9 +1,10 @@
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 /**
  * Shared mono-tabular formatters for the BAGS market surface.
  * Hebrew locale, ILS, signed percentages.
  */
 
-export const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+export const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 export const formatCurrency = (amount: number): string =>
   new Intl.NumberFormat('he-IL', {

@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Heading, Text } from '@/components/ui/Typography';
 import styles from './ComingSoon.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 interface ComingSoonProps {
   title?: string;

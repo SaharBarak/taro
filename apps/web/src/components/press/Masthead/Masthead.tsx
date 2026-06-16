@@ -6,8 +6,9 @@ import { NewsButton } from '@/components/press/NewsButton';
 import { useAuth } from '@/providers/AuthProvider';
 import type { Locale } from '@/lib/i18n';
 import styles from './Masthead.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 interface MastheadProps {
   locale?: Locale;

@@ -7,6 +7,7 @@ import { LenisProvider } from '@/providers/LenisProvider';
 import { i18n, localeDirections, getDictionary } from '@/lib/i18n';
 import type { Locale } from '@/lib/i18n';
 import '@/styles/globals.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
 const SITE_URL = 'https://taruu.co.il';
 
@@ -146,7 +147,7 @@ function generateStructuredData(locale: Locale) {
       name: 'Israel',
     },
     sameAs: [
-      'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc',
+      WHATSAPP_FOUNDERS_LINK,
     ],
   };
 

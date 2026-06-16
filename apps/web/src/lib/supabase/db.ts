@@ -1848,3 +1848,37 @@ export async function updateMerchOrder(
   }
   return data;
 }
+
+/** Outcome of an atomic paid transition — distinguishes a no-op from a failure. */
+export type MarkPaidResult =
+  | { kind: 'updated'; row: MerchOrderRow }
+  | { kind: 'noop' } // no pending row matched: already settled, or lost the race
+  | { kind: 'error' }; // transient DB failure — caller should signal a retry
+
+/**
+ * Atomically flip an order `pending` → `paid`. The `status = 'pending'` guard
+ * is enforced in the same statement, so concurrent webhook deliveries can't
+ * both succeed — the loser matches zero rows and returns `noop` (idempotent).
+ */
+export async function markMerchOrderPaid(
+  id: string,
+  paymentId: string | null
+): Promise<MarkPaidResult> {
+  const { data, error } = await supabaseAdmin
+    .from('merch_orders')
+    .update({
+      status: 'paid',
+      payment_id: paymentId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('status', 'pending')
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to mark merch order paid:', error);
+    return { kind: 'error' };
+  }
+  return data ? { kind: 'updated', row: data } : { kind: 'noop' };
+}

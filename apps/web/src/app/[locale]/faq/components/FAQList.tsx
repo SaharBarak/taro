@@ -12,8 +12,9 @@ import {
   type FAQCategory,
 } from '../data/faqData';
 import styles from './FAQList.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 type FilterValue = 'all' | FAQCategory;
 

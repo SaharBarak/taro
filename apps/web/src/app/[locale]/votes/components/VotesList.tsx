@@ -5,11 +5,12 @@ import Link from 'next/link';
 import { NewsButton, VoteWidget, TallyBar } from '@/components/press';
 import type { VoteFilter } from './types';
 import styles from './VotesList.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
 // Number of votes revealed per "Load More" click
 const PAGE_SIZE = 6;
 
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 // Vote types matching API response
 interface VoteOption {

@@ -5,8 +5,9 @@ import { motion } from 'framer-motion';
 import { AnimatedFadeInUp } from '@/components/animations';
 import type { Locale } from '@/lib/i18n';
 import styles from './Footer.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 interface FooterProps {
   locale?: Locale;

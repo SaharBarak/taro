@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { NewsButton } from '@/components/press/NewsButton';
 import { TallyBar } from './TallyBar';
 import styles from './VoteWidget.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
 interface Option {
   id: string;
@@ -20,6 +21,12 @@ interface VoteWidgetProps {
   totalLabel?: string;
   /** WhatsApp / participate destination */
   href?: string;
+  /**
+   * Editorial issue number shown after the place (· גיליון NN). Optional —
+   * omitted for real votes that have none; front-page/demo placements pass one
+   * explicitly to keep the broadsheet flavor.
+   */
+  issueNo?: string;
 }
 
 const DEFAULT_OPTIONS: Option[] = [
@@ -39,7 +46,8 @@ export function VoteWidget({
   question = 'גינת השכונה ברחוב הרצל — מה עושים?',
   options = DEFAULT_OPTIONS,
   totalLabel = '1,732 קולות מאומתים',
-  href = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc',
+  href = WHATSAPP_FOUNDERS_LINK,
+  issueNo,
 }: VoteWidgetProps) {
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -63,7 +71,10 @@ export function VoteWidget({
           <span className={styles.live} aria-hidden />
           {kicker}
         </span>
-        <span className={styles.place}>{place} · גיליון 04</span>
+        <span className={styles.place}>
+          {place}
+          {issueNo ? ` · גיליון ${issueNo}` : ''}
+        </span>
       </header>
 
       <h3 className={styles.question}>{question}</h3>

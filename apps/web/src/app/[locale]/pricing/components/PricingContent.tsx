@@ -4,10 +4,10 @@ import { motion } from 'framer-motion';
 import { NewsButton } from '@/components/press';
 import { Receipt } from '@/components/press';
 import { useReducedMotion } from '@/hooks';
-import { VOTE_COST, CREATE_VOTE_COST } from '@sync/shared';
+import {VOTE_COST, CREATE_VOTE_COST, WHATSAPP_FOUNDERS_LINK} from '@sync/shared';
 import styles from './PricingContent.module.css';
 
-const WHATSAPP_URL = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_URL = WHATSAPP_FOUNDERS_LINK;
 
 /** Mono trust line items — the "no fine print" rate-card footer. */
 const TRUST_ITEMS = ['אין מנוי', 'אין דמי חבר', 'אין אותיות קטנות'] as const;

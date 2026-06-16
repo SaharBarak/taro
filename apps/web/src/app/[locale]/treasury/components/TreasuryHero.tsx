@@ -4,9 +4,10 @@ import { motion } from 'framer-motion';
 import { NewsButton } from '@/components/press';
 import { useReducedMotion } from '@/hooks';
 import styles from './TreasuryHero.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
 const EASE = [0.2, 0, 0, 1] as const;
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 interface Rule {
   no: string;

@@ -18,6 +18,13 @@ export const MERCH_MAX_QTY_PER_LINE = 10;
 // Token conversion rate (1 ILS = 1 SYNC token)
 export const TOKEN_RATE = 1;
 
+/**
+ * Founders' WhatsApp group — the single persistent join CTA (קבוצת המייסדים)
+ * across the site. Centralized so the invite can be rotated in one place.
+ */
+export const WHATSAPP_FOUNDERS_LINK =
+  'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+
 // Vote duration limits (in days)
 export const MIN_VOTE_DURATION = 3;
 export const MAX_VOTE_DURATION = 30;

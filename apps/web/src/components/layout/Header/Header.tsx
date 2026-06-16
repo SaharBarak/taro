@@ -8,8 +8,9 @@ import { useReducedMotion } from '@/hooks';
 import type { Locale } from '@/lib/i18n';
 import clsx from 'clsx';
 import styles from './Header.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 interface HeaderProps {
   locale?: Locale;

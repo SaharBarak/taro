@@ -9,14 +9,45 @@
  * (Printful/Printify) for fulfilment and advance it to `fulfilling`.
  */
 
+import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { getMerchOrderById, updateMerchOrder } from '@/lib/supabase/db';
+import { getMerchOrderById, markMerchOrderPaid } from '@/lib/supabase/db';
 import { logger } from '@/lib/logger';
 
-/** Statuses past 'pending' — a notification for these is a duplicate. */
-const SETTLED = new Set(['paid', 'fulfilling', 'shipped', 'cancelled']);
+/**
+ * Authenticate the caller against a shared secret. We register the notify URL
+ * with Green Invoice carrying `?token=<secret>` (and accept the same value via
+ * an `x-greeninvoice-token` header), so a forged POST without the secret can't
+ * flip an order to paid.
+ *
+ * Returns `true` when authentic. When no secret is configured we fail OPEN so
+ * local/dev mock checkout keeps working, but log loudly — production MUST set
+ * `GREENINVOICE_WEBHOOK_SECRET`.
+ */
+function isAuthentic(request: Request): boolean {
+  const secret = process.env.GREENINVOICE_WEBHOOK_SECRET || '';
+  if (!secret) {
+    logger.warn(
+      'Merch webhook: GREENINVOICE_WEBHOOK_SECRET unset — endpoint is UNAUTHENTICATED'
+    );
+    return true;
+  }
+  const provided =
+    new URL(request.url).searchParams.get('token') ||
+    request.headers.get('x-greeninvoice-token') ||
+    '';
+  const a = Buffer.from(provided);
+  const b = Buffer.from(secret);
+  // Length-guard before timingSafeEqual (it throws on mismatched lengths).
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 export async function POST(request: Request) {
+  if (!isAuthentic(request)) {
+    logger.warn('Merch webhook: rejected — bad or missing token');
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
   let payload: Record<string, unknown> = {};
   try {
     const ct = request.headers.get('content-type') || '';
@@ -50,10 +81,6 @@ export async function POST(request: Request) {
       logger.warn('Merch webhook: unknown order', { orderId });
       return NextResponse.json({ received: true });
     }
-    if (SETTLED.has(order.status)) {
-      // Idempotent — already handled; ignore the duplicate notification.
-      return NextResponse.json({ received: true });
-    }
 
     // The issued document / payment id, defensive across Green Invoice fields.
     const paymentId =
@@ -63,15 +90,18 @@ export async function POST(request: Request) {
       order.payment_id ||
       null;
 
-    const updated = await updateMerchOrder(orderId, {
-      status: 'paid',
-      payment_id: paymentId,
-    });
-    if (!updated) {
-      // The write failed (transient DB error). Do NOT ack 200 — return 500 so
-      // Green Invoice retries the notification rather than dropping a paid order.
-      logger.error('Merch webhook: order update returned no row', { orderId });
+    // Atomic `pending → paid` (guarded in-statement). Concurrent or replayed
+    // deliveries can't double-process: only the first matches the pending row.
+    const result = await markMerchOrderPaid(orderId, paymentId);
+    if (result.kind === 'error') {
+      // Transient DB failure. Do NOT ack 200 — return 500 so Green Invoice
+      // retries the notification rather than dropping a paid order.
+      logger.error('Merch webhook: paid transition failed', { orderId });
       return NextResponse.json({ error: 'update failed' }, { status: 500 });
+    }
+    if (result.kind === 'noop') {
+      // No pending row matched — already settled or lost the race. Idempotent.
+      return NextResponse.json({ received: true });
     }
     logger.info('Merch order marked paid', { orderId });
     // TODO(J6+): hand the paid order to the POD partner → status 'fulfilling'.

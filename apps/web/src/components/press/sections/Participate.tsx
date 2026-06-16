@@ -62,7 +62,7 @@ export function Participate({ locale = 'he' }: ParticipateProps) {
               <span className={styles.figTitle}>תא הקלפי</span>
             </figcaption>
             <div className={styles.figBody}>
-              <VoteWidget question="גינת השכונה ברחוב הרצל — מה עושים?" />
+              <VoteWidget question="גינת השכונה ברחוב הרצל — מה עושים?" issueNo="04" />
             </div>
             <p className={styles.figNote}>
               FIG. 1 — תא הקלפי. בחרו עמדה, ראו את הספירה בזמן אמת.

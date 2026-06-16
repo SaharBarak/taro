@@ -5,8 +5,9 @@ import { NewsButton } from '@/components/press/NewsButton';
 import { VoteWidget } from '@/components/press/VoteWidget';
 import type { Locale } from '@/lib/i18n';
 import styles from './Lead.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 interface LeadProps {
   locale?: Locale;
@@ -24,7 +25,7 @@ export function Lead({ locale = 'he' }: LeadProps) {
       <div className={styles.grid}>
         {/* Live ballot — participation control surface */}
         <aside className={styles.colBallot}>
-          <VoteWidget />
+          <VoteWidget issueNo="04" />
         </aside>
 
         {/* Lead story */}

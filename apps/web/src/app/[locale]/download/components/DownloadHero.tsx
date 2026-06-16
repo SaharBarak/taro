@@ -2,8 +2,9 @@
 
 import { NewsButton } from '@/components/press';
 import styles from './DownloadHero.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 /** Hard-edged ink Apple glyph, no rounding. */
 function AppleGlyph() {

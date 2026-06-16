@@ -155,10 +155,16 @@ export async function POST(request: Request) {
 
   // Resolve redirect/notify URLs from the request origin (locale-aware).
   const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
+  // The webhook authenticates Green Invoice by a shared secret carried on the
+  // notify URL; without it the endpoint runs unauthenticated (dev only).
+  const webhookSecret = process.env.GREENINVOICE_WEBHOOK_SECRET || '';
+  const notifyUrl = webhookSecret
+    ? `${origin}/api/merch/webhook?token=${encodeURIComponent(webhookSecret)}`
+    : `${origin}/api/merch/webhook`;
   const urls = {
     successUrl: `${origin}/he/store/thank-you?order=${order.id}`,
     failureUrl: `${origin}/he/store/cart?payment=failed`,
-    notifyUrl: `${origin}/api/merch/webhook`,
+    notifyUrl,
   };
 
   // Dev / unconfigured: skip the real provider, return a mock thank-you URL.

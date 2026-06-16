@@ -10,8 +10,9 @@ import { AnimatedFadeInUp } from '@/components/animations';
 import { useReducedMotion } from '@/hooks';
 import type { Locale } from '@/lib/i18n';
 import styles from './Pilot.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 const EASE_BRAND = [0.22, 1, 0.36, 1] as const;
 
