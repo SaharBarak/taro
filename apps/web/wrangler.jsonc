@@ -25,12 +25,20 @@
   // then paste the returned id below. Without it, OTP falls back to an
   // in-memory store (dev/test only — not viable across isolates in prod).
   "kv_namespaces": [
-    { "binding": "OTP_KV", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+    { "binding": "OTP_KV", "id": "6f3f1d0e88df41d18773165a406b86b6" }
   ],
 
   "observability": {
     "enabled": true
   },
+
+  // Custom-domain routes — Cloudflare creates the proxied DNS records on deploy.
+  // Requires the taruu.co.il zone to be Active in this account.
+  "routes": [
+    { "pattern": "taruu.co.il", "custom_domain": true },
+    { "pattern": "www.taruu.co.il", "custom_domain": true },
+    { "pattern": "api.taruu.co.il", "custom_domain": true }
+  ],
 
   // --- Custom domains ---
   // Do NOT add DNS records by hand. After the first deploy, attach the domains
@@ -46,9 +54,13 @@
   //   0 * * * *     → /api/cron/resolve-votes
   //   */10 * * * *  → /api/cron/mint-nfts
   // Requires the CRON_SECRET secret to be set (wrangler secret put CRON_SECRET).
-  "triggers": {
-    "crons": ["*/15 * * * *", "0 * * * *", "*/10 * * * *"]
-  },
+  // NOTE: the schedules API rejected these at deploy (account-level cron gate on
+  // this account). worker.ts's scheduled handler IS deployed — add the three
+  // crons in the dashboard (Workers > taruu-web > Settings > Triggers > Cron) or
+  // re-enable here once cron triggers are available, then `wrangler triggers deploy`.
+  // "triggers": {
+  //   "crons": ["*/15 * * * *", "0 * * * *", "*/10 * * * *"]
+  // },
 
   // Secrets are NOT stored here. Set them with `wrangler secret put <NAME>`
   // (or .dev.vars locally). Only NON-secret public vars belong in `vars`.
