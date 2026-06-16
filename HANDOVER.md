@@ -1,6 +1,21 @@
 # HANDOVER — Taruu Redesign → Full Build
 
-_Updated 2026-06-15 (end of session: brutalist migration + BAGS + store + UX J1/J2/J4). Resume via "NEXT SESSION" below._
+_Updated 2026-06-16. All 11 UX journeys shipped; PR open + code-reviewed. Resume via "RESUME HERE" below._
+
+## ▶ RESUME HERE (2026-06-16)
+**State:** branch `redesign/brutalist-tech-press` — **37 commits, pushed**. **PR #7 OPEN** → https://github.com/SaharBarak/taro/pull/7 (base `main`). All 11 UX journeys (J1–J11) dissected + shipped. **High-effort code review done; fixes applied.** Verification: `tsc=0`, lint clean, **460/460 web tests pass**.
+
+**What's DONE:** whole-site brutalist migration + every primary journey (funnel, participate, verify, auth/account, BAGS coin, store, certificate, create, dashboard, treasury, info). Detail per journey + each one's "Deferred" list in `.redesign/UX_FLOWS.md`.
+
+**Decision needed from user:** merge PR #7, or harden first (see "Deferred — needs infra" below).
+
+**Highest-value remaining work (none is UX design — it's wiring/infra), priority order:**
+1. **Live creds + e2e pass** — drop real Supabase / Google OAuth / Paddle / Green Invoice / Twilio into env, then visually verify every auth-gated surface (dashboard, settings, verification, certificates, create-finalise, signed-in masthead) — all built + tested but never seen with a real session. Also set the real **Paddle product price to ₪50** (constant is ₪50; product must match).
+2. **Green Invoice webhook hardening** (security, flagged in review) — `/api/merch/webhook` flips an order to `paid` on ANY POST: no signature/authenticity check, non-atomic idempotency. Forge-to-paid gap; real once POD ships. Add a GI signature/secret check + conditional `WHERE status='pending'` update.
+3. **Deferred per-journey infra:** on-chain NFT mint + IPFS pin (J9, no batch minter runs); POD fulfilment webhook→Printful (J6); in-app custodial swap via qubik wiring `quote`/`swap` (J5); push notifications + real refund endpoint (J7); B1 OTP via Cloudflare Worker (J4).
+4. **Cleanup nits:** WhatsApp founders link hardcoded in ~25 files → centralize one `WHATSAPP_FOUNDERS_LINK` in `@sync/shared`; treasury split/resolved-count are derived from a 25-row ledger (approximate at volume — API doesn't track them natively).
+
+**Migrations added this work:** `user_city`, `user_notification_settings`, `merch_orders` (all under `supabase/migrations/2026061500000*`).
 
 ## ✅ LOCKED design decision
 **Brutalist Tech-Press** is the approved, final art direction. Do NOT re-explore alternatives.
@@ -41,7 +56,7 @@ tsc + lint green throughout. Hebrew-only, web-only, mobile-first.
 Latest tier: **J7** (dashboard retention hook — open-votes-in-your-city callout; stale ₪200→₪50), **J10** (real treasury API wired + fabricated round-number mock removed → honest zeroed board), **J11** (SEO schema placeholders fixed; CTAs already consistent).
 **What's left = live wiring, not UX:** real creds for e2e (Supabase / Paddle / Green Invoice / Twilio); on-chain NFT mint + IPFS pin (J9); POD fulfilment + webhook→Printful (J6); in-app custodial swap via qubik (J5); push notifications + real refund endpoint (J7); per-vote NFT art. Auth-gated surfaces (dashboard, settings, verification, certificates, create-finalise) need a real session to visually verify.
 **J9 note:** shipped **view-only certificates** — 2 Higgsfield civic seals (`public/images/certificates/<type>.png`), `CertificateCard`, dashboard **תעודות** tab + per-vote "your certificate" block; `/api/user/nfts` returns all records (status badge), image served from local type art. **Deferred:** real on-chain mint (no batch minter running) + IPFS pin; per-vote-unique art; archive NFT stats still mock. Auth-gated → live visual needs a session + a resolved vote with a `vote_nft`.
-**Asset note:** Higgsfield generates on-system duotone art (ink+red on cream, halftone). CLI `higgsfield generate create gpt_image_2 --wait`; ~7 credits/gen; ~167 left. Cap = 4 concurrent jobs — generate SEQUENTIALLY, pull URLs via `higgsfield generate list --image --json` (the --wait stdout grep is flaky). Save to `apps/web/public/...` (NOT repo-root public), optimize with `magick ... -resize -colors`.
+**Asset note:** Higgsfield generates on-system duotone art (ink+red on cream, halftone). CLI `higgsfield generate create gpt_image_2 --wait`; ~7 credits/gen; **~160 left (2026-06-16)**. Cap = 4 concurrent jobs — generate SEQUENTIALLY, pull URLs via `higgsfield generate list --image --json` (the --wait stdout grep is flaky). Save to `apps/web/public/...` (NOT repo-root public), optimize with `magick ... -resize -colors`.
 **J5 note:** BACK = **link-out to bags.fm** (`bags.fm/<tokenMint>` on dossier when `live`). Deferred: in-app custodial swap via qubik (wire `quote`/`swap`), market-row quick-back. Anyone backs / residents vote.
 **J6 note:** shipped order **persistence** (`merch_orders` table, checkout persists + requires sign-in, webhook flips to paid idempotently, thank-you reads the real order) + **5 Higgsfield duotone product images**. **Deferred:** POD provider wiring (Printful) → 'fulfilling'; buyer order-status/tracking; shipping/returns links. Live e2e needs Supabase + Green Invoice creds.
 
@@ -64,7 +79,7 @@ Build approach that worked: fan out parallel agents (one per page/flow) with NEW
 
 ## Run / verify
 - Dev: `cd apps/web && node_modules/.bin/next dev -p 3777` → http://localhost:3777/he. **Never `next build` while dev runs** (clobbers `.next`). Hebrew-only.
-- Typecheck: `node_modules/.bin/tsc -p apps/web/tsconfig.json --noEmit`. Lint: `cd apps/web && node_modules/.bin/next lint`.
+- Typecheck: `node_modules/.bin/tsc -p apps/web/tsconfig.json --noEmit`. Lint: `cd apps/web && node_modules/.bin/next lint`. Tests: `cd apps/web && node_modules/.bin/vitest run` (460 pass as of 2026-06-16).
 - Screenshots: `.redesign/shot-routes.mjs` (multi-route, 390 + 1600). Run: `PW_SHELL="$HOME/Library/Caches/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-mac-arm64/chrome-headless-shell" ROUTES="/he,/he/votes" node .redesign/shot-routes.mjs` (binary is `chrome-headless-shell`, NOT `headless_shell`). Outputs `.redesign/r-{m,d}-<route>.png`.
 - Local dev data: Supabase placeholder creds → components fall back to MOCK; real Supabase/Paddle creds needed for live e2e.
 
