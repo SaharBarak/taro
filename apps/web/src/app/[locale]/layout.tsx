@@ -8,6 +8,7 @@ import { i18n, localeDirections, getDictionary } from '@/lib/i18n';
 import type { Locale } from '@/lib/i18n';
 import '@/styles/globals.css';
 import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
+import { AnalyticsEvents } from '@/components/AnalyticsEvents';
 
 const SITE_URL = 'https://taruu.co.il';
 
@@ -304,6 +305,7 @@ export default async function LocaleLayout({
         </Script>
       </head>
       <body>
+        <AnalyticsEvents />
         <AuthProvider>
           <LenisProvider>{children}</LenisProvider>
         </AuthProvider>
