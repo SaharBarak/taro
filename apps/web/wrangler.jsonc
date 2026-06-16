@@ -20,6 +20,14 @@
     "binding": "ASSETS"
   },
 
+  // Phone OTP store (one-time codes, native TTL). Create once with:
+  //   wrangler kv namespace create OTP_KV
+  // then paste the returned id below. Without it, OTP falls back to an
+  // in-memory store (dev/test only — not viable across isolates in prod).
+  "kv_namespaces": [
+    { "binding": "OTP_KV", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+  ],
+
   "observability": {
     "enabled": true
   },

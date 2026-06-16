@@ -50,10 +50,11 @@ BAGS_MASTER_WALLET_PRIVATE_KEY=
 # Resend (transactional email)
 RESEND_API_KEY=
 
-# Twilio (phone OTP)
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_VERIFY_SERVICE_SID=
+# Phone OTP SMS delivery (codes are generated/verified in-app via Workers KV;
+# this is only the SMS transport — any modern SMS REST API). Unset = mock-degrade.
+SMS_API_URL=
+SMS_API_KEY=
+SMS_FROM=
 
 # Beehiiv (newsletter)
 BEEHIIV_API_KEY=

@@ -199,9 +199,6 @@ importers:
       resend:
         specifier: ^4.0.0
         version: 4.8.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      twilio:
-        specifier: ^5.11.2
-        version: 5.11.2
       uuid:
         specifier: ^9.0.0
         version: 9.0.1
