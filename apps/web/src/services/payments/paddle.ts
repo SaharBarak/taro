@@ -48,7 +48,7 @@ const config: PaddleConfig = {
 
 // Payment amounts in ILS (source of truth lives in @sync/shared constants)
 const VOTE_PARTICIPATION_AMOUNT = VOTE_COST; // ₪3
-const VOTE_CREATION_AMOUNT = CREATE_VOTE_COST; // ₪200
+const VOTE_CREATION_AMOUNT = CREATE_VOTE_COST; // ₪50
 
 // Maximum clock skew accepted for a webhook signature (seconds)
 const MAX_SIGNATURE_AGE_SECONDS = 5 * 60;
@@ -281,6 +281,36 @@ export async function getPaymentStatus(
 }
 
 /**
+ * Issue a full refund for a transaction via the Paddle Adjustments API.
+ * Intended for support/admin use (the user-facing flow only *requests* a refund
+ * per policy). Paddle emits an `adjustment.created` webhook on success, which the
+ * payments webhook maps to status `refunded`.
+ */
+export async function createRefund(params: {
+  transactionId: string;
+  reason: string;
+}): Promise<{ id: string; status: string }> {
+  const adjustment = await paddleRequest<{ id: string; status: string }>(
+    '/adjustments',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'refund',
+        type: 'full',
+        transaction_id: params.transactionId,
+        reason: params.reason,
+      }),
+    }
+  );
+  logger.info('Paddle refund adjustment created', {
+    transactionId: params.transactionId,
+    adjustmentId: adjustment.id,
+    status: adjustment.status,
+  });
+  return { id: adjustment.id, status: adjustment.status };
+}
+
+/**
  * Fetch the hosted PDF invoice URL for a completed transaction.
  */
 export async function getInvoiceUrl(transactionId: string): Promise<string> {
@@ -385,6 +415,7 @@ export const paddleService = {
   createVoteCreationPayment,
   getPaymentStatus,
   getInvoiceUrl,
+  createRefund,
   verifyWebhookSignature,
   parseWebhookEvent,
 };

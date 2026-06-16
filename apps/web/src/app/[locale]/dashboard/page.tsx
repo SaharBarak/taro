@@ -80,9 +80,10 @@ export default function DashboardPage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [tab, setTab] = useState<DashboardTab>('history');
 
-  // Refund request sub-surface (no backend yet — graceful mock, app MOCK pattern)
+  // Refund request sub-surface — posts to /api/payments/refund (request flow).
   const [refundReason, setRefundReason] = useState('');
-  const [refundState, setRefundState] = useState<'idle' | 'sent'>('idle');
+  const [refundState, setRefundState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [refundError, setRefundError] = useState('');
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -262,10 +263,35 @@ export default function DashboardPage() {
           transition: { duration: 0.22, ease: [0.2, 0, 0, 1] as const, delay },
         };
 
-  const submitRefund = (e: React.FormEvent) => {
+  const submitRefund = async (e: React.FormEvent) => {
     e.preventDefault();
-    // No refund endpoint exists yet — record intent locally (MOCK no-op).
-    setRefundState('sent');
+    const reason = refundReason.trim();
+    if (reason.length === 0 || refundState === 'sending') return;
+    setRefundState('sending');
+    setRefundError('');
+    try {
+      const res = await fetch('/api/payments/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      });
+      if (res.ok) {
+        setRefundState('sent');
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      setRefundError(
+        data.code === 'NOT_FOUND'
+          ? 'לא נמצא תשלום להחזר.'
+          : data.code === 'ALREADY_REQUESTED'
+            ? 'כבר נשלחה בקשת החזר לתשלום זה.'
+            : 'שליחת הבקשה נכשלה. נסו שוב.'
+      );
+      setRefundState('error');
+    } catch {
+      setRefundError('שליחת הבקשה נכשלה. נסו שוב.');
+      setRefundState('error');
+    }
   };
 
   return (
@@ -589,7 +615,7 @@ export default function DashboardPage() {
                   </div>
                 )}
 
-                {/* Refund request — MOCK (no backend endpoint yet) */}
+                {/* Refund request — posts to /api/payments/refund (request flow) */}
                 <div className={styles.refundBox}>
                   <span className={styles.boxKicker}>
                     <span aria-hidden className={styles.kickerTick} />
@@ -610,13 +636,16 @@ export default function DashboardPage() {
                         value={refundReason}
                         onChange={(e) => setRefundReason(e.target.value)}
                       />
+                      {refundState === 'error' && (
+                        <p className={styles.refundOk} role="alert">{refundError}</p>
+                      )}
                       <NewsButton
                         type="submit"
                         variant="ink"
                         size="md"
-                        disabled={refundReason.trim().length === 0}
+                        disabled={refundReason.trim().length === 0 || refundState === 'sending'}
                       >
-                        בקשת החזר
+                        {refundState === 'sending' ? 'שולח…' : 'בקשת החזר'}
                       </NewsButton>
                     </form>
                   )}

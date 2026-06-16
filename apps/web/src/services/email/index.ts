@@ -156,6 +156,54 @@ class EmailService {
     });
   }
 
+  /** True when Resend is configured (otherwise sends are skipped/mock-degrade). */
+  isConfigured(): boolean {
+    return Boolean(this.config.apiKey);
+  }
+
+  /**
+   * Notify support that a user requested a refund. Refunds are issued manually
+   * in Paddle (per the published policy), so this is the intake channel —
+   * reply-to is the requester so support can respond directly.
+   */
+  async sendRefundRequestNotification(params: {
+    paymentId: string;
+    providerId?: string | null;
+    userId: string;
+    userEmail: string;
+    amountILS: number;
+    type: string;
+    reason: string;
+  }): Promise<void> {
+    const rows = [
+      ['תשלום', params.paymentId],
+      ['Paddle txn', params.providerId || '—'],
+      ['משתמש', `${params.userId} (${params.userEmail})`],
+      ['סוג', params.type],
+      ['סכום', `₪${params.amountILS}`],
+      ['סיבה', params.reason],
+    ]
+      .map(([k, v]) => `<tr><td style="padding:4px 12px;font-weight:700">${k}</td><td style="padding:4px 12px">${v}</td></tr>`)
+      .join('');
+
+    await this.getResend().emails.send({
+      from: this.getFromAddress(),
+      to: 'support@taruu.co.il',
+      replyTo: params.userEmail,
+      subject: `בקשת החזר — תשלום ${params.paymentId}`,
+      html: `<!DOCTYPE html><html dir="rtl" lang="he"><body style="font-family:'Heebo',Arial,sans-serif">
+        <h2>בקשת החזר חדשה</h2>
+        <table style="border-collapse:collapse">${rows}</table>
+        <p>הנפק את ההחזר ב-Paddle (Adjustments → Refund) על העסקה למעלה.</p>
+      </body></html>`,
+      text:
+        `בקשת החזר חדשה\n` +
+        `תשלום: ${params.paymentId}\nPaddle txn: ${params.providerId || '—'}\n` +
+        `משתמש: ${params.userId} (${params.userEmail})\nסוג: ${params.type}\n` +
+        `סכום: ₪${params.amountILS}\nסיבה: ${params.reason}\n`,
+    });
+  }
+
   // ============================================
   // EMAIL TEMPLATES
   // ============================================

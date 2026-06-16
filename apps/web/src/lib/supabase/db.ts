@@ -554,6 +554,82 @@ export async function updatePaymentStatus(
   return data;
 }
 
+/**
+ * The user's most recent completed payment that hasn't already had a refund
+ * requested. Used when the refund form doesn't specify a payment id.
+ */
+export async function getLatestRefundablePayment(
+  userId: string
+): Promise<Payment | null> {
+  const { data, error } = await supabaseAdmin
+    .from('payments')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (error || !data) return null;
+  const row = data.find(
+    (p) => (p.metadata as { refund?: { status?: string } } | null)?.refund?.status !== 'requested'
+  );
+  return row ?? null;
+}
+
+/** Outcome of recording a refund request — drives the route's HTTP mapping. */
+export type RefundRequestResult =
+  | 'ok'
+  | 'not_found' // missing, or not owned by this user
+  | 'not_refundable' // not a completed payment
+  | 'already_requested'
+  | 'error';
+
+/**
+ * Record a user's refund request on the payment's metadata. Ownership +
+ * `completed` status are enforced here so the route can't request a refund on
+ * someone else's or an unsettled payment. Refunds are issued manually in Paddle
+ * (per policy) — this only captures the intake, it does not move money.
+ */
+export async function requestPaymentRefund(
+  paymentId: string,
+  userId: string,
+  reason: string
+): Promise<RefundRequestResult> {
+  const { data: row, error: selErr } = await supabaseAdmin
+    .from('payments')
+    .select('id, user_id, status, metadata')
+    .eq('id', paymentId)
+    .maybeSingle();
+
+  if (selErr) {
+    console.error('Refund request: payment lookup failed:', selErr);
+    return 'error';
+  }
+  if (!row || row.user_id !== userId) return 'not_found';
+  if (row.status !== 'completed') return 'not_refundable';
+
+  const metadata = (row.metadata as Record<string, unknown>) || {};
+  const existing = metadata.refund as { status?: string } | undefined;
+  if (existing?.status === 'requested') return 'already_requested';
+
+  const { error: updErr } = await supabaseAdmin
+    .from('payments')
+    .update({
+      metadata: {
+        ...metadata,
+        refund: { reason, status: 'requested', requestedAt: new Date().toISOString() },
+      },
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', paymentId);
+
+  if (updErr) {
+    console.error('Refund request: metadata update failed:', updErr);
+    return 'error';
+  }
+  return 'ok';
+}
+
 // ============================================
 // ENTITLEMENT OPERATIONS
 // ============================================
