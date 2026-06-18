@@ -1,0 +1,199 @@
+.manifesto {
+  position: relative;
+  color: var(--lc-ink);
+  padding-block: clamp(var(--space-20), 12vw, var(--space-40));
+  overflow: hidden;
+}
+
+/* Luminous tinted aura — soft, low-opacity, hue-matched (not neon) */
+.manifesto::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(38rem 30rem at 88% 4%, rgba(37, 99, 235, 0.08), transparent 60%),
+    radial-gradient(34rem 28rem at 4% 96%, rgba(139, 92, 246, 0.07), transparent 60%);
+}
+
+.inner {
+  position: relative;
+  max-width: var(--container-7xl);
+  margin-inline: auto;
+  padding-inline: clamp(var(--space-4), 5vw, var(--space-8));
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(var(--space-12), 7vw, var(--space-20));
+}
+
+@media (min-width: 1024px) {
+  .inner {
+    /* Asymmetric: statement column vs the pillar rail */
+    grid-template-columns: 0.92fr 1.08fr;
+    align-items: start;
+    gap: clamp(var(--space-12), 6vw, var(--space-24));
+  }
+}
+
+/* ── Editorial lead ───────────────────────────────────── */
+.lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+@media (min-width: 1024px) {
+  .lead {
+    position: sticky;
+    top: clamp(var(--space-12), 14vh, var(--space-24));
+  }
+}
+
+.eyebrow {
+  color: var(--lc-ink-soft);
+}
+
+.headline {
+  font-size: clamp(var(--text-3xl), 3.4vw + 1rem, var(--text-5xl));
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--lc-ink);
+  max-width: 14ch;
+}
+
+.sub {
+  font-family: var(--font-secondary);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--lc-ink-soft);
+  max-width: 46ch;
+}
+
+/* ── Pillar rail + cards ──────────────────────────────── */
+.pillars {
+  position: relative;
+  display: grid;
+  gap: var(--space-6);
+  padding-inline-start: clamp(var(--space-6), 4vw, var(--space-10));
+}
+
+/* Faint track behind the scroll-drawn rail */
+.railTrack,
+.rail {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  inline-size: 2px;
+  border-radius: var(--radius-full);
+}
+
+.railTrack {
+  background: var(--lc-glass-edge);
+}
+
+.rail {
+  transform-origin: top;
+  background: var(--lc-grad-brand);
+}
+
+.pillarSlot {
+  position: relative;
+}
+
+/* Node dot sitting on the rail, hue-matched to its pillar */
+.node {
+  position: absolute;
+  inset-inline-start: clamp(-1.5rem, -2vw, -2.5rem);
+  inset-inline-start: calc(clamp(var(--space-6), 4vw, var(--space-10)) * -1);
+  top: clamp(var(--space-6), 4vw, var(--space-8));
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-radius: var(--radius-full);
+  transform: translateX(50%);
+  background: var(--lc-surface);
+  box-shadow: 0 0 0 3px var(--lc-canvas-tint);
+}
+
+.node_blue { background: var(--lc-grad-blue); }
+.node_green { background: var(--lc-grad-green); }
+.node_purple { background: var(--lc-grad-purple); }
+
+.pillar {
+  border-radius: var(--lc-radius-glass);
+}
+
+.pillarBody {
+  display: flex;
+  gap: var(--space-5);
+  align-items: flex-start;
+  padding: clamp(var(--space-5), 3vw, var(--space-8));
+}
+
+.glyph {
+  flex-shrink: 0;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  transition: transform var(--duration-normal) var(--lc-ease-brand);
+}
+
+.glyph svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.pillar:hover .glyph {
+  transform: translateY(-2px) scale(1.04);
+}
+
+/* Per-pillar accent — glyph + index inherit the owned hue */
+.accent_blue .glyph,
+.accent_blue .pillarIndex { color: var(--color-primary); }
+.accent_green .glyph,
+.accent_green .pillarIndex { color: var(--color-secondary-dark); }
+.accent_purple .glyph,
+.accent_purple .pillarIndex { color: var(--color-accent); }
+
+.pillarText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pillarHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.pillarIndex {
+  font-family: var(--font-mono, var(--font-secondary));
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-wide);
+}
+
+.pillarTitle {
+  font-family: var(--font-primary);
+  font-size: clamp(var(--text-xl), 1.6vw + 0.8rem, var(--text-2xl));
+  font-weight: var(--font-weight-bold);
+  color: var(--lc-ink);
+  margin: 0;
+}
+
+.pillarLine {
+  font-family: var(--font-secondary);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--lc-ink-soft);
+  max-width: 44ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph,
+  .pillar:hover .glyph {
+    transition: none;
+    transform: none;
+  }
+}

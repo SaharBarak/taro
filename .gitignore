@@ -20,6 +20,12 @@ coverage
 .env.development.local
 .env.test.local
 .env.production.local
+.dev.vars
+
+# Cloudflare Workers / OpenNext build output
+.open-next/
+.wrangler/
+cloudflare-env.d.ts
 
 # Debug logs
 npm-debug.log*
@@ -51,3 +57,9 @@ public/workbox-*.js
 
 # Docker with secrets
 docker-compose.yml
+
+# redesign throwaway artifacts (keep .md docs)
+.redesign/*.png
+.redesign/*.mjs
+.redesign/*.html
+.redesign/*.jpg

@@ -1,47 +1,57 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Heading, Text } from '@/components/ui/Typography';
-import { AnimatedFadeInUp, AnimatedWords } from '@/components/animations';
+import { Segmented } from '@/components/press';
+import type { VoteFilter } from './types';
 import styles from './VotesHero.module.css';
 
-export function VotesHero() {
+const filters: { value: VoteFilter; label: string }[] = [
+  { value: 'all', label: 'הכל' },
+  { value: 'active', label: 'פעילות' },
+  { value: 'ended', label: 'הסתיימו' },
+  { value: 'pending', label: 'ממתינות' },
+];
+
+interface VotesHeroProps {
+  activeFilter: VoteFilter;
+  onFilterChange: (filter: VoteFilter) => void;
+}
+
+export function VotesHero({ activeFilter, onFilterChange }: VotesHeroProps) {
   return (
     <section className={styles.hero}>
       <div className={styles.container}>
-        <AnimatedFadeInUp>
-          <Text size="lg" color="accent" weight="semibold" align="center">
-            הצבעות פומביות
-          </Text>
-        </AnimatedFadeInUp>
+        <span className={styles.kicker}>
+          <span aria-hidden className={styles.kickerTick} />
+          הצבעות פומביות · קריית טבעון
+        </span>
 
-        <AnimatedFadeInUp delay={0.1}>
-          <Heading level={1} align="center">
-            <AnimatedWords text="כל הקולות. כל ההחלטות." delay={0.2} />
-          </Heading>
-        </AnimatedFadeInUp>
+        <h1 className={styles.heading}>
+          מה על הפרק בקהילה <span className={styles.red}>שלכם.</span>
+        </h1>
 
-        <AnimatedFadeInUp delay={0.3}>
-          <Text size="xl" color="secondary" align="center" className={styles.description}>
-            צפו בהצבעות פעילות ברשויות המקומיות, עקבו אחרי תוצאות,
-            וראו כיצד הקהילה מקבלת החלטות יחד.
-          </Text>
-        </AnimatedFadeInUp>
+        <p className={styles.deck}>
+          כל הנושאים הפעילים במקום אחד — תוצאות בזמן אמת, גלויות לכולם.
+        </p>
 
-        {/* Filter Pills */}
-        <motion.div
-          className={styles.filters}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <button className={`${styles.filterPill} ${styles.active}`}>
-            הכל
-          </button>
-          <button className={styles.filterPill}>פעילות</button>
-          <button className={styles.filterPill}>הסתיימו</button>
-          <button className={styles.filterPill}>ממתינות</button>
-        </motion.div>
+        <div className={styles.byline}>
+          <span>מדור ההצבעות</span>
+          <span className={styles.sep} aria-hidden>■</span>
+          <span>חתום בבלוקצ׳יין</span>
+          <span className={styles.sep} aria-hidden>■</span>
+          <span>תוצאות בזמן אמת</span>
+        </div>
+
+        <div className={styles.filterRow}>
+          <span className={styles.filterLabel}>סינון</span>
+          <Segmented
+            segments={filters}
+            value={activeFilter}
+            onChange={onFilterChange}
+            variant="ink"
+            aria-label="סינון הצבעות"
+            className={styles.filters}
+          />
+        </div>
       </div>
     </section>
   );

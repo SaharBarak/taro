@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { getSessionFromRequest } from '@/services/auth/session';
 import { getUserByGoogleId } from '@/lib/supabase/db';
 import { supabaseAdmin } from '@/lib/supabase/server';
-import { checkVerificationCode, isSmsServiceConfigured } from '@/services/sms/twilio';
+import { checkVerificationCode, isSmsServiceConfigured } from '@/services/sms/otp';
 import { PHONE_ERROR_MESSAGES, PHONE_SUCCESS_MESSAGES } from '@sync/shared';
 
 // Phone validation regex for Israeli numbers

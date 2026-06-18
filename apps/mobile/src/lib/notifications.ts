@@ -12,7 +12,7 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { tokenStorage } from './auth';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sync.co.il';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://taruu.co.il';
 
 // Configure notification handler - determines how notifications are displayed
 // when the app is in the foreground

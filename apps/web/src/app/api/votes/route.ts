@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/services/auth/session';
+import { emailService, sendInBatches } from '@/services/email';
+import { sendBatchNotifications } from '@/services/notifications/expo';
 import {
   getActiveVotes,
   getVotesByMunicipality,
@@ -7,6 +9,9 @@ import {
   createVoteOptions,
   verifyPaymentCompleted,
   isPaymentAlreadyUsed,
+  getUserById,
+  getUsersByMunicipality,
+  getActiveUserPushTokens,
 } from '@/lib/supabase/db';
 
 /**
@@ -72,26 +77,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Only a fully verified resident may raise a vote, and it is always for
+    // their OWN municipality (a local issue is raised by a local).
+    const creator = await getUserById(session.userId);
+    if (!creator) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+    if (creator.verification_status !== 'verified') {
+      return NextResponse.json(
+        { error: 'Only verified residents may create a vote' },
+        { status: 403 }
+      );
+    }
+    if (!creator.municipality_id) {
+      return NextResponse.json(
+        { error: 'Set your municipality before creating a vote' },
+        { status: 400 }
+      );
+    }
+    const municipality = creator.municipality_id;
+
     const body = await request.json();
     const {
       title,
       description,
-      municipality,
       options,
       startDate,
       endDate,
       paymentTxId,
     } = body;
 
-    // Validate required fields
-    if (
-      !title ||
-      !description ||
-      !municipality ||
-      !options ||
-      !startDate ||
-      !endDate
-    ) {
+    // Validate required fields (municipality is derived from the creator)
+    if (!title || !description || !options || !startDate || !endDate) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -158,6 +175,55 @@ export async function POST(request: NextRequest) {
         votes: 0,
       }))
     );
+
+    // Notify by email (best-effort — never blocks vote creation)
+    try {
+      // 1. Creator confirmation (creator fetched + gated above)
+      if (creator?.email) {
+        await emailService.sendVoteCreatedEmail({
+          to: creator.email,
+          firstName: creator.first_name || 'יוצר ההצבעה',
+          voteTitle: vote.title,
+          voteId: vote.id,
+          municipality: vote.municipality_id,
+          endDate: new Date(vote.end_date),
+        });
+      }
+
+      // 2. Municipality broadcast — only for votes that are already open.
+      // Batched to respect the email provider's rate limits.
+      if (vote.status === 'active') {
+        const residents = await getUsersByMunicipality(vote.municipality_id);
+        const recipients = residents.filter((r) => r.id !== session.userId);
+        await sendInBatches(recipients, (r) =>
+          emailService.sendVoteNotification({
+            to: r.email,
+            firstName: r.first_name || 'תושב/ת',
+            voteTitle: vote.title,
+            voteId: vote.id,
+            municipality: vote.municipality_id,
+            endDate: new Date(vote.end_date),
+          })
+        );
+
+        // Push the same residents (best-effort, chunked).
+        const tokenLists = await Promise.all(
+          recipients.map((r) => getActiveUserPushTokens(r.id))
+        );
+        const tokens = [...new Set(tokenLists.flat())];
+        if (tokens.length > 0) {
+          await sendBatchNotifications(tokens, {
+            title: '🗳️ הצבעה חדשה בעיר שלכם',
+            body: `${vote.municipality_id}: "${vote.title}". הקול שלכם נספר.`,
+            data: { type: 'new_vote', voteId: vote.id, screen: `/votes/${vote.id}` },
+            channelId: 'votes',
+            priority: 'default',
+          });
+        }
+      }
+    } catch (notifyError) {
+      console.warn('Vote creation notifications failed (non-fatal):', notifyError);
+    }
 
     // Transform to API response format
     // Note: option descriptions are not stored in DB, include from input if provided

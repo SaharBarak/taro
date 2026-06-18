@@ -13,7 +13,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { getAuthToken } from '@/lib/auth';
 import { useUser } from '@/stores/authStore';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sync.co.il';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://taruu.co.il';
 
 interface PaymentDetails {
   id: string;
@@ -93,7 +93,7 @@ export default function CheckoutScreen() {
     setProcessing(true);
 
     try {
-      // Open Green Invoice payment page in browser
+      // Open Paddle checkout page in browser
       const result = await WebBrowser.openAuthSessionAsync(
         paymentDetails.paymentUrl,
         `${API_URL}/votes/${params.voteId || 'create'}/callback`
@@ -303,7 +303,7 @@ export default function CheckoutScreen() {
         <View className="flex-row-reverse items-center justify-center mt-4">
           <Ionicons name="lock-closed" size={14} color="#6B7280" />
           <Text className="text-xs font-assistant text-neutral-500 mr-1">
-            תשלום מאובטח באמצעות Green Invoice
+            תשלום מאובטח באמצעות Paddle
           </Text>
         </View>
       </View>

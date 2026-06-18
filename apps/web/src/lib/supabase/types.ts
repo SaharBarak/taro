@@ -23,6 +23,8 @@ export interface Database {
           last_name: string | null;
           phone: string | null;
           municipality_id: string | null;
+          city: string | null;
+          notification_settings: Record<string, boolean> | null;
           did: string | null;
           did_public_key: string | null;
           did_encrypted_private_key: string | null;
@@ -41,6 +43,8 @@ export interface Database {
           last_name?: string | null;
           phone?: string | null;
           municipality_id?: string | null;
+          city?: string | null;
+          notification_settings?: Record<string, boolean> | null;
           did?: string | null;
           did_public_key?: string | null;
           did_encrypted_private_key?: string | null;
@@ -59,6 +63,8 @@ export interface Database {
           last_name?: string | null;
           phone?: string | null;
           municipality_id?: string | null;
+          city?: string | null;
+          notification_settings?: Record<string, boolean> | null;
           did?: string | null;
           did_public_key?: string | null;
           did_encrypted_private_key?: string | null;
@@ -68,6 +74,54 @@ export interface Database {
           verification_status?: 'none' | 'pending' | 'verified' | 'failed';
           qubik_wallet_address?: string | null;
           created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      merch_orders: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          items: Record<string, unknown>[];
+          subtotal_ils: number;
+          shipping_ils: number;
+          total_ils: number;
+          currency: string;
+          status: 'pending' | 'paid' | 'fulfilling' | 'shipped' | 'cancelled' | 'failed';
+          shipping: Record<string, unknown>;
+          payment_id: string | null;
+          pod_order_id: string | null;
+          tracking_number: string | null;
+          tracking_url: string | null;
+          carrier: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          user_id?: string | null;
+          items: Record<string, unknown>[];
+          subtotal_ils: number;
+          shipping_ils: number;
+          total_ils: number;
+          currency?: string;
+          status?: 'pending' | 'paid' | 'fulfilling' | 'shipped' | 'cancelled' | 'failed';
+          shipping: Record<string, unknown>;
+          payment_id?: string | null;
+          pod_order_id?: string | null;
+          tracking_number?: string | null;
+          tracking_url?: string | null;
+          carrier?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          status?: 'pending' | 'paid' | 'fulfilling' | 'shipped' | 'cancelled' | 'failed';
+          payment_id?: string | null;
+          pod_order_id?: string | null;
+          tracking_number?: string | null;
+          tracking_url?: string | null;
+          carrier?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -266,7 +320,7 @@ export interface Database {
           amount: number;
           currency: string;
           status: 'pending' | 'completed' | 'failed' | 'refunded';
-          provider: 'green_invoice';
+          provider: 'paddle' | 'green_invoice';
           provider_id: string | null;
           idempotency_key: string;
           vote_id: string | null;
@@ -282,7 +336,7 @@ export interface Database {
           amount: number;
           currency?: string;
           status?: 'pending' | 'completed' | 'failed' | 'refunded';
-          provider?: 'green_invoice';
+          provider?: 'paddle' | 'green_invoice';
           provider_id?: string | null;
           idempotency_key: string;
           vote_id?: string | null;
@@ -298,7 +352,7 @@ export interface Database {
           amount?: number;
           currency?: string;
           status?: 'pending' | 'completed' | 'failed' | 'refunded';
-          provider?: 'green_invoice';
+          provider?: 'paddle' | 'green_invoice';
           provider_id?: string | null;
           idempotency_key?: string;
           vote_id?: string | null;
@@ -765,12 +819,12 @@ export interface Database {
       };
       record_treasury_deposit: {
         Args: {
-          p_treasury_id: string;
+          p_municipality_id: string;
+          p_amount_ils: number;
           p_payment_id: string;
           p_user_id: string;
-          p_vote_id: string | null;
-          p_amount_ils: number;
-          p_description: string;
+          p_vote_id?: string | null;
+          p_description?: string;
         };
         Returns: string;
       };
@@ -811,3 +865,4 @@ export type UserVote = Tables<'user_votes'>;
 export type PushToken = Tables<'push_tokens'>;
 export type WebhookEvent = Tables<'webhook_events'>;
 export type VoteNft = Tables<'vote_nfts'>;
+export type MerchOrderRow = Tables<'merch_orders'>;

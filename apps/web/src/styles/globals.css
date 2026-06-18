@@ -3,7 +3,7 @@
  * Hebrew RTL-first design
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Assistant:wght@300;400;500;600;700;800&family=Frank+Ruhl+Libre:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Assistant:wght@300;400;500;600;700;800&family=Frank+Ruhl+Libre:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
 
 @import './tokens.css';
 
@@ -55,10 +55,33 @@ body {
   font-size: var(--text-base);
   font-weight: var(--font-weight-regular);
   line-height: var(--leading-normal);
-  color: var(--color-text-primary);
+  /* Press ink as the inherited default; ink/red blocks set paper on their
+   * container and headings/paragraphs now inherit it (see below). */
+  color: var(--np-ink);
   background-color: var(--color-background);
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Film-grain texture over the whole page — unifies sections with a subtle
+ * print feel. Pure data-URI SVG noise: zero requests, GPU-composited. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-max);
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* Crisp media everywhere */
+img,
+svg,
+video {
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* ============================================
@@ -74,7 +97,8 @@ h6 {
   font-family: var(--font-secular-one), var(--font-primary);
   font-weight: var(--font-weight-bold);
   line-height: var(--leading-tight);
-  color: var(--color-text-primary);
+  /* Inherit container colour so headings render correctly on ink/red blocks. */
+  color: inherit;
 }
 
 /* Logo specific font */
@@ -83,22 +107,23 @@ h6 {
   font-weight: 400;
 }
 
+/* Fluid headings — mobile-first, scale smoothly to the type ramp */
 h1 {
-  font-size: var(--text-6xl);
+  font-size: clamp(var(--text-4xl), 3.5vw + 1.6rem, var(--text-6xl));
   letter-spacing: var(--tracking-tight);
 }
 
 h2 {
-  font-size: var(--text-5xl);
+  font-size: clamp(var(--text-3xl), 2.6vw + 1.3rem, var(--text-5xl));
   letter-spacing: var(--tracking-tight);
 }
 
 h3 {
-  font-size: var(--text-4xl);
+  font-size: clamp(var(--text-2xl), 1.8vw + 1.1rem, var(--text-4xl));
 }
 
 h4 {
-  font-size: var(--text-3xl);
+  font-size: clamp(var(--text-xl), 1.2vw + 1rem, var(--text-3xl));
 }
 
 h5 {
@@ -113,7 +138,9 @@ p {
   font-family: var(--font-secondary);
   font-size: var(--text-lg);
   line-height: var(--leading-relaxed);
-  color: var(--color-text-secondary);
+  /* Inherit container colour so paragraphs render correctly on ink/red blocks
+   * (cream pages inherit ink from body; ink blocks inherit paper). */
+  color: inherit;
 }
 
 a {
@@ -274,6 +301,200 @@ ol {
 table {
   border-collapse: collapse;
   border-spacing: 0;
+}
+
+/* ============================================
+ * LUMINOUS CIVIC UTILITIES (redesign v1)
+ * See .redesign/DESIGN_SYSTEM.md
+ * ============================================ */
+
+/* Page/section surfaces */
+.lc-section {
+  position: relative;
+  padding-block: clamp(var(--space-20), 12vw, var(--space-40));
+}
+
+.lc-band-tint {
+  background-color: var(--lc-canvas-tint);
+}
+
+/* Liquid Glass surface */
+.lc-glass {
+  background: var(--lc-glass-fill);
+  backdrop-filter: blur(var(--lc-glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--lc-glass-blur)) saturate(140%);
+  border: 1px solid var(--lc-glass-edge);
+  border-radius: var(--lc-radius-glass);
+  box-shadow: var(--lc-e2);
+}
+
+.lc-glass--interactive {
+  transition:
+    transform var(--duration-normal) var(--lc-ease-brand),
+    box-shadow var(--duration-normal) var(--lc-ease-brand);
+  will-change: transform;
+}
+
+.lc-glass--interactive:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--lc-e2), var(--lc-glow-brand);
+}
+
+/* Brand gradient text — guard usage to <=1 per viewport */
+.lc-gradient-text {
+  background: var(--lc-grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.lc-gradient-text--blue { background: var(--lc-grad-blue); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.lc-gradient-text--green { background: var(--lc-grad-green); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.lc-gradient-text--purple { background: var(--lc-grad-purple); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.lc-gradient-text--amber { background: var(--lc-grad-amber); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* The consensus line — recurring brand-gradient stroke motif */
+.lc-rule {
+  display: block;
+  height: 3px;
+  border-radius: var(--radius-full);
+  background: var(--lc-grad-brand);
+}
+
+/* Eyebrow label with gradient dot prefix */
+.lc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-wider);
+  color: var(--lc-ink-soft);
+}
+
+.lc-eyebrow::before {
+  content: '';
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--lc-grad-brand);
+}
+
+/* Glow helpers */
+.lc-glow-blue { box-shadow: var(--lc-glow-blue); }
+.lc-glow-green { box-shadow: var(--lc-glow-green); }
+.lc-glow-purple { box-shadow: var(--lc-glow-purple); }
+.lc-glow-brand { box-shadow: var(--lc-glow-brand); }
+
+/* ============================================
+ * BRUTALIST TECH-PRESS UTILITIES (redesign v2)
+ * See .redesign/NEWSPRINT_TECH.md
+ * ============================================ */
+
+.np-page {
+  position: relative;
+  background-color: var(--np-paper);
+  color: var(--np-ink);
+}
+
+/* Newsprint texture: fibrous ink grain veiling the whole press surface like
+   real paper. Fixed top overlay, multiplied, pointer-events:none. */
+.np-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.95' intercept='-0.12'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 150px 150px;
+}
+
+/* Halftone press accent — visible dot field, use on bands/dividers/boxes */
+.np-halftone-band {
+  background-image: radial-gradient(var(--np-ink) 1.1px, transparent 1.4px);
+  background-size: 7px 7px;
+  opacity: 0.16;
+}
+
+.np-container {
+  width: 100%;
+  max-width: var(--np-container);
+  margin-inline: auto;
+  padding-inline: clamp(var(--space-6), 4vw, var(--space-16));
+}
+
+/* Rules */
+.np-rule { border: 0; border-block-start: var(--np-rule) solid var(--np-ink); }
+.np-rule-hair { border: 0; border-block-start: var(--np-rule-hair) solid var(--np-ink); }
+.np-rule-heavy { border: 0; border-block-start: var(--np-rule-heavy) solid var(--np-ink); }
+.np-rule-masthead { border: 0; border-block-start: var(--np-rule-masthead) solid var(--np-ink); }
+.np-rule-double {
+  border: 0;
+  border-block-start: var(--np-rule) solid var(--np-ink);
+  box-shadow: 0 4px 0 -2px var(--np-ink);
+  height: 5px;
+}
+
+/* Kicker — mono red label */
+.np-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--np-red);
+}
+.np-kicker::before {
+  content: '';
+  inline-size: 0.7em;
+  block-size: 0.7em;
+  background: var(--np-red);
+}
+
+/* Mono meta */
+.np-mono {
+  font-family: var(--np-font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* Halftone fills */
+.np-halftone {
+  background-image: radial-gradient(var(--np-ink) 1px, transparent 1.5px);
+  background-size: 6px 6px;
+}
+.np-halftone-red {
+  background-image: radial-gradient(var(--np-red) 1px, transparent 1.5px);
+  background-size: 6px 6px;
+}
+
+/* Solid furniture blocks */
+.np-block-ink { background: var(--np-ink); color: var(--np-paper); }
+.np-block-red { background: var(--np-red); color: var(--np-paper); }
+
+/* Column rules (vertical hairlines between grid columns) on wide */
+.np-colrules > * + * {
+  border-inline-start: var(--np-rule-hair) solid var(--np-paper-edge);
+}
+
+/* Drop cap */
+.np-dropcap::first-letter {
+  font-family: var(--np-font-display);
+  font-weight: 900;
+  color: var(--np-red);
+  font-size: 3.1em;
+  line-height: 0.8;
+  float: inline-start;
+  padding-inline-end: 0.08em;
+  padding-block-start: 0.04em;
 }
 
 /* ============================================

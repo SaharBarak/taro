@@ -1,0 +1,132 @@
+.wrap {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  margin-inline: auto;
+  /* Reserve vertical room: noise band above, signal card below */
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: var(--space-6);
+  isolation: isolate;
+}
+
+/* ---------- NOISE ---------- */
+
+.noise {
+  position: relative;
+  block-size: clamp(11rem, 28vw, 13rem);
+  /* muted ink — loud but unreadable, deliberately desaturated */
+  color: var(--lc-ink-faint);
+}
+
+.bubble {
+  position: absolute;
+  transform-origin: center;
+  line-height: 0;
+  filter: saturate(0.6);
+  will-change: transform, opacity;
+}
+
+/* Three faint tonal tints so the chatter overlaps without one harsh color */
+.tone_a {
+  color: var(--color-primary-400, #60a5fa);
+}
+
+.tone_b {
+  color: var(--color-accent-400, #a78bfa);
+}
+
+.tone_c {
+  color: var(--lc-ink-faint);
+}
+
+/* ---------- SIGNAL ---------- */
+
+.signal {
+  position: relative;
+  z-index: 2;
+  padding: var(--space-6);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(var(--lc-glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--lc-glass-blur)) saturate(150%);
+  border: 1px solid var(--lc-glass-edge);
+  border-radius: var(--lc-radius-tile);
+  box-shadow: var(--lc-e2), var(--lc-glow-brand);
+  will-change: transform, opacity, filter;
+}
+
+.signalHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.signalLabel {
+  font-family: var(--font-secondary);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--lc-ink-soft);
+}
+
+.signalPct {
+  font-family: var(--font-primary);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: var(--lc-grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.track {
+  margin-block-start: var(--space-4);
+  block-size: 14px;
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-100);
+  overflow: hidden;
+}
+
+.fill {
+  block-size: 100%;
+  /* scaleX from the start edge in RTL */
+  transform-origin: inline-start;
+  border-radius: var(--radius-full);
+  background: var(--lc-grad-brand);
+  will-change: transform;
+}
+
+.signalCaption {
+  margin-block-start: var(--space-4);
+  font-family: var(--font-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--lc-ink-faint);
+}
+
+/* Calming aura — soft brand glow centered behind the resolved signal */
+.aura {
+  position: absolute;
+  inset-block-end: -8%;
+  inset-inline: 8%;
+  block-size: 55%;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: var(--radius-full);
+  filter: blur(44px);
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.2), rgba(139, 92, 246, 0.14) 55%, transparent 72%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble {
+    /* Static quieted end-state */
+    opacity: 0.42 !important;
+    transform: none !important;
+  }
+  .fill {
+    transform: scaleX(0.73) !important;
+  }
+}

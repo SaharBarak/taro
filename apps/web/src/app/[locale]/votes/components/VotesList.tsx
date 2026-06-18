@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Text } from '@/components/ui/Typography';
-import { Button } from '@/components/ui/Button';
-import { staggerContainer, fadeInUp } from '@/lib/animations';
+import { NewsButton, VoteWidget, TallyBar } from '@/components/press';
+import type { VoteFilter } from './types';
 import styles from './VotesList.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
+
+// Number of votes revealed per "Load More" click
+const PAGE_SIZE = 6;
+
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 // Vote types matching API response
 interface VoteOption {
@@ -123,11 +126,104 @@ function isVoteEnded(status: string): boolean {
   return status === 'completed' || status === 'ended' || status === 'cancelled';
 }
 
-export function VotesList() {
+function matchesFilter(status: Vote['status'], filter: VoteFilter): boolean {
+  switch (filter) {
+    case 'active':
+      return status === 'active';
+    case 'ended':
+      return isVoteEnded(status);
+    case 'pending':
+      return status === 'pending';
+    case 'all':
+    default:
+      return true;
+  }
+}
+
+/** Maps an API vote's options into the press VoteWidget option shape (with pct). */
+function toWidgetOptions(vote: Vote) {
+  const total = vote.options.reduce((sum, o) => sum + o.voteCount, 0);
+  return vote.options.map((o) => ({
+    id: o.id,
+    label: o.label,
+    count: o.voteCount,
+    pct: total > 0 ? Math.round((o.voteCount / total) * 100) : 0,
+  }));
+}
+
+/**
+ * Settled-record press card for ended / pending votes — final tally, winner
+ * marked, muted (no live pulse). Mirrors the archive record card.
+ */
+function RecordCard({ vote }: { vote: Vote }) {
+  const total = vote.options.reduce((sum, o) => sum + o.voteCount, 0);
+  const leading = vote.options.reduce((a, b) => (a.voteCount > b.voteCount ? a : b));
+  const leadingPct = total > 0 ? Math.round((leading.voteCount / total) * 100) : 0;
+  const ended = isVoteEnded(vote.status);
+
+  return (
+    <article className={styles.record}>
+      <header className={styles.recordHead}>
+        <span className={styles.recordKicker}>
+          {ended ? 'רשומה סגורה' : 'ממתינה לפתיחה'}
+        </span>
+        <span className={styles.recordPlace}>{vote.municipality}</span>
+      </header>
+
+      <h3 className={styles.recordTitle}>{vote.title}</h3>
+      <p className={styles.recordDesc}>{vote.description}</p>
+
+      <div className={styles.recordTally}>
+        <div className={styles.recordTallyTop}>
+          <span className={styles.recordMark} aria-hidden>
+            {ended ? '✓' : '■'}
+          </span>
+          <span className={styles.recordLead}>{leading.label}</span>
+          <span className={styles.recordPct}>{leadingPct}%</span>
+        </div>
+        <TallyBar pct={leadingPct} selected={ended} />
+        <span className={styles.recordCount}>
+          {total.toLocaleString('he-IL')} קולות מאומתים
+        </span>
+      </div>
+
+      <footer className={styles.recordFoot}>
+        <span className={styles.recordMeta}>
+          {ended
+            ? getStatusLabel(vote.status)
+            : `${getStatusLabel(vote.status)} · ${getTimeRemaining(vote.endDate)}`}
+        </span>
+        <Link href={`/votes/${vote.id}`} className={styles.recordLink}>
+          {ended ? 'צפו ברשומה ←' : 'לפרטים ←'}
+        </Link>
+      </footer>
+    </article>
+  );
+}
+
+interface VotesListProps {
+  filter: VoteFilter;
+}
+
+export function VotesList({ filter }: VotesListProps) {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const filteredVotes = useMemo(
+    () => votes.filter((vote) => matchesFilter(vote.status, filter)),
+    [votes, filter]
+  );
+
+  const visibleVotes = filteredVotes.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredVotes.length;
+
+  // Reset pagination when the filter changes or votes reload
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filter, votes]);
 
   useEffect(() => {
     async function fetchVotes() {
@@ -169,9 +265,23 @@ export function VotesList() {
     return (
       <section className={styles.votesList}>
         <div className={styles.container}>
-          <div className={styles.loadingContainer}>
-            <div className={styles.spinner} />
-            <Text size="lg" color="secondary">טוען הצבעות...</Text>
+          <div className={styles.grid} aria-busy="true" aria-label="טוען הצבעות">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className={styles.skeletonCard}>
+                <div className={styles.skeletonRow}>
+                  <span className={`${styles.shimmer} ${styles.skBadge}`} />
+                  <span className={`${styles.shimmer} ${styles.skMeta}`} />
+                </div>
+                <span className={`${styles.shimmer} ${styles.skTitle}`} />
+                <span className={`${styles.shimmer} ${styles.skLine}`} />
+                <span className={`${styles.shimmer} ${styles.skLineShort}`} />
+                <span className={`${styles.shimmer} ${styles.skBar}`} />
+                <div className={styles.skeletonFooter}>
+                  <span className={`${styles.shimmer} ${styles.skMeta}`} />
+                  <span className={`${styles.shimmer} ${styles.skPill}`} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -182,107 +292,95 @@ export function VotesList() {
     <section className={styles.votesList}>
       <div className={styles.container}>
         {error && (
-          <div className={styles.errorBanner}>
-            <Text size="sm" color="secondary">{error}</Text>
+          <div className={styles.errorBanner} role="alert">
+            <span aria-hidden className={styles.bannerTick} />
+            <span>{error}</span>
           </div>
         )}
 
         {isUsingMockData && !error && (
           <div className={styles.demoBanner}>
-            <Text size="sm" color="secondary">מציג נתוני הדגמה - הצבעות אמיתיות יופיעו בקרוב</Text>
+            <span className={styles.demoDot} aria-hidden />
+            <span>מציג נתוני הדגמה — הצבעות אמיתיות יופיעו בקרוב</span>
           </div>
         )}
 
-        <motion.div
-          className={styles.grid}
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-        >
-          {votes.map((vote) => {
-            const totalVotes = vote.options.reduce((sum, opt) => sum + opt.voteCount, 0);
-            const leadingOption = vote.options.reduce((a, b) =>
-              a.voteCount > b.voteCount ? a : b
-            );
-            const leadingPercentage = totalVotes > 0
-              ? Math.round((leadingOption.voteCount / totalVotes) * 100)
-              : 0;
-
-            return (
-              <motion.div key={vote.id} variants={fadeInUp}>
-                <Card variant="default" padding="lg" interactive>
-                  <CardContent>
-                    <div className={styles.cardHeader}>
-                      <span
-                        className={`${styles.statusBadge} ${styles[vote.status]}`}
-                      >
-                        {getStatusLabel(vote.status)}
-                      </span>
-                      <span className={styles.municipality}>
-                        {vote.municipality}
-                      </span>
-                    </div>
-
-                    <h3 className={styles.voteTitle}>{vote.title}</h3>
-
-                    <Text size="sm" color="secondary" className={styles.description}>
-                      {vote.description}
-                    </Text>
-
-                    {/* Progress Bar */}
-                    <div className={styles.progress}>
-                      <div className={styles.progressBar}>
-                        <div
-                          className={styles.progressFill}
-                          style={{ width: `${leadingPercentage}%` }}
-                        />
-                      </div>
-                      <div className={styles.progressLabels}>
-                        <span>{leadingOption.label}: {leadingPercentage}%</span>
-                        <span>{totalVotes.toLocaleString('he-IL')} הצבעות</span>
-                      </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className={styles.cardFooter}>
-                      <div className={styles.timeRemaining}>
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
-                        <span>
-                          {isVoteEnded(vote.status)
-                            ? 'הסתיימה'
-                            : getTimeRemaining(vote.endDate)}
-                        </span>
-                      </div>
-
-                      <Link href={`/votes/${vote.id}`}>
-                        <Button variant="ghost" size="sm">
-                          {!isVoteEnded(vote.status) ? 'הצביעו' : 'צפו בתוצאות'}
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+        {filteredVotes.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className={styles.grid}>
+            {visibleVotes.map((vote) =>
+              vote.status === 'active' ? (
+                <div key={vote.id} className={styles.ballot}>
+                  <VoteWidget
+                    kicker="הצבעה חיה"
+                    place={vote.municipality}
+                    question={vote.title}
+                    options={toWidgetOptions(vote)}
+                    totalLabel={`${vote.participantCount.toLocaleString('he-IL')} קולות`}
+                    href={`/votes/${vote.id}`}
+                  />
+                  <p className={styles.trustNote}>
+                    הקול שלכם ייחתם בבלוקצ׳יין — בלתי ניתן לשינוי.
+                  </p>
+                </div>
+              ) : (
+                <RecordCard key={vote.id} vote={vote} />
+              )
+            )}
+          </div>
+        )}
 
         {/* Load More */}
-        <div className={styles.loadMore}>
-          <Button variant="outline" size="lg">
-            טענו עוד הצבעות
-          </Button>
-        </div>
+        {hasMore && (
+          <div className={styles.loadMore}>
+            <NewsButton
+              variant="outline"
+              size="lg"
+              onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+            >
+              טענו עוד הצבעות
+            </NewsButton>
+          </div>
+        )}
       </div>
     </section>
+  );
+}
+
+/**
+ * Pre-launch empty state as press furniture: ink-boxed dispatch with dateline,
+ * the real pilot moment (first vote in Kiryat Tivon) and a WhatsApp CTA.
+ */
+function EmptyState() {
+  return (
+    <div className={styles.emptyState}>
+      <div className={styles.emptyHead}>
+        <span className={styles.emptyKicker}>
+          <span className={styles.emptyDot} aria-hidden />
+          הפיילוט נפתח בקרוב
+        </span>
+        <span className={styles.emptyDate}>23.01.26</span>
+      </div>
+
+      <h2 className={styles.emptyTitle}>
+        עוד אין הצבעות פתוחות בקריית טבעון.
+      </h2>
+
+      <p className={styles.emptyText}>
+        ההצבעה הראשונה נפתחת 23.01.26 — הצטרפו לוואטסאפ ותהיו הראשונים.
+      </p>
+
+      <NewsButton
+        href={WHATSAPP_LINK}
+        target="_blank"
+        rel="noopener noreferrer"
+        variant="red"
+        size="lg"
+        trailing={<span aria-hidden>←</span>}
+      >
+        קבוצת המייסדים
+      </NewsButton>
+    </div>
   );
 }

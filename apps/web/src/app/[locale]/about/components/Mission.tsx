@@ -1,114 +1,101 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Heading, Text } from '@/components/ui/Typography';
-import { AnimatedFadeInUp, AnimatedWords } from '@/components/animations';
+import { useReducedMotion } from '@/hooks';
 import styles from './Mission.module.css';
 
-const values = [
+interface Value {
+  key: string;
+  title: string;
+  description: string;
+}
+
+const VALUES: Value[] = [
   {
-    icon: '🎯',
+    key: 'transparency',
     title: 'שקיפות מלאה',
     description:
-      'כל הצבעה נרשמת על הבלוקצ׳יין באופן פומבי ובלתי הפיך. אין מקום להסתרה או מניפולציה.',
+      'כל הצבעה נרשמת בבלוקצ׳יין באופן פומבי ובלתי הפיך. אין חדרים סגורים ואין מקום לזיוף.',
   },
   {
-    icon: '🔐',
+    key: 'security',
     title: 'אבטחה ללא פשרות',
     description:
-      'אימות רב-שכבתי מבטיח שכל הצבעה היא אמיתית ומגיעה מאזרח מאומת.',
+      'אימות רב-שכבתי מבטיח שכל קול הוא תושב אמיתי אחד — מאומת, ייחודי ובלתי ניתן לערעור.',
   },
   {
-    icon: '🤝',
+    key: 'access',
     title: 'נגישות לכולם',
     description:
-      'ממשק פשוט ואינטואיטיבי שמאפשר לכל אזרח להשתתף, ללא קשר לרקע טכנולוגי.',
+      'ממשק פשוט ובהיר שמאפשר לכל תושב להשתתף — בלי קשר לרקע טכנולוגי, מהטלפון, בכמה דקות.',
   },
   {
-    icon: '💡',
-    title: 'חדשנות מתמדת',
+    key: 'continuous',
+    title: 'מדידה מתמשכת',
     description:
-      'אנחנו ממשיכים לפתח ולשפר את הפלטפורמה על בסיס משוב מהקהילה.',
+      'לא פעם בארבע שנים — אלא בכל יום שיש בו החלטה. תמונת מצב חיה שהמועצה לא יכולה להתעלם ממנה.',
   },
 ];
 
 export function Mission() {
+  const reducedMotion = useReducedMotion();
+
   return (
-    <section className={styles.mission}>
-      <div className={styles.container}>
-        <div className={styles.grid}>
-          {/* Text Content */}
-          <div className={styles.textContent}>
-            <AnimatedFadeInUp>
-              <Text size="lg" color="accent" weight="semibold">
-                המשימה שלנו
-              </Text>
-            </AnimatedFadeInUp>
+    <section className={styles.mission} aria-label="המשימה שלנו">
+      <div className={styles.inner}>
+        <div className={styles.head}>
+          <span className={styles.kicker}>
+            <span aria-hidden className={styles.kickerTick} />
+            המשימה שלנו
+          </span>
+          <h2 className={styles.headline}>
+            למדוד, לאמת ולהנגיש את <span className={styles.red}>עמדת הרוב.</span>
+          </h2>
+        </div>
 
-            <AnimatedFadeInUp delay={0.1}>
-              <Heading level={2}>
-                <AnimatedWords text="לחזק את הדמוקרטיה המקומית" delay={0.2} />
-              </Heading>
-            </AnimatedFadeInUp>
+        <hr className={styles.ruleHeavy} aria-hidden />
 
-            <AnimatedFadeInUp delay={0.2}>
-              <Text size="lg" color="secondary" className={styles.missionText}>
-                אנחנו מאמינים שההחלטות הכי חשובות הן אלו שמתקבלות ברמה המקומית.
-                הרחובות שאנחנו הולכים בהם, הפארקים שהילדים שלנו משחקים בהם,
-                השירותים הציבוריים שאנחנו משתמשים בהם - כל אלה מושפעים
-                מהחלטות שהתקבלו ברשות המקומית.
-              </Text>
-            </AnimatedFadeInUp>
-
-            <AnimatedFadeInUp delay={0.3}>
-              <Text size="lg" color="secondary">
-                תַּרְאוּ נותנת לכם את הכוח להיות חלק מההחלטות האלה. לא פעם בארבע שנים,
-                אלא בכל יום. לא דרך נציגים, אלא ישירות. לא באופן אנונימי,
-                אלא כאזרחים מאומתים שקולם נשמע.
-              </Text>
-            </AnimatedFadeInUp>
+        <div className={styles.body}>
+          <div className={styles.columns}>
+            <p>
+              תַּרְאוּ הוא מנגנון קונצנזוס ציבורי. המטרה פשוטה: למדוד היכן עומד רוב
+              הציבור, לאמת שכל קול הוא תושב אמיתי אחד, ולהנגיש את התמונה לכולם —
+              בשקיפות מלאה.
+            </p>
+            <p>
+              לא דרך נציגים, אלא ישירות. לא באופן אנונימי, אלא כתושבים מאומתים שקולם
+              נשמע ונספר.
+            </p>
           </div>
 
-          {/* Values Grid */}
-          <motion.div
-            className={styles.valuesGrid}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={{
-              hidden: {},
-              visible: {
-                transition: {
-                  staggerChildren: 0.1,
-                },
-              },
-            }}
-          >
-            {values.map((value, index) => (
-              <motion.div
-                key={value.title}
-                className={styles.valueCard}
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: {
-                      duration: 0.5,
-                      ease: [0.25, 0.1, 0.25, 1],
-                    },
-                  },
-                }}
-              >
-                <span className={styles.valueIcon}>{value.icon}</span>
-                <h3 className={styles.valueTitle}>{value.title}</h3>
-                <Text size="sm" color="secondary">
-                  {value.description}
-                </Text>
-              </motion.div>
-            ))}
-          </motion.div>
+          <aside className={styles.pull}>
+            <span className={styles.pullTick} aria-hidden />
+            <p className={styles.pullText}>
+              לא צעקות בקבוצת הפייסבוק — מספר אחד, מאומת, שהמועצה לא יכולה להתעלם
+              ממנו.
+            </p>
+            <span className={styles.pullMeta}>עיקרון המערכת</span>
+          </aside>
         </div>
+
+        <ol className={styles.values}>
+          {VALUES.map((value, i) => (
+            <motion.li
+              key={value.key}
+              className={styles.value}
+              initial={reducedMotion ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-10%' }}
+              transition={{ duration: 0.4, delay: i * 0.08, ease: [0.2, 0, 0, 1] }}
+            >
+              <span className={styles.valueNum}>{String(i + 1).padStart(2, '0')}</span>
+              <div className={styles.valueBody}>
+                <h3 className={styles.valueTitle}>{value.title}</h3>
+                <p className={styles.valueLine}>{value.description}</p>
+              </div>
+            </motion.li>
+          ))}
+        </ol>
       </div>
     </section>
   );

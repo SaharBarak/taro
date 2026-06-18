@@ -12,7 +12,7 @@ import type { User, SocialProof as DbSocialProof } from '@/lib/supabase/types';
 import { qubikService } from '@/services/qubik';
 import { emailService } from '@/services/email';
 import { calculateIdentityScore, IDENTITY_SCORE_WEIGHTS } from '@sync/shared';
-import type { SocialProof, VerificationStatus, IdentityScore } from '@sync/shared';
+import type { SocialProof, VerificationStatus, IdentityScore, NotificationSettings } from '@sync/shared';
 
 /**
  * Transform Supabase user + social proofs to API profile format
@@ -56,7 +56,9 @@ function transformToProfile(
     email: user.email,
     phone: user.phone,
     municipality: user.municipality_id,
+    city: user.city,
     avatarUrl: user.avatar_url,
+    notificationSettings: (user.notification_settings as NotificationSettings | null) ?? undefined,
     verificationStatus,
     socialProofs: transformedProofs,
     identityScore,
@@ -230,6 +232,7 @@ export async function PATCH(request: NextRequest) {
       lastName: 'last_name',
       phone: 'phone',
       municipality: 'municipality_id',
+      city: 'city',
     };
 
     const updates: Record<string, unknown> = {};
@@ -238,6 +241,11 @@ export async function PATCH(request: NextRequest) {
       if (body[inputKey] !== undefined) {
         updates[dbKey] = body[inputKey];
       }
+    }
+
+    // notificationSettings is a JSON object, not a scalar string field
+    if (body.notificationSettings !== undefined) {
+      updates.notification_settings = body.notificationSettings;
     }
 
     if (Object.keys(updates).length === 0) {

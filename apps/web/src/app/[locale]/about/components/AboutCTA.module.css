@@ -1,0 +1,92 @@
+.cta {
+  background: var(--np-paper);
+  color: var(--np-ink);
+  padding-inline: clamp(var(--space-5), 3vw, var(--space-12));
+  padding-block: clamp(var(--space-12), 6vw, var(--space-24));
+}
+
+.inner {
+  max-width: var(--np-container);
+  margin-inline: auto;
+}
+
+.dateline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-end: var(--space-3);
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--np-red);
+}
+.kickerTick {
+  inline-size: 0.7em;
+  block-size: 0.7em;
+  background: var(--np-red);
+}
+
+.meta {
+  font-family: var(--np-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  color: var(--np-ink-faint);
+}
+
+.rule {
+  border: 0;
+  border-block-start: var(--np-rule-heavy) solid var(--np-ink);
+  margin-block: var(--space-3) clamp(var(--space-5), 2vw, var(--space-8));
+}
+
+.headline {
+  font-family: var(--np-font-display);
+  font-weight: 900;
+  font-size: clamp(var(--text-4xl), 5.5vw, var(--text-8xl));
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  color: var(--np-ink);
+  margin: 0;
+  max-width: 18ch;
+  overflow-wrap: break-word;
+}
+.red {
+  color: var(--np-red);
+}
+
+.sub {
+  font-family: var(--np-font-body);
+  font-size: clamp(var(--text-base), 0.5vw + 0.9rem, var(--text-xl));
+  line-height: 1.45;
+  color: var(--np-ink-soft);
+  margin: clamp(var(--space-4), 2vw, var(--space-6)) 0 0;
+  max-width: 52ch;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(var(--space-4), 2vw, var(--space-8));
+  margin-block-start: clamp(var(--space-6), 3vw, var(--space-10));
+}
+
+.microcopy {
+  font-family: var(--np-font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  color: var(--np-ink-faint);
+  max-width: 40ch;
+}

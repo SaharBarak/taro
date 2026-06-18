@@ -1,0 +1,254 @@
+.masthead {
+  background: var(--np-paper);
+  color: var(--np-ink);
+  padding-inline: clamp(var(--space-6), 4vw, var(--space-16));
+  padding-block-start: var(--space-2);
+}
+
+.ears {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  color: var(--np-ink-soft);
+  padding-block-end: var(--space-1);
+}
+
+.ruleHair { border-block-start: var(--np-rule) solid var(--np-ink); }
+.ruleMast { border-block-start: var(--np-rule-masthead) solid var(--np-ink); }
+
+.brandRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: clamp(var(--space-1), 1vw, var(--space-3));
+}
+
+.wordmark {
+  font-family: var(--np-font-display);
+  font-weight: 900;
+  font-size: clamp(var(--text-4xl), 10vw, var(--text-8xl));
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--np-ink);
+  text-align: center;
+  text-decoration: none;
+}
+
+.tagL, .tagR {
+  font-family: var(--np-font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--np-ink-faint);
+  text-transform: uppercase;
+}
+.tagL { text-align: start; }
+.tagR { text-align: end; }
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-2);
+}
+
+.navList {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.navLink {
+  font-family: var(--np-font-display);
+  font-weight: 700;
+  font-size: var(--text-base);
+  color: var(--np-ink);
+  text-decoration: none;
+  padding-block: var(--space-1);
+  border-block-end: var(--np-rule) solid transparent;
+  transition: border-color var(--np-dur-snap) var(--np-ease), color var(--np-dur-snap) var(--np-ease);
+}
+
+.navLink:hover {
+  color: var(--np-red);
+  border-block-end-color: var(--np-red);
+}
+
+/* === Guest actions (signed-out) === */
+.guestActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.signIn {
+  font-family: var(--np-font-mono);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  color: var(--np-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  padding-block: var(--space-1);
+  border-block-end: var(--np-rule) solid transparent;
+  transition: border-color var(--np-dur-snap) var(--np-ease), color var(--np-dur-snap) var(--np-ease);
+}
+
+.signIn:hover {
+  color: var(--np-red);
+  border-block-end-color: var(--np-red);
+}
+
+/* === Account cluster (signed-in) === */
+.account {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.cityChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--np-ink);
+  background: var(--np-paper-box);
+  border: var(--np-rule) solid var(--np-ink);
+  border-radius: 0;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2);
+  white-space: nowrap;
+}
+
+.cityGlyph {
+  color: var(--np-red);
+  font-size: 0.7em;
+  line-height: 1;
+}
+
+.avatarBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: var(--np-rule) solid var(--np-ink);
+  border-radius: 0;
+  background: var(--np-ink);
+  color: var(--np-paper);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--np-dur-snap) var(--np-ease);
+}
+
+.avatarBtn:hover { border-color: var(--np-red); }
+
+.avatarImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarInitials {
+  font-family: var(--np-font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--np-paper);
+  text-transform: uppercase;
+}
+
+/* === Dropdown menu === */
+.menu {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-2));
+  inset-inline-start: 0;
+  z-index: 50;
+  min-width: 13rem;
+  background: var(--np-paper-box);
+  border: var(--np-rule-heavy, 2px) solid var(--np-ink);
+  border-radius: 0;
+  padding-block: var(--space-1);
+  box-shadow: 4px 4px 0 var(--np-paper-edge);
+}
+
+.menuHeader {
+  display: none;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--np-ink-faint);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
+  border-block-end: var(--np-rule) solid var(--np-ink);
+}
+
+.menuRow {
+  display: block;
+  width: 100%;
+  text-align: start;
+  font-family: var(--np-font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--np-ink);
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
+  cursor: pointer;
+  transition: background-color var(--np-dur-snap) var(--np-ease), color var(--np-dur-snap) var(--np-ease);
+}
+
+.menuRow:hover,
+.menuRow:focus-visible {
+  background: var(--np-ink);
+  color: var(--np-paper);
+  outline: none;
+}
+
+.menuRule {
+  border-block-start: var(--np-rule) solid var(--np-ink);
+  margin-block: var(--space-1);
+}
+
+/* Mobile minimized */
+@media (max-width: 767px) {
+  .ears { font-size: 0.62rem; gap: var(--space-2); }
+  .ears span:nth-child(3) { display: none; }
+  .tagL, .tagR { display: none; }
+  .brandRow { grid-template-columns: 1fr; }
+  .nav { flex-direction: column; align-items: stretch; gap: var(--space-3); }
+  .navList { justify-content: center; gap: var(--space-3) var(--space-4); font-size: var(--text-sm); }
+
+  /* Account stays minimal: chip collapses into the menu header. */
+  .account { align-self: flex-start; }
+  .cityChip { display: none; }
+  .menuHeader { display: flex; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatarBtn,
+  .menuRow {
+    transition: none;
+  }
+}

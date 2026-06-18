@@ -157,8 +157,8 @@ INSERT INTO payments (
   300,
   'ILS',
   'completed',
-  'green_invoice',
-  'gi_test_123',
+  'paddle',
+  'txn_test_123',
   'idempotent_test_key_001'
 ) ON CONFLICT (id) DO NOTHING;
 

@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Taro | Local Community Voting Platform Israel",
-    "description": "Community voting platform with GPS verification and transparent results. Vote on local issues in Kiryat Tivon and shape your community's future. Only 3 NIS participation fee.",
-    "keywords": "community voting, local democracy, Kiryat Tivon, online voting, Israeli municipalities, public transparency, civic participation, local council, GPS resident verification"
+    "title": "Taruu | Israel’s Public Consensus Mechanism",
+    "description": "Taruu is a public consensus mechanism that measures, verifies and surfaces where the majority of the public stands — from the voice of a city to the voice of a nation. Every voice is identity- and GPS-verified and sealed on the blockchain. Pilot live in Kiryat Tivon.",
+    "keywords": "public consensus, majority opinion, direct democracy, community voting, GPS resident verification, blockchain voting, public transparency, civic participation, Kiryat Tivon, Israeli municipalities"
   },
   "nav": {
     "home": "Home",

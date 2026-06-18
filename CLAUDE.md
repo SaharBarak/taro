@@ -110,7 +110,7 @@ pnpm typecheck
 | Database | Supabase | PostgreSQL with RLS, primary data storage |
 | Auth | Supabase Auth | User authentication via OAuth (Google, social) |
 | Blockchain | Qubik | Vote recording & tokens |
-| Payments | Green Invoice | Israeli payment processing |
+| Payments | Paddle | Merchant-of-record checkout (ILS) |
 | Email | Resend | Transactional emails |
 | Hosting | Vercel | Deployment platform |
 
@@ -140,7 +140,7 @@ import { initializeApiClient, votesApi, usersApi, paymentsApi } from '@sync/api-
 
 // Initialize with auth token
 initializeApiClient({
-  baseUrl: 'https://api.sync.co.il',
+  baseUrl: 'https://api.taruu.co.il',
   getToken: async () => await getAuthToken(),
 });
 
@@ -287,7 +287,7 @@ const primaryColor = colors.primary[600]; // '#2563EB'
 ### Payments
 - `POST /api/payments/create` - Create payment intent
 - `GET /api/payments/[id]/status` - Check payment status
-- `POST /api/payments/webhook` - Green Invoice webhook
+- `POST /api/payments/webhook` - Paddle webhook (accrues ILS to per-vote treasury ledger)
 
 ## Environment Variables
 
@@ -309,16 +309,19 @@ GOOGLE_CLIENT_SECRET=
 QUBIK_API_KEY=
 QUBIK_NETWORK=mainnet
 
-# Green Invoice
-GREEN_INVOICE_API_KEY=
-GREEN_INVOICE_SECRET=
+# Paddle (Merchant of Record)
+PADDLE_ENV=sandbox
+PADDLE_API_KEY=
+PADDLE_WEBHOOK_SECRET=
+PADDLE_PRICE_VOTE_PARTICIPATION=
+PADDLE_PRICE_VOTE_CREATION=
 
 # Resend
 RESEND_API_KEY=
 
 # App
-NEXT_PUBLIC_APP_URL=https://sync.co.il
-EXPO_PUBLIC_API_URL=https://api.sync.co.il
+NEXT_PUBLIC_APP_URL=https://taruu.co.il
+EXPO_PUBLIC_API_URL=https://api.taruu.co.il
 ```
 
 ## Mobile Development

@@ -120,6 +120,7 @@ export interface UserProfile {
   lastName: string;
   phone?: string;
   municipality: string;
+  city?: string | null; // Free-text city (single-country pilot — country is implicitly ישראל)
   avatarUrl?: string | null; // Profile photo URL from Google OAuth
 
   // === Social Proofs (ENHANCED) ===
@@ -153,6 +154,7 @@ export interface UserProfileUpdate {
   lastName?: string;
   phone?: string;
   municipality?: string;
+  city?: string | null;
   notificationSettings?: NotificationSettings;
 }
 

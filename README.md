@@ -34,7 +34,7 @@ Taro helps communities form a transparent civic majority on issues that truly ma
 ### Services
 - **Auth**: Custom SEL-DID system
 - **Database**: Supabase
-- **Payments**: Green Invoice (Israeli payment processing)
+- **Payments**: Paddle (merchant-of-record checkout, ILS)
 - **Newsletter**: Beehiiv
 - **Hosting**: Vercel
 

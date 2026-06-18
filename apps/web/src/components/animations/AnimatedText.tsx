@@ -114,7 +114,10 @@ export function AnimatedLetters({
   delay = 0,
   staggerDelay = 0.03,
 }: AnimatedLettersProps) {
-  const letters = text.split('');
+  // Group letters by word so line-wrapping can only happen between words \u2014
+  // bare inline-block letter spans would otherwise break mid-word.
+  const words = text.split(' ');
+  let letterIndex = 0;
 
   return (
     <motion.span
@@ -132,15 +135,20 @@ export function AnimatedLetters({
       whileInView="visible"
       viewport={{ once: true, margin: '-50px' }}
     >
-      {letters.map((letter, index) => (
-        <motion.span
-          key={`${letter}-${index}`}
-          className={styles.letter}
-          variants={letterVariants}
-          style={{ display: 'inline-block' }}
-        >
-          {letter === ' ' ? '\u00A0' : letter}
-        </motion.span>
+      {words.map((word, wordIdx) => (
+        <span key={`w-${wordIdx}`} className={styles.letterWord}>
+          {word.split('').map((letter) => (
+            <motion.span
+              key={`l-${letterIndex++}`}
+              className={styles.letter}
+              variants={letterVariants}
+              style={{ display: 'inline-block' }}
+            >
+              {letter}
+            </motion.span>
+          ))}
+          {wordIdx < words.length - 1 && '\u00A0'}
+        </span>
       ))}
     </motion.span>
   );

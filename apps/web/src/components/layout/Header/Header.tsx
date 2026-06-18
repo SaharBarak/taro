@@ -3,172 +3,105 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '@/providers/AuthProvider';
-import { Button } from '@/components/ui/Button';
-import { LanguageToggle } from '@/components/ui/LanguageToggle';
+import { RippleButton } from '@/components/ui/RippleButton';
+import { useReducedMotion } from '@/hooks';
 import type { Locale } from '@/lib/i18n';
 import clsx from 'clsx';
 import styles from './Header.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 interface HeaderProps {
   locale?: Locale;
 }
 
-const getNavLinks = (locale: Locale) => [
-  { href: `/${locale}`, label: locale === 'en' ? 'Home' : 'בית' },
-  { href: `/${locale}/about`, label: locale === 'en' ? 'About' : 'אודות' },
-  { href: `/${locale}/votes`, label: locale === 'en' ? 'Votes' : 'הצבעות' },
-  { href: WHATSAPP_LINK, label: locale === 'en' ? 'Pilot WhatsApp' : 'וואטסאפ הפיילוט', external: true },
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+const getNavLinks = (locale: Locale): NavLink[] => [
+  { href: `/${locale}`, label: 'בית' },
+  { href: `/${locale}/votes`, label: 'הצבעות' },
+  { href: `/${locale}/economics`, label: 'כלכלה אזרחית' },
+  { href: `/${locale}/treasury`, label: 'שקיפות הקרן' },
+  { href: `/${locale}/about`, label: 'אודות' },
+  { href: `/${locale}/faq`, label: 'שאלות נפוצות' },
 ];
 
 export function Header({ locale = 'he' }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuthenticated, user, signOut, isLoading } = useAuth();
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 16);
     };
-
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // User avatar or initials
-  const userInitials = user
-    ? (user.firstName?.[0] || user.email?.[0] || '?').toUpperCase()
-    : '?';
+  // Lock body scroll while the mobile menu is open.
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+  }, [isMobileMenuOpen]);
 
   const navLinks = getNavLinks(locale);
-
-  // Localized text
-  const t = {
-    support: locale === 'en' ? 'Support Project' : 'תמכו בפרויקט',
-    login: locale === 'en' ? 'Login' : 'התחברות',
-    signup: locale === 'en' ? 'Sign Up' : 'הרשמה',
-    comingSoon: locale === 'en' ? 'Coming Soon' : 'בקרוב',
-    dashboard: locale === 'en' ? 'Dashboard' : 'לוח בקרה',
-    user: locale === 'en' ? 'User' : 'משתמש',
-    profile: locale === 'en' ? 'Profile' : 'פרופיל',
-    settings: locale === 'en' ? 'Settings' : 'הגדרות',
-    signOut: locale === 'en' ? 'Sign Out' : 'התנתקות',
-    openMenu: locale === 'en' ? 'Open menu' : 'פתח תפריט',
-    closeMenu: locale === 'en' ? 'Close menu' : 'סגור תפריט',
-  };
+  const closeMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <motion.header
       className={clsx(styles.header, isScrolled && styles.scrolled)}
-      initial={{ y: -100 }}
+      initial={reducedMotion ? false : { y: -100 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className={styles.container}>
-        <Link href={`/${locale}`} className={styles.logo}>
-          <span className={`${styles.logoText} logo-text`}>תַּרְאוּ</span>
-        </Link>
+      <div className={styles.bar}>
+        <div className={styles.container}>
+          <Link href={`/${locale}`} className={styles.logo} aria-label="תַּרְאוּ — דף הבית">
+            <span className={`${styles.logoText} logo-text`}>תַּרְאוּ</span>
+          </Link>
 
-        {/* Desktop Navigation */}
-        <nav className={styles.desktopNav}>
-          {navLinks.map((link) => (
-            link.external ? (
-              <a
-                key={link.href}
-                href={link.href}
-                className={styles.navLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {link.label}
-              </a>
-            ) : (
+          {/* Desktop Navigation */}
+          <nav className={styles.desktopNav} aria-label="ניווט ראשי">
+            {navLinks.map((link) => (
               <Link key={link.href} href={link.href} className={styles.navLink}>
-                {link.label}
+                <span className={styles.navLabel}>{link.label}</span>
               </Link>
-            )
-          ))}
-        </nav>
+            ))}
+          </nav>
 
-        {/* Auth Buttons */}
-        <div className={styles.actions}>
-          <LanguageToggle locale={locale} />
-          <a
-            href="https://my.israelgives.org/he/fundme/taroo"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.headstartLink}
-          >
-            <Button variant="secondary" size="sm">
-              {t.support}
-            </Button>
-          </a>
-          {!isLoading && (
-            <>
-              {!isAuthenticated ? (
-                <>
-                  <Link href={`/${locale}/sign-in`}>
-                    <Button variant="ghost" size="sm">
-                      {t.login}
-                    </Button>
-                  </Link>
-                  <Link href={`/${locale}/sign-up`}>
-                    <Button variant="primary" size="sm">
-                      {t.signup}
-                    </Button>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link href={`/${locale}/dashboard`}>
-                    <Button variant="ghost" size="sm">
-                      {t.dashboard}
-                    </Button>
-                  </Link>
-                  <div className={styles.userMenu}>
-                    <button className={styles.avatarButton}>
-                      <span className={styles.avatar}>{userInitials}</span>
-                    </button>
-                    <div className={styles.userDropdown}>
-                      <div className={styles.userInfo}>
-                        <span className={styles.userName}>
-                          {user?.firstName || t.user}
-                        </span>
-                        <span className={styles.userEmail}>{user?.email}</span>
-                      </div>
-                      <hr className={styles.divider} />
-                      <Link href={`/${locale}/profile`} className={styles.dropdownItem}>
-                        {t.profile}
-                      </Link>
-                      <Link href={`/${locale}/settings`} className={styles.dropdownItem}>
-                        {t.settings}
-                      </Link>
-                      <hr className={styles.divider} />
-                      <button
-                        className={styles.dropdownItem}
-                        onClick={() => signOut()}
-                      >
-                        {t.signOut}
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </>
-          )}
+          {/* Primary CTA */}
+          <div className={styles.actions}>
+            <a
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.ctaLink}
+            >
+              <RippleButton size="md">הצטרפו לפיילוט</RippleButton>
+            </a>
 
-          {/* Mobile Menu Button */}
-          <button
-            className={styles.mobileMenuButton}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label={isMobileMenuOpen ? t.closeMenu : t.openMenu}
-          >
-            <span
-              className={clsx(styles.hamburger, isMobileMenuOpen && styles.open)}
-            />
-          </button>
+            {/* Mobile Menu Button */}
+            <button
+              type="button"
+              className={styles.mobileMenuButton}
+              onClick={() => setIsMobileMenuOpen((open) => !open)}
+              aria-label={isMobileMenuOpen ? 'סגירת תפריט' : 'פתיחת תפריט'}
+              aria-expanded={isMobileMenuOpen}
+            >
+              <span className={clsx(styles.hamburger, isMobileMenuOpen && styles.open)} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -177,87 +110,37 @@ export function Header({ locale = 'he' }: HeaderProps) {
         {isMobileMenuOpen && (
           <motion.div
             className={styles.mobileNav}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           >
-            <nav className={styles.mobileNavContent}>
+            <nav className={styles.mobileNavContent} aria-label="ניווט נייד">
               {navLinks.map((link, index) => (
                 <motion.div
                   key={link.href}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  initial={reducedMotion ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: reducedMotion ? 0 : 0.05 + index * 0.05, duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {link.external ? (
-                    <a
-                      href={link.href}
-                      className={styles.mobileNavLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {link.label}
-                    </a>
-                  ) : (
-                    <Link
-                      href={link.href}
-                      className={styles.mobileNavLink}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {link.label}
-                    </Link>
-                  )}
+                  <Link href={link.href} className={styles.mobileNavLink} onClick={closeMenu}>
+                    <span className={styles.navLabel}>{link.label}</span>
+                  </Link>
                 </motion.div>
               ))}
 
-              <div className={styles.mobileAuthButtons}>
-                <div className={styles.mobileLanguageToggle}>
-                  <LanguageToggle locale={locale} />
-                </div>
+              <div className={styles.mobileCta}>
                 <a
-                  href="https://my.israelgives.org/he/fundme/taroo"
+                  href={WHATSAPP_LINK}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMenu}
+                  className={styles.mobileCtaLink}
                 >
-                  <Button variant="secondary" isFullWidth>
-                    {t.support}
-                  </Button>
+                  <RippleButton size="lg" isFullWidth>
+                    הצטרפו לפיילוט
+                  </RippleButton>
                 </a>
-                {!isAuthenticated ? (
-                  <>
-                    <Link href={`/${locale}/sign-in`} onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="outline" isFullWidth>
-                        {t.login}
-                      </Button>
-                    </Link>
-                    <Link href={`/${locale}/sign-up`} onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="primary" isFullWidth>
-                        {t.signup}
-                      </Button>
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href={`/${locale}/dashboard`} onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="outline" isFullWidth>
-                        {t.dashboard}
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      isFullWidth
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        signOut();
-                      }}
-                    >
-                      {t.signOut}
-                    </Button>
-                  </>
-                )}
               </div>
             </nav>
           </motion.div>

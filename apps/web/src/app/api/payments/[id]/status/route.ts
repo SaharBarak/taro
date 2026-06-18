@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionFromRequest } from '@/services/auth/session';
-import { getPaymentById, getUserById } from '@/lib/supabase/db';
-import { greenInvoiceService } from '@/services/payments/greenInvoice';
+import { getPaymentById } from '@/lib/supabase/db';
+import { paddleService } from '@/services/payments/paddle';
 
 /**
  * GET /api/payments/:id/status
@@ -45,11 +45,11 @@ export async function GET(
       );
     }
 
-    // Get receipt URL from Green Invoice if payment completed
+    // Get receipt URL from Paddle if payment completed
     let receiptUrl = null;
     if (payment.status === 'completed' && payment.provider_id) {
       try {
-        const providerStatus = await greenInvoiceService.getPaymentStatus(payment.provider_id);
+        const providerStatus = await paddleService.getPaymentStatus(payment.provider_id);
         receiptUrl = providerStatus.receiptUrl || null;
       } catch {
         // Ignore - receipt URL is optional
@@ -66,7 +66,7 @@ export async function GET(
       type: payment.type,
       receiptUrl,
       succeeded: payment.status === 'completed',
-      tokensEarned: payment.status === 'completed' ? amountILS : 0,
+      tokensEarned: payment.status === 'completed' ? Math.floor(amountILS) : 0,
       createdAt: payment.created_at,
       updatedAt: payment.updated_at,
       voteId: payment.vote_id,

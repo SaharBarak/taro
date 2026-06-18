@@ -20,6 +20,7 @@ import type {
   PushToken,
   WebhookEvent,
   VoteNft,
+  MerchOrderRow,
   InsertTables,
   UpdateTables,
 } from './types';
@@ -109,6 +110,67 @@ export async function updateUserIdentityScore(
     .from('users')
     .update({ identity_score: score })
     .eq('id', userId);
+}
+
+/**
+ * Get users of a municipality for notifications (id, email, first name).
+ * Capped to protect the request path — broadcast batches stay bounded.
+ */
+export async function getUsersByMunicipality(
+  municipalityId: string,
+  options: { limit?: number } = {}
+): Promise<Array<{ id: string; email: string; first_name: string | null }>> {
+  const { limit = 500 } = options;
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('id, email, first_name')
+    .eq('municipality_id', municipalityId)
+    .not('email', 'is', null)
+    .limit(limit);
+
+  if (error) {
+    console.error('Failed to get municipality users:', error);
+    return [];
+  }
+  return data || [];
+}
+
+/**
+ * Get a vote's participants with their contact details and chosen option.
+ * Used for the post-resolution results email.
+ */
+export async function getVoteParticipantsWithEmails(
+  voteId: string
+): Promise<
+  Array<{
+    user_id: string;
+    option_id: string;
+    email: string;
+    first_name: string | null;
+  }>
+> {
+  const { data, error } = await supabaseAdmin
+    .from('user_votes')
+    .select('user_id, option_id, users(email, first_name)')
+    .eq('vote_id', voteId);
+
+  if (error) {
+    console.error('Failed to get vote participants:', error);
+    return [];
+  }
+
+  return (data || [])
+    .map((row) => {
+      const user = row.users as unknown as { email: string; first_name: string | null } | null;
+      if (!user?.email) return null;
+      return {
+        user_id: row.user_id,
+        option_id: row.option_id,
+        email: user.email,
+        first_name: user.first_name,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
 }
 
 // ============================================
@@ -470,6 +532,35 @@ export async function createPayment(
   return data;
 }
 
+/**
+ * Atomically claim a payment as completed: `pending → completed` guarded in the
+ * same statement. Returns the row to the single caller that won the race, or
+ * null if it was already completed / lost (idempotent). All downstream
+ * fulfilment (treasury, tokens, entitlement) MUST gate on a non-null return so
+ * Paddle's dual completed/paid events + retries can't double-process.
+ */
+export async function markPaymentCompleted(
+  paymentId: string,
+  providerId?: string
+): Promise<Payment | null> {
+  const updates: UpdateTables<'payments'> = { status: 'completed' };
+  if (providerId) updates.provider_id = providerId;
+
+  const { data, error } = await supabaseAdmin
+    .from('payments')
+    .update(updates)
+    .eq('id', paymentId)
+    .eq('status', 'pending')
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to mark payment completed:', error);
+    return null;
+  }
+  return data;
+}
+
 export async function updatePaymentStatus(
   paymentId: string,
   status: 'pending' | 'completed' | 'failed' | 'refunded',
@@ -490,6 +581,82 @@ export async function updatePaymentStatus(
     return null;
   }
   return data;
+}
+
+/**
+ * The user's most recent completed payment that hasn't already had a refund
+ * requested. Used when the refund form doesn't specify a payment id.
+ */
+export async function getLatestRefundablePayment(
+  userId: string
+): Promise<Payment | null> {
+  const { data, error } = await supabaseAdmin
+    .from('payments')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (error || !data) return null;
+  const row = data.find(
+    (p) => (p.metadata as { refund?: { status?: string } } | null)?.refund?.status !== 'requested'
+  );
+  return row ?? null;
+}
+
+/** Outcome of recording a refund request — drives the route's HTTP mapping. */
+export type RefundRequestResult =
+  | 'ok'
+  | 'not_found' // missing, or not owned by this user
+  | 'not_refundable' // not a completed payment
+  | 'already_requested'
+  | 'error';
+
+/**
+ * Record a user's refund request on the payment's metadata. Ownership +
+ * `completed` status are enforced here so the route can't request a refund on
+ * someone else's or an unsettled payment. Refunds are issued manually in Paddle
+ * (per policy) — this only captures the intake, it does not move money.
+ */
+export async function requestPaymentRefund(
+  paymentId: string,
+  userId: string,
+  reason: string
+): Promise<RefundRequestResult> {
+  const { data: row, error: selErr } = await supabaseAdmin
+    .from('payments')
+    .select('id, user_id, status, metadata')
+    .eq('id', paymentId)
+    .maybeSingle();
+
+  if (selErr) {
+    console.error('Refund request: payment lookup failed:', selErr);
+    return 'error';
+  }
+  if (!row || row.user_id !== userId) return 'not_found';
+  if (row.status !== 'completed') return 'not_refundable';
+
+  const metadata = (row.metadata as Record<string, unknown>) || {};
+  const existing = metadata.refund as { status?: string } | undefined;
+  if (existing?.status === 'requested') return 'already_requested';
+
+  const { error: updErr } = await supabaseAdmin
+    .from('payments')
+    .update({
+      metadata: {
+        ...metadata,
+        refund: { reason, status: 'requested', requestedAt: new Date().toISOString() },
+      },
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', paymentId);
+
+  if (updErr) {
+    console.error('Refund request: metadata update failed:', updErr);
+    return 'error';
+  }
+  return 'ok';
 }
 
 // ============================================
@@ -1075,6 +1242,93 @@ export async function getOrCreateTreasury(municipalityId: string): Promise<strin
   return data;
 }
 
+/**
+ * Accrue an ILS deposit into a municipality treasury ledger.
+ * Wraps the record_treasury_deposit SQL function (atomic balance update + audit row).
+ * For vote participation, pass voteId so the amount feeds that vote's bag at resolution.
+ */
+export async function recordTreasuryDeposit(params: {
+  municipalityId: string;
+  /** Amount in agorot (minor units) — treasury columns store agorot throughout */
+  amountAgorot: number;
+  paymentId: string;
+  userId: string;
+  voteId?: string | null;
+  description?: string;
+}): Promise<string> {
+  const { data, error } = await supabaseAdmin.rpc('record_treasury_deposit', {
+    p_municipality_id: params.municipalityId,
+    p_amount_ils: params.amountAgorot,
+    p_payment_id: params.paymentId,
+    p_user_id: params.userId,
+    p_vote_id: params.voteId ?? null,
+    p_description: params.description ?? 'Vote payment deposit',
+  });
+
+  if (error) {
+    console.error('Failed to record treasury deposit:', error);
+    throw error;
+  }
+  return data;
+}
+
+/**
+ * Sum confirmed ILS deposits (agorot) accrued for a single vote.
+ * This is the pool that gets seeded into the vote's Bags.fm bag at resolution.
+ */
+export async function getAccruedIlsForVote(voteId: string): Promise<number> {
+  const { data, error } = await supabaseAdmin
+    .from('treasury_transactions')
+    .select('amount_ils')
+    .eq('vote_id', voteId)
+    .eq('type', 'deposit')
+    .eq('status', 'confirmed');
+
+  if (error) {
+    console.error('Failed to sum accrued ILS for vote:', error);
+    throw error;
+  }
+  return (data || []).reduce((sum, row) => sum + (row.amount_ils || 0), 0);
+}
+
+/**
+ * Record a treasury transaction (allocation, token_purchase, fee_claim, etc.).
+ * Used by the bag-seeding flow to log the fiat→SOL conversion and liquidity add.
+ */
+export async function recordTreasuryTransaction(params: {
+  treasuryId: string;
+  type: TreasuryTransactionType;
+  voteId?: string | null;
+  amountIls?: number | null;
+  amountSol?: number | null;
+  description: string;
+  bagsTxHash?: string | null;
+  status?: 'pending' | 'confirmed' | 'failed';
+  metadata?: Record<string, unknown> | null;
+}): Promise<string> {
+  const { data, error } = await supabaseAdmin
+    .from('treasury_transactions')
+    .insert({
+      treasury_id: params.treasuryId,
+      type: params.type,
+      vote_id: params.voteId ?? null,
+      amount_ils: params.amountIls ?? null,
+      amount_sol: params.amountSol != null ? String(params.amountSol) : null,
+      description: params.description,
+      bags_tx_hash: params.bagsTxHash ?? null,
+      status: params.status ?? 'confirmed',
+      metadata: params.metadata ?? null,
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('Failed to record treasury transaction:', error);
+    throw error;
+  }
+  return data.id;
+}
+
 // === Issue Coin Functions ===
 
 /**
@@ -1557,6 +1811,52 @@ export async function getVoteNftStats(voteId: string): Promise<{
 /**
  * Get pending NFTs for minting (for batch processing)
  */
+/** A pending NFT row with its mint recipient resolved (external wallet, else the user's wallet). */
+export interface PendingNftWithRecipient {
+  id: string;
+  vote_id: string;
+  type: 'verified_voter' | 'civic_patron';
+  metadata: Record<string, unknown> | null;
+  recipient: string | null;
+}
+
+/**
+ * Pending NFTs across all votes, oldest first, for the batch minter. Recipient
+ * is the external `wallet_address` (patrons) or the user's `qubik_wallet_address`
+ * (voters); null when neither exists (left pending until a wallet is linked).
+ */
+export async function getPendingNfts(limit = 50): Promise<PendingNftWithRecipient[]> {
+  const { data, error } = await supabaseAdmin
+    .from('vote_nfts')
+    .select('id, vote_id, type, metadata, wallet_address, users(qubik_wallet_address)')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    console.error('Failed to get pending NFTs:', error);
+    return [];
+  }
+
+  return (data || []).map((row) => {
+    const r = row as unknown as {
+      id: string;
+      vote_id: string;
+      type: 'verified_voter' | 'civic_patron';
+      metadata: Record<string, unknown> | null;
+      wallet_address: string | null;
+      users: { qubik_wallet_address: string | null } | null;
+    };
+    return {
+      id: r.id,
+      vote_id: r.vote_id,
+      type: r.type,
+      metadata: r.metadata,
+      recipient: r.wallet_address || r.users?.qubik_wallet_address || null,
+    };
+  });
+}
+
 export async function getPendingNftsForVote(voteId: string, limit = 100) {
   const { data, error } = await supabaseAdmin
     .from('vote_nfts')
@@ -1641,4 +1941,112 @@ export async function bulkCreateVoteNfts(
     throw error;
   }
   return data || [];
+}
+
+// ============================================
+// MERCH ORDER OPERATIONS
+// ============================================
+
+/** Persist a new merch order (status 'pending') at checkout. */
+export async function createMerchOrder(
+  record: InsertTables<'merch_orders'>
+): Promise<MerchOrderRow> {
+  const { data, error } = await supabaseAdmin
+    .from('merch_orders')
+    .insert(record)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to create merch order:', error);
+    throw error;
+  }
+  return data;
+}
+
+/** Read a merch order by id (source of truth for the thank-you page). */
+export async function getMerchOrderById(
+  id: string
+): Promise<MerchOrderRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from('merch_orders')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to fetch merch order:', error);
+    return null;
+  }
+  return data;
+}
+
+/** Look up a merch order by its POD partner order id (for fulfilment webhooks). */
+export async function getMerchOrderByPodOrderId(
+  podOrderId: string
+): Promise<MerchOrderRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from('merch_orders')
+    .select('*')
+    .eq('pod_order_id', podOrderId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to fetch merch order by pod id:', error);
+    return null;
+  }
+  return data;
+}
+
+/** Patch a merch order (webhook status flips, payment/POD ids). */
+export async function updateMerchOrder(
+  id: string,
+  updates: UpdateTables<'merch_orders'>
+): Promise<MerchOrderRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from('merch_orders')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to update merch order:', error);
+    return null;
+  }
+  return data;
+}
+
+/** Outcome of an atomic paid transition — distinguishes a no-op from a failure. */
+export type MarkPaidResult =
+  | { kind: 'updated'; row: MerchOrderRow }
+  | { kind: 'noop' } // no pending row matched: already settled, or lost the race
+  | { kind: 'error' }; // transient DB failure — caller should signal a retry
+
+/**
+ * Atomically flip an order `pending` → `paid`. The `status = 'pending'` guard
+ * is enforced in the same statement, so concurrent webhook deliveries can't
+ * both succeed — the loser matches zero rows and returns `noop` (idempotent).
+ */
+export async function markMerchOrderPaid(
+  id: string,
+  paymentId: string | null
+): Promise<MarkPaidResult> {
+  const { data, error } = await supabaseAdmin
+    .from('merch_orders')
+    .update({
+      status: 'paid',
+      payment_id: paymentId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('status', 'pending')
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to mark merch order paid:', error);
+    return { kind: 'error' };
+  }
+  return data ? { kind: 'updated', row: data } : { kind: 'noop' };
 }

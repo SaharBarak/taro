@@ -1,47 +1,33 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Heading, Text } from '@/components/ui/Typography';
-import { AnimatedLetters, AnimatedFadeInUp } from '@/components/animations';
 import styles from './AboutHero.module.css';
 
 export function AboutHero() {
   return (
-    <section className={styles.hero}>
-      <div className={styles.container}>
-        {/* Background Typography */}
-        <motion.div
-          className={styles.backgroundText}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.03 }}
-          transition={{ duration: 1, delay: 0.5 }}
-        >
-          החזון
-        </motion.div>
-
-        <div className={styles.content}>
-          <AnimatedFadeInUp>
-            <Text size="lg" color="accent" weight="semibold" align="center">
-              אודות תַּרְאוּ
-            </Text>
-          </AnimatedFadeInUp>
-
-          <h1 className={styles.heading}>
-            <AnimatedLetters text="אנחנו מאמינים" delay={0.2} />
-            <br />
-            <span className={styles.headingAccent}>
-              <AnimatedLetters text="בכוח הקהילה" delay={0.5} />
-            </span>
-          </h1>
-
-          <AnimatedFadeInUp delay={0.8}>
-            <Text size="xl" color="secondary" align="center" className={styles.description}>
-              תַּרְאוּ נוסדה מתוך אמונה עמוקה שכל אזרח צריך להיות שותף אמיתי
-              בקבלת ההחלטות המשפיעות על חייו. אנחנו בונים את הכלים שיאפשרו
-              לכם להשפיע על העתיד של הקהילה שלכם.
-            </Text>
-          </AnimatedFadeInUp>
+    <section className={styles.hero} aria-label="אודות תַּרְאוּ">
+      <div className={styles.inner}>
+        <div className={styles.dateline}>
+          <span className={styles.kicker}>
+            <span aria-hidden className={styles.kickerTick} />
+            אודות · המניפסט
+          </span>
+          <span className={styles.meta}>גיליון המערכת · קריית טבעון</span>
         </div>
+
+        <hr className={styles.ruleHeavy} aria-hidden />
+
+        <h1 className={styles.headline}>
+          מקולה של עיר,
+          <br />
+          <span className={styles.red}>לקולה של מדינה.</span>
+        </h1>
+
+        <hr className={styles.rule} aria-hidden />
+
+        <p className={`${styles.lead} np-dropcap`}>
+          התחלנו מהבנה אחת — לדמוקרטיה המקומית אין כלי מדידה אמין. אנחנו בונים את
+          התשתית שהופכת את הקול של הרוב למדיד, מאומת ושקוף, עיר אחר עיר.
+        </p>
       </div>
     </section>
   );

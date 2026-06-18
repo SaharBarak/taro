@@ -18,7 +18,7 @@ import {
 } from '../../lib/auth';
 
 describe('Auth Library', () => {
-  const mockFetch = global.fetch as jest.Mock;
+  const mockFetch = globalThis.fetch as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();

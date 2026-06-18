@@ -1,0 +1,10 @@
+.scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Vector AA hints — keep edges crisp on transformed/animated layers */
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}

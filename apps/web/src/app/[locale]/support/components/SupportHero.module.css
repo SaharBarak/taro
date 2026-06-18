@@ -1,111 +1,53 @@
 .hero {
-  padding-block: var(--space-24) var(--space-12);
-  background: linear-gradient(
-    180deg,
-    var(--color-background) 0%,
-    var(--color-accent-50) 100%
-  );
+  background: var(--np-paper);
+  border-block-end: var(--np-rule-heavy) solid var(--np-ink);
+  padding-block: clamp(var(--space-8), 6vw, var(--space-20)) clamp(var(--space-6), 4vw, var(--space-12));
 }
 
 .container {
-  max-width: var(--container-7xl);
+  width: 100%;
+  max-width: var(--np-container);
   margin-inline: auto;
-  padding-inline: var(--space-6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  padding-inline: clamp(var(--space-5), 4vw, var(--space-16));
 }
 
-.badge {
+.kicker {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  background-color: var(--color-accent-100);
-  border-radius: var(--radius-full);
-  font-family: var(--font-secondary);
+  font-family: var(--np-font-mono);
   font-size: var(--text-sm);
-  color: var(--color-accent-700);
-  margin-bottom: var(--space-4);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--np-red);
+}
+.kickerTick {
+  inline-size: 0.7em;
+  block-size: 0.7em;
+  background: var(--np-red);
 }
 
-.badgeIcon {
-  font-size: var(--text-base);
+.headline {
+  font-family: var(--np-font-display);
+  font-weight: 900;
+  font-size: clamp(var(--text-4xl), 5.5vw, var(--text-8xl));
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  color: var(--np-ink);
+  margin-block: var(--space-3) var(--space-5);
+  overflow-wrap: break-word;
 }
+.red { color: var(--np-red); }
 
-.heading {
-  margin-bottom: var(--space-4);
-  font-size: var(--text-5xl);
-}
-
-@media (min-width: 768px) {
-  .heading {
-    font-size: var(--text-6xl);
-  }
-}
-
-.description {
-  max-width: 650px;
-  margin-bottom: var(--space-8);
-}
-
-.steps {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  max-width: 900px;
-}
-
-@media (min-width: 768px) {
-  .steps {
-    flex-direction: row;
-    justify-content: center;
-  }
-}
-
-.stepCard {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  background-color: var(--color-background);
-  border-radius: var(--radius-xl);
-  border: var(--border-width-thin) solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  width: 100%;
-  max-width: 200px;
-}
-
-.stepNumber {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-accent-100);
-  border-radius: var(--radius-full);
-  font-family: var(--font-primary);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-accent-700);
-  flex-shrink: 0;
-}
-
-.stepContent {
-  text-align: right;
-}
-
-.stepArrow {
-  display: none;
-  font-size: var(--text-xl);
-  color: var(--color-text-muted);
+.standfirst {
+  font-family: var(--np-font-body);
+  font-size: clamp(var(--text-base), 0.5vw + 0.9rem, var(--text-xl));
+  line-height: 1.45;
+  color: var(--np-ink-soft);
+  max-width: 60ch;
 }
 
 @media (min-width: 768px) {
-  .stepArrow {
-    display: block;
-  }
+  .headline { margin-block-end: var(--space-6); }
 }

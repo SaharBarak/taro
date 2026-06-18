@@ -24,7 +24,7 @@ vi.mock('@/lib/supabase/db', () => ({
 }));
 
 // Mock Twilio SMS service
-vi.mock('@/services/sms/twilio', () => ({
+vi.mock('@/services/sms/otp', () => ({
   isSmsServiceConfigured: vi.fn(),
   sendVerificationCode: vi.fn(),
   checkVerificationCode: vi.fn(),
@@ -49,7 +49,7 @@ vi.mock('@/lib/supabase/server', () => ({
 // Import mocked modules
 import { getSessionFromRequest } from '@/services/auth/session';
 import { getUserByGoogleId } from '@/lib/supabase/db';
-import { isSmsServiceConfigured, sendVerificationCode, checkVerificationCode } from '@/services/sms/twilio';
+import { isSmsServiceConfigured, sendVerificationCode, checkVerificationCode } from '@/services/sms/otp';
 
 describe('Phone Verification API Routes', () => {
   const mockSession = {

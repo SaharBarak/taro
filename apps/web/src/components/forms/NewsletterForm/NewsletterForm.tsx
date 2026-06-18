@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Typography';
 import type { Locale } from '@/lib/i18n';
@@ -95,6 +94,12 @@ export function NewsletterForm({
   };
 
   const isCompact = variant === 'compact' || variant === 'inline';
+  const isValid = validateEmail(email.trim());
+  const PARTICLES = [
+    { x: -34, y: -20, d: 0 }, { x: 30, y: -26, d: 0.05 }, { x: -42, y: 8, d: 0.1 },
+    { x: 40, y: 4, d: 0.08 }, { x: -18, y: -34, d: 0.12 }, { x: 22, y: 30, d: 0.06 },
+    { x: -30, y: 26, d: 0.14 }, { x: 14, y: -36, d: 0.1 },
+  ];
 
   return (
     <div className={styles.wrapper}>
@@ -102,21 +107,41 @@ export function NewsletterForm({
         {status === 'success' ? (
           <motion.div
             key="success"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 12, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className={styles.successMessage}
           >
-            <svg
-              className={styles.successIcon}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
+            <span className={styles.successBadge}>
+              <motion.svg
+                className={styles.successIcon}
+                viewBox="0 0 52 52"
+                fill="none"
+                initial="hidden"
+                animate="show"
+              >
+                <motion.circle
+                  cx="26" cy="26" r="23" stroke="currentColor" strokeWidth="2.5" fill="none"
+                  variants={{ hidden: { pathLength: 0, opacity: 0 }, show: { pathLength: 1, opacity: 0.45 } }}
+                  transition={{ duration: 0.6, ease: 'easeInOut' }}
+                />
+                <motion.path
+                  d="M16 27l7 7 14-15" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"
+                  variants={{ hidden: { pathLength: 0 }, show: { pathLength: 1 } }}
+                  transition={{ duration: 0.45, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </motion.svg>
+              {PARTICLES.map((p, i) => (
+                <motion.span
+                  key={i}
+                  className={styles.particle}
+                  initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
+                  animate={{ opacity: [0, 1, 0], x: p.x, y: p.y, scale: [0, 1, 0.4] }}
+                  transition={{ duration: 0.7, delay: 0.4 + p.d, ease: 'easeOut' }}
+                />
+              ))}
+            </span>
             <Text color="secondary" weight="medium">
               {message}
             </Text>
@@ -129,8 +154,17 @@ export function NewsletterForm({
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className={styles.inputGroup}>
-              <Input
+            <div
+              className={`${styles.field} ${error ? styles.fieldError : ''} ${isValid ? styles.fieldValid : ''}`}
+            >
+              <span className={styles.mailIcon} aria-hidden>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                  <rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M4 7.5l8 5 8-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <input
+                className={styles.input}
                 type="email"
                 placeholder={t.placeholder}
                 value={email}
@@ -139,20 +173,25 @@ export function NewsletterForm({
                   if (error) setError('');
                   if (status === 'error') setStatus('idle');
                 }}
-                error={error}
-                inputSize={isCompact ? 'md' : 'lg'}
-                isFullWidth
                 disabled={status === 'loading'}
                 dir="ltr"
                 aria-label={t.ariaLabel}
+                aria-invalid={!!error}
               />
               <Button
                 type="submit"
                 size={isCompact ? 'md' : 'lg'}
                 isLoading={status === 'loading'}
-                className={styles.submitButton}
+                className={`${styles.submitButton} ${isValid ? styles.submitReady : ''}`}
+                rightIcon={
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden>
+                    <path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                }
               >
-                {status === 'loading' ? t.submitting : t.submit}
+                <span className={styles.btnLabel}>
+                  {status === 'loading' ? t.submitting : t.submit}
+                </span>
               </Button>
             </div>
 

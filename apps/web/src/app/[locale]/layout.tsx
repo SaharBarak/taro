@@ -4,13 +4,14 @@ import Script from 'next/script';
 import { Secular_One, Heebo } from 'next/font/google';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { LenisProvider } from '@/providers/LenisProvider';
-import { AnalyticsEvents } from '@/components/AnalyticsEvents';
 import { WhatsAppButton } from '@/components/ui/WhatsAppButton';
 import { i18n, localeDirections, getDictionary } from '@/lib/i18n';
 import type { Locale } from '@/lib/i18n';
 import '@/styles/globals.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
+import { AnalyticsEvents } from '@/components/AnalyticsEvents';
 
-const SITE_URL = 'https://taro.co.il';
+const SITE_URL = 'https://taruu.co.il';
 
 const GA_MEASUREMENT_ID = 'G-FPXS9HK4QS';
 
@@ -66,10 +67,9 @@ export async function generateMetadata({
     publisher: 'Taro',
     metadataBase: new URL(SITE_URL),
     alternates: {
-      canonical: `${SITE_URL}/${locale}`,
+      canonical: `${SITE_URL}/he`,
       languages: {
         'he': `${SITE_URL}/he`,
-        'en': `${SITE_URL}/en`,
       },
     },
     robots: {
@@ -94,9 +94,9 @@ export async function generateMetadata({
       images: [
         {
           url: `${SITE_URL}/og-image.png`,
-          width: 600,
-          height: 600,
-          alt: locale === 'he' ? 'תַּרְאוּ - הצבעות קהילתיות' : 'Taro - Community Voting',
+          width: 1200,
+          height: 630,
+          alt: locale === 'he' ? 'תַּרְאוּ — הקול של השכונה, סוף־סוף במספרים' : 'Taruu — your neighborhood\'s voice, finally in numbers',
         },
       ],
     },
@@ -119,7 +119,8 @@ export async function generateMetadata({
     },
     manifest: '/site.webmanifest',
     verification: {
-      google: 'your-google-verification-code', // Add your verification code
+      // Set NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION in env; omitted when unset.
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     },
     category: 'technology',
   };
@@ -148,7 +149,7 @@ function generateStructuredData(locale: Locale) {
       name: 'Israel',
     },
     sameAs: [
-      'https://chat.whatsapp.com/your-whatsapp-group',
+      WHATSAPP_FOUNDERS_LINK,
     ],
   };
 
@@ -271,8 +272,8 @@ export default async function LocaleLayout({
   const { locale: rawLocale } = await params;
   const locale = rawLocale as Locale;
 
-  // Validate locale
-  if (!i18n.locales.includes(locale)) {
+  // Validate locale (Hebrew-only — anything else 404s; middleware already redirects)
+  if (!(i18n.locales as readonly string[]).includes(locale)) {
     notFound();
   }
 
@@ -307,8 +308,10 @@ export default async function LocaleLayout({
       <body>
         <AnalyticsEvents />
         <AuthProvider>
-          <LenisProvider><script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="taro" />
-        {children}</LenisProvider>
+          <LenisProvider>
+            <script defer src="https://clever-swan-577.convex.site/beacon.js" data-slug="taro" />
+            {children}
+          </LenisProvider>
           <WhatsAppButton locale={locale} />
         </AuthProvider>
       </body>

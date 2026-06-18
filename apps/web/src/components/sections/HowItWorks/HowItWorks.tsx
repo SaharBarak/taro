@@ -1,8 +1,13 @@
 'use client';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
+import { GradientText } from '@/components/ui/GradientText';
+import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Heading, Text } from '@/components/ui/Typography';
+import { AnimatedFadeInUp } from '@/components/animations';
+import { useReducedMotion } from '@/hooks';
+import { StoryScene, type StorySceneVariant } from '@/components/illustrations';
 import type { Locale } from '@/lib/i18n';
 import styles from './HowItWorks.module.css';
 
@@ -10,108 +15,106 @@ interface HowItWorksProps {
   locale?: Locale;
 }
 
-const getSteps = (locale: Locale) => [
+type Accent = 'blue' | 'green' | 'purple' | 'amber';
+
+interface Step {
+  number: string;
+  accent: Accent;
+  scene: StorySceneVariant;
+  title: string;
+  description: string;
+}
+
+const STEPS: readonly Step[] = [
   {
     number: '01',
-    title: locale === 'en' ? 'Easy Registration' : 'נרשמים בקלות',
-    description: locale === 'en'
-      ? 'Email or phone, quick verification — that\'s it, you\'re part of the influential community.'
-      : 'אימייל או טלפון, אימות קצר — וזהו, אתם חלק מהקהילה המשפיעה.',
+    accent: 'blue',
+    scene: 'verify',
+    title: 'נרשמים בקלות',
+    description: 'אימייל או טלפון, אימות קצר. אתם בפנים.',
   },
   {
     number: '02',
-    title: locale === 'en' ? 'See What\'s Happening (Or Propose a Topic)' : 'רואים מה קורה (או מציעים נושא)',
-    description: locale === 'en'
-      ? 'Discover active votes in Kiryat Tivon, or propose a new topic you want to bring to the agenda.'
-      : 'מגלים הצבעות פעילות בקריית טבעון, או מציעים נושא חדש שחשוב לכם להעלות לסדר היום.',
+    accent: 'green',
+    scene: 'vote',
+    title: 'רואים מה על הפרק',
+    description: 'הצבעות פעילות בקריית טבעון, או מציעים נושא חדש משלכם.',
   },
   {
     number: '03',
-    title: locale === 'en' ? 'Vote and Participate' : 'מצביעים ומשתתפים',
-    description: locale === 'en'
-      ? 'Choose a position, verify presence (GPS), and participate with ₪3 fee that backs your position professionally.'
-      : 'בוחרים עמדה, מאמתים נוכחות (GPS) ומשתתפים ב-₪3 דמי השתתפות שנותנים גב מקצועי לעמדה שלכם.',
+    accent: 'purple',
+    scene: 'proof',
+    title: 'מצביעים ומאמתים',
+    description: 'בוחרים עמדה, מאמתים נוכחות (GPS), ומשתתפים ב-₪3 שנותנים לעמדה גב.',
   },
   {
     number: '04',
-    title: locale === 'en' ? 'Follow the Results' : 'עוקבים אחרי התוצאות',
-    description: locale === 'en'
-      ? 'Watch data in real time. Results are presented to the council as a clear, transparent, data-backed community position.'
-      : 'צופים בנתונים בזמן אמת. התוצאות מוגשות למועצה כעמדה קהילתית ברורה, שקופה ומגובה בנתונים.',
+    accent: 'amber',
+    scene: 'impact',
+    title: 'עוקבים אחרי התוצאה',
+    description: 'נתונים בזמן אמת, שמוגשים למועצה כעמדה קהילתית מגובה.',
   },
-];
+] as const;
 
-export function HowItWorks({ locale = 'he' }: HowItWorksProps) {
-  const steps = getSteps(locale);
-  const [isMobile, setIsMobile] = useState(false);
+export function HowItWorks({ locale: _locale = 'he' }: HowItWorksProps) {
+  const reducedMotion = useReducedMotion();
+  const railRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const t = {
-    label: locale === 'en' ? 'How It Works' : 'איך זה עובד',
-    title: locale === 'en' ? 'Four Simple Steps' : 'ארבעה צעדים פשוטים',
-    subtitle: locale === 'en'
-      ? 'From registration to real impact on your community'
-      : 'מההרשמה ועד להשפעה אמיתית על הקהילה שלכם',
-  };
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Vertical brand rail fills as the reader moves through the steps.
   const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start end', 'end start'],
+    target: railRef,
+    offset: ['start 0.75', 'end 0.6'],
   });
-
-  // Horizontal scroll: cards slide in from off-screen as user scrolls (desktop only)
-  // On mobile, use native touch scroll instead
-  const x = useTransform(scrollYProgress, [0, 0.5], ['100%', '0%']);
-
-  // Progress bar width based on scroll
-  const progressWidth = useTransform(scrollYProgress, [0.15, 0.85], ['0%', '100%']);
+  const railHeight = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
 
   return (
-    <section className={styles.howItWorks} ref={containerRef}>
-      {/* Header - Fixed at top */}
-      <div className={styles.header}>
-        <Text size="lg" color="accent" weight="semibold" align="center">
-          {t.label}
-        </Text>
-        <Heading level={2} align="center">
-          {t.title}
-        </Heading>
-        <Text size="xl" color="secondary" align="center" className={styles.description}>
-          {t.subtitle}
-        </Text>
-      </div>
+    <section id="how" className={styles.howItWorks}>
+      <div className={styles.aura} aria-hidden />
 
-      {/* Horizontal Progress Line */}
-      <div className={styles.progressLine}>
-        <motion.div className={styles.progressFill} style={{ width: progressWidth }} />
-      </div>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <Eyebrow>איך זה עובד</Eyebrow>
+          <Heading level={2} align="center" className={styles.title}>
+            מהרשמה ועד השפעה —{' '}
+            <GradientText>בארבעה צעדים.</GradientText>
+          </Heading>
+        </header>
 
-      {/* Horizontal Marquee Track */}
-      <div className={styles.trackWrapper}>
-        <motion.div
-          className={styles.track}
-          style={isMobile ? undefined : { x }}
-        >
-          {steps.map((step) => (
-            <div key={step.number} className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div className={styles.stepNumber}>
-                  <span>{step.number}</span>
-                </div>
-                <h3 className={styles.stepTitle}>{step.title}</h3>
-              </div>
-              <Text size="base" color="secondary" className={styles.stepDescription}>
-                {step.description}
-              </Text>
-            </div>
-          ))}
-        </motion.div>
+        <div className={styles.timeline} ref={railRef}>
+          {/* Brand progress rail */}
+          <div className={styles.rail} aria-hidden>
+            <motion.div
+              className={styles.railFill}
+              style={reducedMotion ? { height: '100%' } : { height: railHeight }}
+            />
+          </div>
+
+          <ol className={styles.steps}>
+            {STEPS.map((step, index) => (
+              <li key={step.number} className={styles.stepItem}>
+                <AnimatedFadeInUp delay={reducedMotion ? 0 : index * 0.08}>
+                  <article className={`${styles.step} ${styles[`accent-${step.accent}`]}`}>
+                    <span className={styles.node} aria-hidden />
+
+                    <div className={styles.sceneWrap}>
+                      <StoryScene variant={step.scene} title={step.title} />
+                    </div>
+
+                    <div className={styles.body}>
+                      <span className={styles.number}>{step.number}</span>
+                      <h3 className={styles.stepTitle}>{step.title}</h3>
+                      <Text size="base" color="secondary" className={styles.stepDescription}>
+                        {step.description}
+                      </Text>
+                    </div>
+                  </article>
+                </AnimatedFadeInUp>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <p className={styles.microcopy}>כל התהליך לוקח פחות מדקה.</p>
       </div>
     </section>
   );

@@ -18,7 +18,7 @@ function ApiClientInitializer({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Initialize API client with token getter
     initializeApiClient({
-      baseUrl: process.env.EXPO_PUBLIC_API_URL || 'https://sync.co.il',
+      baseUrl: process.env.EXPO_PUBLIC_API_URL || 'https://taruu.co.il',
       getToken: getAuthToken,
     });
 

@@ -1,143 +1,152 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
-import {
-  greenInvoiceService,
-  type PaymentWebhookEvent,
-} from '@/services/payments/greenInvoice';
+import { paddleService } from '@/services/payments/paddle';
+import type { PaymentWebhookEvent } from '@sync/shared';
 import { qubikService } from '@/services/qubik';
 import { emailService } from '@/services/email';
 import {
   getPaymentById,
+  getPaymentByProviderId,
+  markPaymentCompleted,
   updatePaymentStatus,
   createEntitlement,
   getUserById,
   recordUserVote,
   incrementVoteOption,
+  recordTreasuryDeposit,
   getWebhookEventByEventId,
   createWebhookEvent,
   updateWebhookEventStatus,
-  isWebhookStale,
 } from '@/lib/supabase/db';
 import { webhookLogger as log } from '@/lib/logger';
 
-// Maximum webhook age: 5 minutes (300 seconds)
-const MAX_WEBHOOK_AGE_SECONDS = 5 * 60;
-
 /**
  * POST /api/payments/webhook
- * Handle Green Invoice payment webhooks
+ * Handle Paddle Billing webhooks.
  *
- * Security features:
- * - HMAC signature verification (authenticity)
- * - Timestamp validation (freshness - rejects events > 5 min old)
- * - Event ID tracking (uniqueness - prevents replay attacks)
- * - Idempotent payment processing (safe retries)
+ * Security:
+ * - Paddle-Signature HMAC verification (authenticity + freshness; the signed
+ *   timestamp is rejected if older than 5 min — replay protection).
+ * - event_id tracking (uniqueness — prevents duplicate processing).
+ * - Idempotent payment processing (safe retries).
+ *
+ * Fulfilment on transaction.completed:
+ * - mark payment completed
+ * - accrue ILS into the per-vote treasury ledger (funds the Bags.fm bag at resolution)
+ * - mint SYNC tokens, record the vote, email a receipt
  */
 export async function POST(request: NextRequest) {
   let eventId: string | null = null;
 
   try {
     const payload = await request.text();
-    const signature = request.headers.get('x-green-invoice-signature') || '';
+    const signature = request.headers.get('paddle-signature') || '';
 
-    // Verify webhook signature (proves authenticity)
-    if (!greenInvoiceService.verifyWebhookSignature(payload, signature)) {
+    // Verify webhook signature (authenticity + freshness)
+    if (!paddleService.verifyWebhookSignature(payload, signature)) {
       log.error('Webhook signature verification failed');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    // Parse the webhook event
     const rawPayload = JSON.parse(payload);
-    const event: PaymentWebhookEvent = greenInvoiceService.parseWebhookEvent(rawPayload);
+    const event: PaymentWebhookEvent = paddleService.parseWebhookEvent(rawPayload);
 
-    // === REPLAY ATTACK PREVENTION ===
-
-    // 1. Timestamp validation (if provided by Green Invoice)
-    // Check header first, then payload timestamp
-    const timestampHeader = request.headers.get('x-green-invoice-timestamp');
-    const webhookTimestamp = timestampHeader
-      ? parseInt(timestampHeader, 10)
-      : rawPayload.createdAt
-        ? Math.floor(new Date(rawPayload.createdAt).getTime() / 1000)
-        : null;
-
-    if (webhookTimestamp && isWebhookStale(webhookTimestamp, MAX_WEBHOOK_AGE_SECONDS)) {
-      log.error('Webhook rejected: timestamp too old', {
-        timestamp: webhookTimestamp,
-        age: Math.floor(Date.now() / 1000) - webhookTimestamp,
-        maxAge: MAX_WEBHOOK_AGE_SECONDS,
-      });
-      return NextResponse.json(
-        { error: 'Webhook too old - possible replay attack' },
-        { status: 401 }
-      );
-    }
-
-    // 2. Generate unique event ID for replay detection
-    // Use Green Invoice's event ID if available, otherwise create from payload hash
-    const eventIdHeader = request.headers.get('x-green-invoice-event-id');
+    // === REPLAY / DUPLICATE PREVENTION ===
     const payloadHash = createHash('sha256').update(payload).digest('hex');
-    // Ensure eventId is always a string - use fallback if all sources are null/undefined
-    const generatedEventId = eventIdHeader || rawPayload.id || `gi_${event.paymentId}_${payloadHash.substring(0, 16)}`;
+    const generatedEventId =
+      rawPayload.event_id ||
+      rawPayload.notification_id ||
+      `pdl_${event.paymentId}_${payloadHash.substring(0, 16)}`;
     eventId = generatedEventId;
 
-    // 3. Check if this event has already been processed
     const existingEvent = await getWebhookEventByEventId(generatedEventId);
     if (existingEvent) {
       if (existingEvent.status === 'processed') {
         log.info('Webhook already processed (replay detected)', { eventId: generatedEventId });
         return NextResponse.json({ received: true, idempotent: true, replay: true });
       }
-      // If previous processing failed, allow retry
       if (existingEvent.status === 'failed') {
         log.info('Retrying previously failed webhook', { eventId: generatedEventId });
       }
     } else {
-      // 4. Record new webhook event before processing
-      await createWebhookEvent({
-        event_id: generatedEventId,
-        provider: 'green_invoice',
-        event_type: event.type,
-        payload_hash: payloadHash,
-        idempotency_key: event.metadata.orderId || event.paymentId,
-        status: 'pending',
-      });
+      try {
+        await createWebhookEvent({
+          event_id: generatedEventId,
+          provider: 'paddle',
+          event_type: rawPayload.event_type || event.type,
+          payload_hash: payloadHash,
+          idempotency_key: event.metadata.orderId || event.paymentId,
+          status: 'pending',
+        });
+      } catch (insertError) {
+        // Unique-constraint race: a concurrent delivery of the same event won the
+        // insert. Treat this delivery as a replay and let the winner process it.
+        log.info('Concurrent webhook insert detected — treating as replay', {
+          eventId: generatedEventId,
+          error: insertError instanceof Error ? insertError.message : insertError,
+        });
+        return NextResponse.json({ received: true, idempotent: true, replay: true });
+      }
     }
 
-    // Handle the event
     switch (event.type) {
       case 'payment.succeeded': {
-        // The paymentId from Green Invoice is our orderId (which is our payment.id)
+        // custom_data.orderId is our internal payment id
         const ourPaymentId = event.metadata.orderId || event.paymentId;
-
-        // Look up payment in our database
-        const payment = await getPaymentById(ourPaymentId);
+        const payment =
+          (await getPaymentById(ourPaymentId)) ||
+          (await getPaymentByProviderId(event.paymentId));
 
         if (!payment) {
           log.error('Payment not found', { paymentId: ourPaymentId });
           return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
         }
 
-        // Idempotency check - if already completed, return success
-        if (payment.status === 'completed') {
+        // Atomic claim: pending→completed in one statement. Only the delivery
+        // that flips the row runs fulfilment — Paddle fires BOTH transaction.
+        // completed and transaction.paid (distinct event_ids that both pass the
+        // event_id dedup) and retries on non-2xx, so a TOCTOU status read would
+        // double-credit treasury + double-mint tokens. The loser is idempotent.
+        const claimed = await markPaymentCompleted(payment.id, event.paymentId);
+        if (!claimed) {
           log.info('Payment already processed (idempotent)', { paymentId: payment.id });
           return NextResponse.json({ received: true, idempotent: true });
         }
 
-        // Update payment status to completed
-        await updatePaymentStatus(payment.id, 'completed', event.paymentId);
-
-        // Get user
         const user = await getUserById(payment.user_id);
         if (!user) {
           log.error('User not found for payment', { paymentId: payment.id, userId: payment.user_id });
           break;
         }
 
-        // Calculate tokens to mint (1 ILS = 1 token, amount is in agorot)
+        // 1 ILS = 1 SYNC token; payment.amount is in agorot
         const tokensToMint = Math.floor(payment.amount / 100);
 
-        // Create entitlement record
+        // === Treasury accrual (fiat ledger) ===
+        // Vote-participation money carries the vote_id so it can be batch-seeded
+        // into that vote's Bags.fm bag at resolution. Creation fees have no vote yet.
+        try {
+          const municipalityId = user.municipality_id || 'unassigned';
+          await recordTreasuryDeposit({
+            municipalityId,
+            amountAgorot: payment.amount,
+            paymentId: payment.id,
+            userId: user.id,
+            voteId: payment.type === 'vote_participation' ? payment.vote_id : null,
+            description:
+              payment.type === 'vote_participation'
+                ? `Vote participation deposit (vote ${payment.vote_id})`
+                : 'Vote creation fee deposit',
+          });
+        } catch (treasuryError) {
+          log.error('Failed to accrue treasury deposit', {
+            error: treasuryError,
+            paymentId: payment.id,
+          });
+          // Non-fatal: reconciliation can replay from payments + webhook_events
+        }
+
+        // Entitlement
         await createEntitlement({
           user_id: user.id,
           type: payment.type === 'vote_participation' ? 'vote' : 'create_vote',
@@ -158,15 +167,14 @@ export async function POST(request: NextRequest) {
             log.info('Minted SYNC tokens', { tokensToMint, userId: user.id });
           } catch (mintError) {
             log.error('Error minting tokens', { error: mintError, userId: user.id, tokensToMint });
-            // Don't fail - tokens can be minted manually later
           }
         } else if (tokensToMint > 0 && !user.qubik_wallet_address) {
           log.warn('User has no wallet address - cannot mint tokens', { userId: user.id, tokensToMint });
         }
 
-        // Send receipt email
+        // Receipt email (best-effort)
         try {
-          const paymentStatus = await greenInvoiceService.getPaymentStatus(event.paymentId);
+          const paymentStatus = await paddleService.getPaymentStatus(event.paymentId);
           await emailService.sendPaymentReceiptEmail({
             to: user.email,
             firstName: user.first_name || 'משתמש',
@@ -179,20 +187,16 @@ export async function POST(request: NextRequest) {
           log.error('Error sending receipt email', { error: emailError, userId: user.id });
         }
 
-        // If vote participation, record the vote
+        // Record the vote
         if (payment.type === 'vote_participation' && payment.vote_id && payment.option_id) {
           try {
-            // Record user vote
             await recordUserVote({
               user_id: user.id,
               vote_id: payment.vote_id,
               option_id: payment.option_id,
               payment_id: payment.id,
             });
-
-            // Increment vote option count
             await incrementVoteOption(payment.option_id);
-
             log.info('Vote recorded', { voteId: payment.vote_id, optionId: payment.option_id, userId: user.id });
           } catch (voteError) {
             log.error('Error recording vote', { error: voteError, voteId: payment.vote_id, optionId: payment.option_id });
@@ -204,24 +208,26 @@ export async function POST(request: NextRequest) {
 
       case 'payment.failed': {
         const ourPaymentId = event.metadata.orderId || event.paymentId;
-        const payment = await getPaymentById(ourPaymentId);
+        const payment =
+          (await getPaymentById(ourPaymentId)) ||
+          (await getPaymentByProviderId(event.paymentId));
 
         if (payment && payment.status !== 'failed') {
           await updatePaymentStatus(payment.id, 'failed', event.paymentId);
         }
-
         log.error('Payment failed', { paymentId: event.paymentId });
         break;
       }
 
       case 'refund.created': {
         const ourPaymentId = event.metadata.orderId || event.paymentId;
-        const payment = await getPaymentById(ourPaymentId);
+        const payment =
+          (await getPaymentById(ourPaymentId)) ||
+          (await getPaymentByProviderId(event.paymentId));
 
         if (payment && payment.status !== 'refunded') {
           await updatePaymentStatus(payment.id, 'refunded', event.paymentId);
         }
-
         log.info('Refund processed', { paymentId: event.paymentId });
         break;
       }
@@ -230,7 +236,6 @@ export async function POST(request: NextRequest) {
         log.info('Unhandled event type', { eventType: event.type });
     }
 
-    // Mark webhook event as successfully processed
     if (eventId) {
       await updateWebhookEventStatus(eventId, 'processed');
     }
@@ -238,8 +243,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     log.error('Webhook error', { error });
-
-    // Mark webhook event as failed for potential retry
     if (eventId) {
       await updateWebhookEventStatus(
         eventId,
@@ -247,17 +250,6 @@ export async function POST(request: NextRequest) {
         error instanceof Error ? error.message : 'Unknown error'
       );
     }
-
-    return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
-
-// Disable body parsing for webhook signature verification
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};

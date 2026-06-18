@@ -20,10 +20,12 @@ const serverEnvSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
   GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
 
-  // Green Invoice
-  GREEN_INVOICE_API_KEY: z.string().min(1, 'GREEN_INVOICE_API_KEY is required'),
-  GREEN_INVOICE_API_SECRET: z.string().min(1, 'GREEN_INVOICE_API_SECRET is required'),
-  GREEN_INVOICE_WEBHOOK_SECRET: z.string().optional(),
+  // Paddle (Merchant of Record)
+  PADDLE_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
+  PADDLE_API_KEY: z.string().min(1, 'PADDLE_API_KEY is required'),
+  PADDLE_WEBHOOK_SECRET: z.string().min(1, 'PADDLE_WEBHOOK_SECRET is required'),
+  PADDLE_PRICE_VOTE_PARTICIPATION: z.string().min(1, 'PADDLE_PRICE_VOTE_PARTICIPATION is required'),
+  PADDLE_PRICE_VOTE_CREATION: z.string().min(1, 'PADDLE_PRICE_VOTE_CREATION is required'),
 
   // Resend Email
   RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY is required'),

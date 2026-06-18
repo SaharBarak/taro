@@ -70,6 +70,7 @@ vi.mock('@/lib/rate-limit', () => ({
 vi.mock('@/services/verification/municipality', () => ({
   verifyLocationInMunicipality: vi.fn(),
   findMunicipalityByCoordinates: vi.fn(),
+  verifyCheckIn: vi.fn(),
 }));
 
 // Import mocked modules for type-safe access
@@ -91,6 +92,7 @@ import { voteParticipationLimiter, createRateLimitResponse } from '@/lib/rate-li
 import {
   verifyLocationInMunicipality,
   findMunicipalityByCoordinates,
+  verifyCheckIn,
 } from '@/services/verification/municipality';
 
 describe('Vote Participation API Routes', () => {
@@ -139,6 +141,12 @@ describe('Vote Participation API Routes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: GPS passes server-side municipality verification.
+    (verifyCheckIn as Mock).mockReturnValue({
+      verified: true,
+      inMunicipality: true,
+      accuracyAcceptable: true,
+    });
   });
 
   describe('POST /api/votes/[id]/participate', () => {
@@ -151,6 +159,29 @@ describe('Vote Participation API Routes', () => {
         timestamp: Date.now(),
       },
     };
+
+    it('should return 403 when GPS fails municipality verification (anti-spoof)', async () => {
+      (getSessionFromRequest as Mock).mockResolvedValue(mockSession);
+      (getVoteWithOptions as Mock).mockResolvedValue(mockVote);
+      (verifyCheckIn as Mock).mockReturnValue({
+        verified: false,
+        inMunicipality: false,
+        accuracyAcceptable: true,
+        error: 'Outside municipality',
+      });
+
+      const request = new NextRequest('http://localhost:3000/api/votes/vote-123/participate', {
+        method: 'POST',
+        body: JSON.stringify(validParticipateData),
+      });
+      const response = await participate(request, { params: createParams('vote-123') });
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.code).toBe('LOCATION_NOT_VERIFIED');
+      // Must reject before recording anything on-chain.
+      expect(recordUserVote).not.toHaveBeenCalled();
+    });
 
     it('should return 401 when not authenticated', async () => {
       (getSessionFromRequest as Mock).mockResolvedValue(null);

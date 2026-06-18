@@ -1,101 +1,184 @@
 .hero {
-  padding-block: var(--space-24) var(--space-12);
-  background: linear-gradient(
-    180deg,
-    var(--color-background) 0%,
-    var(--color-secondary-50) 100%
-  );
+  background: var(--np-paper);
+  padding-inline: clamp(var(--space-5), 3vw, var(--space-12));
+  padding-block: clamp(var(--space-8), 6vw, var(--space-16)) clamp(var(--space-6), 3vw, var(--space-10));
 }
 
 .container {
-  max-width: var(--container-7xl);
+  width: 100%;
+  max-width: var(--np-container);
   margin-inline: auto;
-  padding-inline: var(--space-6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
 }
 
-.badge {
+/* ---------- Masthead-style head ---------- */
+.head {
+  max-width: 62ch;
+}
+
+.kicker {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  background-color: var(--color-secondary-100);
-  border-radius: var(--radius-full);
-  font-family: var(--font-secondary);
+  font-family: var(--np-font-mono);
   font-size: var(--text-sm);
-  color: var(--color-secondary-700);
-  margin-bottom: var(--space-4);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--np-red);
+}
+.kickerTick {
+  inline-size: 0.7em;
+  block-size: 0.7em;
+  background: var(--np-red);
 }
 
-.badgeIcon {
-  font-size: var(--text-base);
+.headline {
+  font-family: var(--np-font-display);
+  font-weight: 900;
+  font-size: clamp(var(--text-4xl), 5.5vw, var(--text-8xl));
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  color: var(--np-ink);
+  margin-block: var(--space-3) var(--space-4);
+  overflow-wrap: break-word;
+}
+.red {
+  color: var(--np-red);
 }
 
-.heading {
-  margin-bottom: var(--space-4);
-  font-size: var(--text-5xl);
+.standfirst {
+  font-family: var(--np-font-body);
+  font-size: clamp(var(--text-base), 0.5vw + 0.9rem, var(--text-xl));
+  line-height: 1.45;
+  color: var(--np-ink-soft);
 }
 
-@media (min-width: 768px) {
-  .heading {
-    font-size: var(--text-6xl);
-  }
-}
-
-.description {
-  max-width: 650px;
-  margin-bottom: var(--space-8);
-}
-
-.multiplierDemo {
-  width: 100%;
-  max-width: 400px;
-}
-
-.multiplierCard {
-  background: linear-gradient(
-    135deg,
-    var(--color-secondary-500) 0%,
-    var(--color-secondary-600) 100%
-  );
-  border-radius: var(--radius-2xl);
-  padding: var(--space-8);
-  color: white;
-  box-shadow: var(--shadow-xl);
-}
-
-.multiplierLabel {
-  font-family: var(--font-secondary);
-  font-size: var(--text-sm);
-  opacity: 0.9;
-  margin-bottom: var(--space-2);
-}
-
-.multiplierValue {
+.actions {
   display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: var(--space-1);
-  margin-bottom: var(--space-3);
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  margin-block-start: var(--space-6);
 }
 
-.multiplierNumber {
-  font-family: var(--font-primary);
-  font-size: var(--text-6xl);
-  font-weight: var(--font-weight-bold);
+.dateline {
+  font-family: var(--np-font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  color: var(--np-ink-faint);
+}
+
+/* ---------- Principles ("rules") ---------- */
+.rulesHead {
+  display: block;
+  margin-block-start: clamp(var(--space-8), 5vw, var(--space-12));
+  padding-block-end: var(--space-2);
+  border-block-end: var(--np-rule-heavy) solid var(--np-ink);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--np-ink);
+}
+
+.rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.rule {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'no    icon'
+    'title title'
+    'text  text';
+  align-items: start;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  padding-block: var(--space-5);
+  border-block-end: var(--np-rule-hair) solid var(--np-ink);
+}
+
+.ruleNo {
+  grid-area: no;
+  font-family: var(--np-font-mono);
+  font-weight: 800;
+  font-size: var(--text-lg);
+  color: var(--np-red);
   line-height: 1;
 }
 
-.multiplierX {
-  font-family: var(--font-primary);
-  font-size: var(--text-3xl);
-  font-weight: var(--font-weight-medium);
-  opacity: 0.8;
+.ruleIcon {
+  grid-area: icon;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--np-ink);
 }
 
-.multiplierSubtext {
-  color: rgba(255, 255, 255, 0.85);
+.ruleTitle {
+  grid-area: title;
+  font-family: var(--np-font-display);
+  font-weight: 900;
+  font-size: var(--text-xl);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--np-ink);
+}
+
+.ruleText {
+  grid-area: text;
+  font-family: var(--np-font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--np-ink-soft);
+}
+
+/* ---------- Trust line ---------- */
+.trust {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-6);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.02em;
+  color: var(--np-ink-soft);
+}
+
+.trustMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.9rem;
+  block-size: 1.9rem;
+  flex: 0 0 auto;
+  background: var(--np-red);
+  color: var(--np-paper);
+  font-family: var(--np-font-display);
+  font-weight: 900;
+}
+
+/* ---------- Broadsheet: principles as 3-col ledger with column rules ---------- */
+@media (min-width: 768px) {
+  .rules {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .rule {
+    grid-template-areas:
+      'no    icon'
+      'title title'
+      'text  text';
+    padding-inline: clamp(var(--space-4), 2vw, var(--space-7));
+    border-block-end: 0;
+    border-block-start: var(--np-rule) solid var(--np-ink);
+  }
+  .rule + .rule {
+    border-inline-start: var(--np-rule-hair) solid var(--np-ink);
+  }
 }

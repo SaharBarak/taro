@@ -291,6 +291,87 @@
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
   --focus-ring-color: var(--color-primary);
+
+  /* ============================================
+   * LUMINOUS CIVIC TOKENS (redesign v1)
+   * Light, optimistic, trustworthy. See .redesign/DESIGN_SYSTEM.md
+   * ============================================ */
+
+  /* Surfaces — warm light base, not stark white everywhere */
+  --lc-canvas: #FBFBFD;
+  --lc-canvas-tint: #F4F6FB;
+  --lc-surface: #FFFFFF;
+  --lc-ink: #0E1525;
+  --lc-ink-soft: #3A4358;
+  --lc-ink-faint: #6B7488;
+
+  /* Brand signature gradient (the one hero through-line) */
+  --lc-grad-brand: linear-gradient(110deg, #2563EB 0%, #10B981 52%, #8B5CF6 100%);
+  --lc-grad-brand-soft: linear-gradient(110deg, #3B82F6 0%, #34D399 55%, #A78BFA 100%);
+
+  /* Per-chapter / per-pillar accent gradients (one accent per surface) */
+  --lc-grad-blue: linear-gradient(135deg, #3B82F6, #2563EB);
+  --lc-grad-green: linear-gradient(135deg, #34D399, #059669);
+  --lc-grad-purple: linear-gradient(135deg, #A78BFA, #7C3AED);
+  --lc-grad-amber: linear-gradient(135deg, #FBBF24, #F59E0B);
+
+  /* Tinted soft glows — hue-matched, never harsh neon */
+  --lc-glow-blue: 0 12px 40px -12px rgba(37, 99, 235, 0.35);
+  --lc-glow-green: 0 12px 40px -12px rgba(16, 185, 129, 0.35);
+  --lc-glow-purple: 0 12px 40px -12px rgba(139, 92, 246, 0.35);
+  --lc-glow-amber: 0 12px 40px -12px rgba(245, 158, 11, 0.32);
+  --lc-glow-brand: 0 18px 50px -16px rgba(37, 99, 235, 0.28), 0 18px 60px -20px rgba(139, 92, 246, 0.22);
+
+  /* Glass (Liquid Glass) */
+  --lc-glass-fill: rgba(255, 255, 255, 0.62);
+  --lc-glass-stroke: rgba(255, 255, 255, 0.7);
+  --lc-glass-edge: rgba(14, 21, 37, 0.06);
+  --lc-glass-blur: 18px;
+
+  /* Tinted elevation (shadows tinted to ink, never flat gray) */
+  --lc-e1: 0 1px 2px rgba(14, 21, 37, 0.04), 0 8px 24px -16px rgba(14, 21, 37, 0.12);
+  --lc-e2: inset 0 1px 0 var(--lc-glass-stroke), 0 1px 2px rgba(14, 21, 37, 0.04), 0 20px 40px -24px rgba(14, 21, 37, 0.18);
+
+  /* Motion */
+  --lc-ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+  --lc-radius-glass: 1.5rem;   /* 24px */
+  --lc-radius-tile: 2.5rem;    /* 40px hero/feature tiles */
+
+  /* ============================================
+   * BRUTALIST TECH-PRESS TOKENS (redesign v2)
+   * Newsprint + ink + pillarbox red. See .redesign/NEWSPRINT_TECH.md
+   * ============================================ */
+
+  /* Color — two-color print on cream */
+  --np-paper: #F4F1E8;
+  --np-paper-2: #ECE7D8;
+  --np-paper-box: #FBFAF4;
+  --np-ink: #14110E;
+  --np-ink-soft: #3B362E;
+  --np-ink-faint: #6E675A;
+  --np-red: #E0301E;
+  --np-red-dark: #B0220F;
+  --np-red-ink: #7A1607;
+  --np-paper-edge: rgba(20, 17, 14, 0.12);
+
+  /* Type */
+  --np-font-display: 'Heebo', system-ui, sans-serif;
+  --np-font-body: 'Frank Ruhl Libre', Georgia, serif;
+  --np-font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* Rules (border widths) */
+  --np-rule-hair: 1px;
+  --np-rule: 2px;
+  --np-rule-heavy: 4px;
+  --np-rule-masthead: 6px;
+
+  /* Motion — mechanical/editorial */
+  --np-ease: cubic-bezier(0.2, 0, 0, 1);
+  --np-dur-snap: 120ms;
+  --np-dur: 200ms;
+
+  /* Layout */
+  --np-container: 1600px;
 }
 
 /* ============================================

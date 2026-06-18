@@ -1,8 +1,9 @@
 'use client';
 
 import styles from './WhatsAppButton.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
 
-const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
+const WHATSAPP_GROUP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 interface WhatsAppButtonProps {
   locale?: string;

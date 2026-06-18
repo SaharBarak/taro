@@ -64,19 +64,24 @@ export async function GET(request: NextRequest) {
     // Get user's NFTs directly from database
     const { supabaseAdmin } = await import('@/lib/supabase/server');
 
+    // Certificates are auto-issued on resolution (view-only) — return every
+    // record, not just on-chain-minted ones. The UI shows a status badge
+    // (issued / pending-chain) so a not-yet-minted certificate still appears.
     let query = supabaseAdmin
       .from('vote_nfts')
       .select(`
         id,
         vote_id,
         type,
+        status,
         mint_address,
+        mint_tx_hash,
         metadata,
-        minted_at
+        minted_at,
+        created_at
       `)
       .eq('user_id', user.id)
-      .eq('status', 'minted')
-      .order('minted_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (type) {
@@ -94,8 +99,7 @@ export async function GET(request: NextRequest) {
     const { count, error: countError } = await supabaseAdmin
       .from('vote_nfts')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('status', 'minted');
+      .eq('user_id', user.id);
 
     if (countError) {
       console.error('Failed to count user NFTs:', countError);
@@ -130,14 +134,17 @@ export async function GET(request: NextRequest) {
       return {
         id: nft.id,
         type: nft.type,
+        status: nft.status,
         voteId: nft.vote_id,
         voteTitle: vote?.title || 'Unknown Vote',
         municipality: vote?.municipality_id || 'Unknown',
         mintAddress: nft.mint_address,
-        imageUrl:
-          (metadata?.image as string) ||
-          `https://cdn.taruu.co.il/nfts/${nft.vote_id}/${nft.type}.png`,
+        mintTxHash: nft.mint_tx_hash,
+        // Pilot: the on-chain metadata.image is a stubbed CDN; always serve the
+        // type-based certificate artwork from the app's public dir.
+        imageUrl: `/images/certificates/${nft.type}.png`,
         mintedAt: nft.minted_at,
+        createdAt: nft.created_at,
         displayName:
           (metadata?.name as string) || `Taruu NFT: ${vote?.title || 'Vote'}`,
       };

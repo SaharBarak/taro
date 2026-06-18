@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
           utm_source: source,
           utm_medium: 'website',
           utm_campaign: sourcePage || 'homepage',
-          referring_site: sourcePage || 'https://taro.co.il',
+          referring_site: sourcePage || 'https://taruu.co.il',
         }),
       }
     );

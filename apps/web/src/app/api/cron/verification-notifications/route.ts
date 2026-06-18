@@ -7,6 +7,7 @@ import {
 } from '@/lib/supabase/db';
 import { sendCheckInReminder } from '@/services/notifications/expo';
 import { cronLogger as log } from '@/lib/logger';
+import { secureEqual } from '@/lib/secureCompare';
 
 // Cron secret for authentication
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify authorization header matches expected Bearer token
-    if (authHeader !== `Bearer ${CRON_SECRET}`) {
+    if (!authHeader || !secureEqual(authHeader, `Bearer ${CRON_SECRET}`)) {
       log.warn('Invalid cron authorization attempt');
       return NextResponse.json(
         { error: 'Unauthorized' },

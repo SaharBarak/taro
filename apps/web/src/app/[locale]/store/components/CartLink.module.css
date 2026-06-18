@@ -1,0 +1,46 @@
+.cart {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--np-rule) solid var(--np-ink);
+  background: var(--np-paper-box);
+  font-family: var(--np-font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--np-ink);
+  text-decoration: none;
+  transition:
+    background var(--np-dur-snap) var(--np-ease),
+    color var(--np-dur-snap) var(--np-ease);
+}
+.cart:hover {
+  background: var(--np-ink);
+  color: var(--np-paper);
+}
+
+.glyph {
+  color: var(--np-red);
+  font-size: 0.7em;
+}
+
+.label {
+  text-transform: uppercase;
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.6em;
+  padding-inline: var(--space-1);
+  background: var(--np-red);
+  color: var(--np-paper);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+.cart:hover .count {
+  background: var(--np-paper);
+  color: var(--np-ink);
+}

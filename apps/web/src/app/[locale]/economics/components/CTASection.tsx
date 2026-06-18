@@ -1,74 +1,64 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { NewsButton } from '@/components/press';
 import type { Locale } from '@/lib/i18n';
 import styles from './CTASection.module.css';
+import { WHATSAPP_FOUNDERS_LINK } from '@sync/shared';
+
+const WHATSAPP_LINK = WHATSAPP_FOUNDERS_LINK;
 
 interface CTASectionProps {
   locale: Locale;
 }
 
-export function CTASection({ locale }: CTASectionProps) {
+const trustStats = [
+  { value: '₪3', label: 'עלות הצבעה' },
+  { value: '70%', label: 'לקרן הקהילתית' },
+  { value: 'תעודה', label: 'לכל משתתף' },
+];
+
+export function CTASection(_props: CTASectionProps) {
+  void _props;
+
   return (
-    <section className={styles.cta}>
-      <div className={styles.container}>
-        <motion.div
-          className={styles.content}
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className={styles.title}>מוכנים להצטרף?</h2>
-          <p className={styles.subtitle}>
-            הורידו את האפליקציה והתחילו להשפיע על הקהילה שלכם
+    <section className={styles.cta} aria-labelledby="cta-title">
+      <div className={styles.inner}>
+        <div className={styles.content}>
+          <span className={styles.kicker}>
+            <span aria-hidden className={styles.kickerTick} />
+            פיילוט חי · קריית טבעון
+          </span>
+
+          <h2 id="cta-title" className={styles.headline}>
+            מוכנים להפוך 3 שקלים <span className={styles.red}>לכוח קהילתי?</span>
+          </h2>
+
+          <p className={styles.standfirst}>
+            הצטרפו לקהילת התושבים שבונה את הקרן הראשונה. הצטרפות חינם, בלי התחייבות.
           </p>
 
-          <div className={styles.buttons}>
-            <Link href={`/${locale}/download`} className={styles.primaryButton}>
-              <span className={styles.buttonIcon}>📱</span>
-              <span className={styles.buttonText}>
-                <span className={styles.buttonLabel}>הורידו את האפליקציה</span>
-                <span className={styles.buttonSub}>iOS & Android</span>
-              </span>
-            </Link>
-
-            <Link href={`/${locale}/support`} className={styles.secondaryButton}>
-              <span className={styles.buttonIcon}>🌍</span>
-              <span className={styles.buttonText}>
-                <span className={styles.buttonLabel}>Connect Wallet</span>
-                <span className={styles.buttonSub}>Support from anywhere</span>
-              </span>
-            </Link>
+          <div className={styles.actions}>
+            <NewsButton
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="red"
+              size="lg"
+              trailing={<span aria-hidden>←</span>}
+            >
+              קבוצת המייסדים
+            </NewsButton>
           </div>
 
-          <motion.div
-            className={styles.stats}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>₪3</span>
-              <span className={styles.statLabel}>עלות הצבעה</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>70%</span>
-              <span className={styles.statLabel}>לקרן הרשות</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>NFT</span>
-              <span className={styles.statLabel}>לכל משתתף</span>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Background decoration */}
-        <div className={styles.backgroundPattern} />
+          <dl className={styles.stats}>
+            {trustStats.map((stat) => (
+              <div key={stat.label} className={styles.statItem}>
+                <dt className={styles.statValue}>{stat.value}</dt>
+                <dd className={styles.statLabel}>{stat.label}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </div>
     </section>
   );

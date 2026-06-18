@@ -4,10 +4,26 @@
 
 // Payment amounts in ILS
 export const VOTE_COST = 3;
-export const CREATE_VOTE_COST = 200;
+export const CREATE_VOTE_COST = 50;
+
+// Merch store (ILS, settled via Green Invoice)
+export const MERCH_CURRENCY = 'ILS' as const;
+/** Flat print-on-demand shipping fee in ILS. */
+export const MERCH_SHIPPING_FLAT_ILS = 25;
+/** Order subtotal (ILS) at/above which shipping is free. */
+export const MERCH_FREE_SHIPPING_THRESHOLD_ILS = 250;
+/** Max units of a single variant per cart line. */
+export const MERCH_MAX_QTY_PER_LINE = 10;
 
 // Token conversion rate (1 ILS = 1 SYNC token)
 export const TOKEN_RATE = 1;
+
+/**
+ * Founders' WhatsApp group — the single persistent join CTA (קבוצת המייסדים)
+ * across the site. Centralized so the invite can be rotated in one place.
+ */
+export const WHATSAPP_FOUNDERS_LINK =
+  'https://chat.whatsapp.com/FITvea9IVsn2Ljie1yCrAc';
 
 // Vote duration limits (in days)
 export const MIN_VOTE_DURATION = 3;
